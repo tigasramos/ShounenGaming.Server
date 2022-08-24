@@ -5,6 +5,14 @@ VisualStudioVersion = 17.2.32630.192
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShounenGaming.API", "src\ShounenGaming.API\ShounenGaming.API.csproj", "{A1146475-B1E0-4517-BCE9-4FD3E3C512DD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShounenGaming.Core", "ShounenGaming.Core\ShounenGaming.Core.csproj", "{89CA9AD5-59D3-4BE5-856E-AE8D6E257726}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShounenGaming.DataAccess", "ShounenGaming.DataAccess\ShounenGaming.DataAccess.csproj", "{B26C9070-C2AC-4691-89DA-3A9B5AE7C836}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShounenGaming.Business", "ShounenGaming.Business\ShounenGaming.Business.csproj", "{ED70DDB8-B2C6-4FFB-A31B-C447ECEF7C06}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShounenGaming.Common", "ShounenGaming.Common\ShounenGaming.Common.csproj", "{7F367ADD-237C-41E7-A54D-54FE23E4F4B5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +23,22 @@ Global
 		{A1146475-B1E0-4517-BCE9-4FD3E3C512DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A1146475-B1E0-4517-BCE9-4FD3E3C512DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A1146475-B1E0-4517-BCE9-4FD3E3C512DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89CA9AD5-59D3-4BE5-856E-AE8D6E257726}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89CA9AD5-59D3-4BE5-856E-AE8D6E257726}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89CA9AD5-59D3-4BE5-856E-AE8D6E257726}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89CA9AD5-59D3-4BE5-856E-AE8D6E257726}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B26C9070-C2AC-4691-89DA-3A9B5AE7C836}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B26C9070-C2AC-4691-89DA-3A9B5AE7C836}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B26C9070-C2AC-4691-89DA-3A9B5AE7C836}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B26C9070-C2AC-4691-89DA-3A9B5AE7C836}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED70DDB8-B2C6-4FFB-A31B-C447ECEF7C06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED70DDB8-B2C6-4FFB-A31B-C447ECEF7C06}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED70DDB8-B2C6-4FFB-A31B-C447ECEF7C06}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED70DDB8-B2C6-4FFB-A31B-C447ECEF7C06}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F367ADD-237C-41E7-A54D-54FE23E4F4B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F367ADD-237C-41E7-A54D-54FE23E4F4B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F367ADD-237C-41E7-A54D-54FE23E4F4B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F367ADD-237C-41E7-A54D-54FE23E4F4B5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
