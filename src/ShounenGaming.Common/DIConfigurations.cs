@@ -1,11 +1,15 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using ShounenGaming.Business.Interfaces.Base;
+using ShounenGaming.Business.Mappers;
 using ShounenGaming.Business.Services.Base;
 using ShounenGaming.DataAccess.Interfaces.Base;
+using ShounenGaming.DataAccess.Persistence;
 using ShounenGaming.DataAccess.Repositories.Base;
 
 namespace ShounenGaming.Common
@@ -17,6 +21,8 @@ namespace ShounenGaming.Common
             services.AddControllers();
 
             services.AddSwagger(assemblyName);
+            services.AddAutoMapper(typeof(UserMapper).Assembly);
+            services.AddSQLDatabase(configuration, environment);
             services.AddRepositories();
             services.AddServices(environment, configuration);
 
@@ -90,7 +96,14 @@ namespace ShounenGaming.Common
         {
             services.AddTransient<IUserRepository, UserRepository>();
         }
-
+        private static void AddSQLDatabase(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env)
+        {
+            services.AddDbContext<DbContext, ShounenGamingContext>(opt =>
+            {
+                opt.UseInMemoryDatabase("ShounenGamingDB");
+                opt.ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning));
+            });
+        }
         #endregion
     }
 }

@@ -1,4 +1,5 @@
-﻿using ShounenGaming.Business.Interfaces.Base;
+﻿using AutoMapper;
+using ShounenGaming.Business.Interfaces.Base;
 using ShounenGaming.Business.Models.Base;
 using ShounenGaming.DataAccess.Interfaces.Base;
 
@@ -7,22 +8,18 @@ namespace ShounenGaming.Business.Services.Base
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepo;
+        private readonly IMapper _mapper;
 
-        public UserService(IUserRepository userRepo)
+        public UserService(IUserRepository userRepo, IMapper mapper)
         {
             _userRepo = userRepo;
+            _mapper = mapper;
         }
 
         public async Task<List<UserDTO>> GetUsers()
         {
             var users = await _userRepo.GetAll();
-            return users.Select(u => new UserDTO
-            {
-                Id = u.Id,
-                FullName = u.FirstName + u.LastName,
-                Birthday = u.Birthday,
-                DiscordId = u.DiscordId,
-            }).ToList();
+            return _mapper.Map<List<UserDTO>>(users);
         }
     }
 }
