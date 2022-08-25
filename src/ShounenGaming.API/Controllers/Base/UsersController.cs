@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 using ShounenGaming.Business.Interfaces.Base;
 using ShounenGaming.Business.Models.Base;
 
@@ -31,6 +32,7 @@ namespace ShounenGaming.API.Controllers.Base
             } 
             catch(Exception ex)
             {
+                Log.Error(ex.Message);
                 return StatusCode(500, ex.Message);
             }
         }
