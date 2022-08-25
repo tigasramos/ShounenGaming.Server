@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Mappers\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\ShounenGaming.Common\ShounenGaming.Common.csproj" />
   </ItemGroup>
 

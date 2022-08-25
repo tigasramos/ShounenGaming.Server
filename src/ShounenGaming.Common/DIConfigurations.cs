@@ -3,6 +3,10 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
+using ShounenGaming.Business.Interfaces.Base;
+using ShounenGaming.Business.Services.Base;
+using ShounenGaming.DataAccess.Interfaces.Base;
+using ShounenGaming.DataAccess.Repositories.Base;
 
 namespace ShounenGaming.Common
 {
@@ -80,9 +84,11 @@ namespace ShounenGaming.Common
         }
         private static void AddServices(this IServiceCollection services, IWebHostEnvironment env, IConfiguration configuration)
         {
+            services.AddTransient<IUserService, UserService>();
         }
         private static void AddRepositories(this IServiceCollection services)
         {
+            services.AddTransient<IUserRepository, UserRepository>();
         }
 
         #endregion

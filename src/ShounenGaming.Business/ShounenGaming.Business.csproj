@@ -8,8 +8,11 @@
 
   <ItemGroup>
     <Folder Include="Exceptions\" />
-    <Folder Include="Interfaces\" />
-    <Folder Include="Services\" />
+    <Folder Include="Mappers\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ShounenGaming.DataAccess\ShounenGaming.DataAccess.csproj" />
   </ItemGroup>
 
 </Project>
