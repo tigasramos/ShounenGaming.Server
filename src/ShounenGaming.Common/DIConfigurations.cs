@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
+using Serilog;
 using ShounenGaming.Business.Interfaces.Base;
 using ShounenGaming.Business.Mappers;
 using ShounenGaming.Business.Services.Base;
@@ -32,6 +33,7 @@ namespace ShounenGaming.Common
 
         public static void ConfigureApp(this WebApplication app)
         {
+            app.UseSerilogRequestLogging();
 
             app.UseCors(corsPolicyBuilder =>
                 corsPolicyBuilder.AllowAnyOrigin()

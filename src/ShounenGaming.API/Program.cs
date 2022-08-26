@@ -5,9 +5,12 @@ using System.Reflection;
 try
 {
     Log.Logger = new LoggerConfiguration()
-        .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Information)
+        .MinimumLevel.Override("Default", Serilog.Events.LogEventLevel.Information)
+        .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+        .MinimumLevel.Override("Microsoft.Hosting.Lifetime", Serilog.Events.LogEventLevel.Information)
         .Enrich.FromLogContext()
         .WriteTo.Console()
+        .WriteTo.File($"logs/log-.txt", rollingInterval: RollingInterval.Day)
         .CreateLogger();
 
 
@@ -15,7 +18,7 @@ try
 
     //Services
     var builder = WebApplication.CreateBuilder(args);
-    builder.Host.UseSerilog((ctx, lc) => lc.WriteTo.Console()); 
+    builder.Host.UseSerilog(); 
     builder.Services.ConfigureServices(builder.Configuration, builder.Environment, Assembly.GetExecutingAssembly().GetName().Name);
 
     //App
