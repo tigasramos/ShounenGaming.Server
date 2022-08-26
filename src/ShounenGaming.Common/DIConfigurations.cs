@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -99,7 +100,15 @@ namespace ShounenGaming.Common
         }
         private static void AddJwt(this IServiceCollection services, IConfiguration configuration)
         {
-            var secretKey = "TODO_SECRET_KEY"; //TODO: Change to Settings
+
+            services.AddAuthorization(opt =>
+            {
+                opt.AddPolicy("Admin", policy => policy.RequireClaim("Role", new string[] { Core.Entities.Base.Enums.RolesEnum.ADMIN.ToString() }));
+                opt.AddPolicy("Mod", policy => policy.RequireClaim("Role", new string[] { Core.Entities.Base.Enums.RolesEnum.ADMIN.ToString(), Core.Entities.Base.Enums.RolesEnum.MOD.ToString() }));
+                opt.AddPolicy("Bot", policy => policy.RequireClaim("Role", new string[] { "Bot" }));
+            });
+
+            var secretKey = "TODO_SUPER_HUGE_SECRET_KEY"; //TODO: Change to Settings
             var key = Encoding.ASCII.GetBytes(secretKey);
             services.AddAuthentication(x =>
             {
@@ -119,15 +128,20 @@ namespace ShounenGaming.Common
                     ValidateAudience = false,
                 };
             });
+
         }
 
         private static void AddServices(this IServiceCollection services, IWebHostEnvironment env, IConfiguration configuration)
         {
+            services.AddSingleton<IMemoryCache, MemoryCache>();
+
+            services.AddTransient<IAuthService, AuthService>();
             services.AddTransient<IUserService, UserService>();
         }
         private static void AddRepositories(this IServiceCollection services)
         {
             services.AddTransient<IUserRepository, UserRepository>();
+            services.AddTransient<IBotRepository, BotRepository>();
         }
         private static void AddSQLDatabase(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env)
         {

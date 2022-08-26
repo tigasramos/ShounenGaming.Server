@@ -9,6 +9,8 @@ namespace ShounenGaming.DataAccess.Interfaces.Base
 {
     public interface IUserRepository : IBaseRepository<User>
     {
+        Task<User?> GetUserByUsername(string username);
         Task<User?> GetUserByDiscordId(string discordId);
+        Task<User?> GetUserByRefreshToken(string refreshToken);
     }
 }

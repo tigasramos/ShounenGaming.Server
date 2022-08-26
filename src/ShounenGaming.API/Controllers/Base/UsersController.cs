@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using ShounenGaming.Business.Interfaces.Base;
@@ -6,6 +7,7 @@ using ShounenGaming.Business.Models.Base;
 
 namespace ShounenGaming.API.Controllers.Base
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class UsersController : ControllerBase

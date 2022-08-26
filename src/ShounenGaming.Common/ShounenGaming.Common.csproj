@@ -17,7 +17,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ShounenGaming.Business\ShounenGaming.Business.csproj" />
-    <ProjectReference Include="..\ShounenGaming.DataAccess\ShounenGaming.DataAccess.csproj" />
   </ItemGroup>
 
 </Project>

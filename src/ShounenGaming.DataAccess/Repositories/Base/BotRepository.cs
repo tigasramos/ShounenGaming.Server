@@ -9,24 +9,19 @@ using System.Threading.Tasks;
 
 namespace ShounenGaming.DataAccess.Repositories.Base
 {
-    public class UserRepository : BaseRepository<User>, IUserRepository
+    public class BotRepository : BaseRepository<Bot>, IBotRepository
     {
-        public UserRepository(DbContext context) : base(context)
+        public BotRepository(DbContext context) : base(context)
         {
         }
-        public async Task<User?> GetUserByDiscordId(string discordId)
+        public async Task<Bot?> GetBotByDiscordId(string discordId)
         {
             return await dbSet.Where(u => u.DiscordId == discordId).FirstOrDefaultAsync();
         }
 
-        public async Task<User?> GetUserByRefreshToken(string refreshToken)
+        public async Task<Bot?> GetBotByRefreshToken(string refreshToken)
         {
             return await dbSet.Where(u => u.RefreshToken == refreshToken).FirstOrDefaultAsync();
-        }
-
-        public async Task<User?> GetUserByUsername(string username)
-        {
-            return await dbSet.Where(u => u.Username == username).FirstOrDefaultAsync();
         }
     }
 }
