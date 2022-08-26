@@ -6,15 +6,13 @@ using System.Threading.Tasks;
 
 namespace ShounenGaming.Core.Entities.Base
 {
-    public class User : BaseEntity
+    public class Bot : BaseEntity
     {
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
         public string DiscordId { get; set; }
-        public DateTime Birthday { get; set; }
-
+        public string PasswordHashed { get; set; }
+        public string Salt { get; set; }
 
         public string? RefreshToken { get; set; }
-        public DateTime? RefreshTokenExpiryTime { get; set; }
+        public DateTime? RefreshTokenExpiryDate { get; set; }
     }
 }
