@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using ShounenGaming.Business.Hubs;
 using ShounenGaming.Business.Interfaces.Base;
 using ShounenGaming.Business.Mappers;
 using ShounenGaming.Business.Services.Base;
@@ -24,6 +25,7 @@ namespace ShounenGaming.Common
         public static void ConfigureServices(this IServiceCollection services, ConfigurationManager configuration, IWebHostEnvironment environment, string assemblyName)
         {
             services.AddControllers();
+            services.AddSignalR();
 
             services.AddSwagger(assemblyName);
             services.AddAutoMapper(typeof(UserMapper).Assembly);
@@ -53,6 +55,7 @@ namespace ShounenGaming.Common
 
             app.UseAuthentication();
             app.UseAuthorization();
+            app.MapSignalRHubs();
 
             app.MapControllers();
 
@@ -61,6 +64,10 @@ namespace ShounenGaming.Common
 
 
         #region Private
+        private static void MapSignalRHubs(this WebApplication app)
+        {
+            app.MapHub<AuthHub>("/authHub");
+        }
         private static void AddSwagger(this IServiceCollection services, string assemblyName)
         {
             services.AddSwaggerGen(c =>
@@ -133,8 +140,13 @@ namespace ShounenGaming.Common
 
         private static void AddServices(this IServiceCollection services, IWebHostEnvironment env, IConfiguration configuration)
         {
-            services.AddSingleton<IMemoryCache, MemoryCache>();
+            //Others
+            services.AddMemoryCache();
 
+            //Hubs
+            services.AddTransient<AuthHub>();
+
+            //Services
             services.AddTransient<IAuthService, AuthService>();
             services.AddTransient<IUserService, UserService>();
         }

@@ -11,9 +11,15 @@ namespace ShounenGaming.Core.Entities.Base
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public bool DiscordAccountConfirmed { get; set; }
+
         public string DiscordId { get; set; }
+        public bool DiscordVerified { get; set; }
+
         public string Username { get; set; }
+
+        public string Email { get; set; }
+        public bool EmailVerified { get; set; }
+
         public DateTime Birthday { get; set; }
         public RolesEnum Role { get; set; }
 

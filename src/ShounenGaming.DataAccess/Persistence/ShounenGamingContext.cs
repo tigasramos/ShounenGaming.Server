@@ -14,6 +14,7 @@ namespace ShounenGaming.DataAccess.Persistence
     {
         //Base
         public DbSet<User> Users { get; set; }
+        public DbSet<Bot> Bots { get; set; }
 
         public ShounenGamingContext(DbContextOptions<ShounenGamingContext> options) : base(options)
         {

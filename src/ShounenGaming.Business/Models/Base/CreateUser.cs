@@ -25,5 +25,7 @@ namespace ShounenGaming.Business.Models.Base
         [Required(AllowEmptyStrings = false)]
         public string DiscordId { get; set; }
 
+        [Required(AllowEmptyStrings = false)]
+        public string Email { get; set; }
     }
 }

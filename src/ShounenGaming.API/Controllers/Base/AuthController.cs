@@ -17,6 +17,7 @@ namespace ShounenGaming.API.Controllers.Base
         {
             _authService = authService;
         }
+
         /// <summary>
         /// Logins a Bot
         /// </summary>
@@ -54,7 +55,7 @@ namespace ShounenGaming.API.Controllers.Base
         /// </summary>
         /// <param name="createBot"></param>
         /// <returns></returns>
-        [Authorize(Policy = "Admin")]
+        //[Authorize(Policy = "Admin")] TODO: Remove after testing
         [HttpPost("bot")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(string))]
@@ -87,7 +88,7 @@ namespace ShounenGaming.API.Controllers.Base
                 await _authService.RegisterUser(createUser);
                 return Ok();
             }
-            catch(InvalidDateException ex)
+            catch(InvalidParameterException ex)
             {
                 return StatusCode(StatusCodes.Status400BadRequest, ex.Message);
             }
@@ -181,6 +182,26 @@ namespace ShounenGaming.API.Controllers.Base
             catch (InvalidOperationException ex)
             {
                 return StatusCode(StatusCodes.Status400BadRequest, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Returns the Users that are in the Discord Server but do not have account created
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("user/unregistered")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<DiscordUserDTO>))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(string))]
+        public async Task<IActionResult> GetUnregisteredDiscordUsers()
+        {
+            try
+            {
+                var response = await _authService.GetUnregisteredUsers();
+                return Ok(response);
             }
             catch (Exception ex)
             {

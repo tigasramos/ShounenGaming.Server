@@ -16,6 +16,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using ShounenGaming.Core.Entities.Base;
+using ShounenGaming.Business.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
 namespace ShounenGaming.Business.Services.Base
 {
@@ -24,12 +26,14 @@ namespace ShounenGaming.Business.Services.Base
         private readonly IMemoryCache _cache;
         private readonly IUserRepository _userRepo;
         private readonly IBotRepository _botRepo;
+        private readonly IHubContext<AuthHub, IAuthHubClient> _authHub;
 
-        public AuthService(IMemoryCache cache, IUserRepository userRepo, IBotRepository botRepo)
+        public AuthService(IMemoryCache cache, IUserRepository userRepo, IBotRepository botRepo, IHubContext<AuthHub, IAuthHubClient> authHub)
         {
             _cache = cache;
             _userRepo = userRepo;
             _botRepo = botRepo;
+            _authHub = authHub;
         }
 
         public async Task RegisterBot(CreateBot createBot)
@@ -46,10 +50,12 @@ namespace ShounenGaming.Business.Services.Base
         {
             //Validate Date
             if (createUser.Birthday.Year > DateTime.UtcNow.Year - 5 || createUser.Birthday.Year < DateTime.UtcNow.Year - 100)
-                throw new InvalidDateException($"Needs to be between {DateTime.UtcNow.Year - 100} and {DateTime.UtcNow.Year - 5}");
-            
+                throw new InvalidParameterException("Birthday", $"Needs to be between {DateTime.UtcNow.Year - 100} and {DateTime.UtcNow.Year - 5}");
+
             //Validate DiscordId
-            //TODO: Needs to be in Server
+            var unregisteredUsers = await GetUnregisteredUsers();
+            if (!unregisteredUsers.Any(u => createUser.DiscordId == u.DiscordId))
+                throw new InvalidParameterException("DiscordId", "Discord Id was not found or already has an account");
 
             await _userRepo.Create(new User
             {
@@ -58,9 +64,13 @@ namespace ShounenGaming.Business.Services.Base
                 Username = createUser.Username,
                 Birthday = createUser.Birthday,
                 DiscordId = createUser.DiscordId,
-                DiscordAccountConfirmed = false,
+                DiscordVerified = false,
+                Email = createUser.Email,
+                EmailVerified = false,
                 Role = Core.Entities.Base.Enums.RolesEnum.USER
             });
+
+            await _authHub.Clients.All.SendVerifyAccount(createUser.DiscordId, createUser.FirstName + createUser.LastName);
         }
         public async Task RequestEntryToken(string username)
         {
@@ -68,6 +78,7 @@ namespace ShounenGaming.Business.Services.Base
             if (user == null)
                 throw new EntityNotFoundException("User");
 
+            //TODO: Remove after testing
             //if (!user.DiscordAccountConfirmed)
             //    throw new DiscordAccountNotConfirmedException();
             
@@ -78,6 +89,7 @@ namespace ShounenGaming.Business.Services.Base
             };
 
             _cache.Set(username, dataHolder, dataHolder.ExpiresAt);
+            await _authHub.Clients.All.SendToken(user.DiscordId, dataHolder.Token, dataHolder.ExpiresAt);
 
             Log.Information($"User {user.FirstName} {user.LastName} created token {dataHolder.Token}");
         }
@@ -160,8 +172,29 @@ namespace ShounenGaming.Business.Services.Base
            
             return GetAuthResponse(updatedEntity);
         }
+        public async Task<List<DiscordUserDTO>> GetUnregisteredUsers()
+        {
+            //Get Discord Users
+            var usersFound = _cache.TryGetValue("DiscordUsers", out List<DiscordUserDTO> allUsers);
 
+            //Get Users
+            var registeredUsers = await _userRepo.GetAll();
 
+            return allUsers.Where(u => !registeredUsers.Any(ru => ru.DiscordId == u.DiscordId)).ToList();
+        }
+        public async Task VerifyDiscordAccount(string discordId)
+        {
+            var user = await _userRepo.GetUserByDiscordId(discordId);
+            if (user == null)
+                throw new EntityNotFoundException("User");
+
+            user.DiscordVerified = true;
+            await _userRepo.Update(user);
+        }
+        public void SetDiscordUsers(List<DiscordUserDTO> users)
+        {
+            _cache.Set("DiscordUsers", users);
+        }
 
 
         #region Private
@@ -256,6 +289,7 @@ namespace ShounenGaming.Business.Services.Base
             return resultToken.ToString();
         }
 
+       
         private class CacheHolder
         {
             public string Token { get; set; }

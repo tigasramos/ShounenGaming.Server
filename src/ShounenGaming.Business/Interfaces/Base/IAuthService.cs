@@ -15,5 +15,10 @@ namespace ShounenGaming.Business.Interfaces.Base
         Task<AuthResponse> LoginUser(string username, string token);
         Task<AuthResponse> LoginBot(string discordId, string password);
         Task<AuthResponse> RefreshToken(string refreshToken, bool isBot);
+        Task<List<DiscordUserDTO>> GetUnregisteredUsers();
+        Task VerifyDiscordAccount(string discordId);
+        void SetDiscordUsers(List<DiscordUserDTO> users);
+
+        //TODO: VerifyEmail
     }
 }

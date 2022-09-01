@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace ShounenGaming.Business.Exceptions
 {
-    public class InvalidDateException : Exception
+    public class InvalidParameterException : Exception
     {
-        public InvalidDateException(string message) : base(message)
+        public InvalidParameterException(string parameter, string message) : base($"Invalid {parameter}: {message}")
         {
         }
     }
