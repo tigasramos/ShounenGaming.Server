@@ -4,7 +4,7 @@ using ShounenGaming.DataAccess.Interfaces;
 
 namespace ShounenGaming.DataAccess.Repositories
 {
-    public abstract class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : BaseEntity
+    public abstract class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : SimpleEntity
     {
         protected readonly DbContext context;
         protected readonly DbSet<TEntity> dbSet;

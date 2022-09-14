@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace ShounenGaming.Core.Entities
 {
-    public abstract class BaseEntity : SimpleEntity
+    public abstract class SimpleEntity
     {
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
+        public int Id { get; set; }
     }
 }

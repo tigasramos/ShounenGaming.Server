@@ -2,7 +2,7 @@
 
 namespace ShounenGaming.DataAccess.Interfaces
 {
-    public interface IBaseRepository<TEntity> where TEntity : BaseEntity
+    public interface IBaseRepository<TEntity> where TEntity : SimpleEntity
     {
         Task<IList<TEntity>> GetAll();
         Task<TEntity?> GetById(int id);
