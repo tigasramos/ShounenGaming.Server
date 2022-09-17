@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ShounenGaming.Core.Entities;
 using ShounenGaming.Core.Entities.Base;
+using ShounenGaming.Core.Entities.Tierlists;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +16,16 @@ namespace ShounenGaming.DataAccess.Persistence
         //Base
         public DbSet<User> Users { get; set; }
         public DbSet<Bot> Bots { get; set; }
+        public DbSet<FileData> Files { get; set; }
+
+        //Tierlist
+        public DbSet<Tierlist> Tierlists { get; set; }
+        public DbSet<Tier> Tiers { get; set; }
+        public DbSet<TierlistItem> TierlistItems { get; set; }
+        public DbSet<TierlistCategory> TierlistCategories { get; set; }
+        public DbSet<TierChoice> TierChoices { get; set; }
+        public DbSet<UserTierlist> UserTierlists { get; set; }
+
 
         public ShounenGamingContext(DbContextOptions<ShounenGamingContext> options) : base(options)
         {

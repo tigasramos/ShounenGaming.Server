@@ -14,5 +14,15 @@ namespace ShounenGaming.DataAccess.Repositories.Tierlists
         public UserTierlistRepository(DbContext context) : base(context)
         {
         }
+
+        public async Task<List<UserTierlist>> GetUserTierlistsByTierlistId(int tierlistId)
+        {
+            return await dbSet.Where(u => u.TierlistId == tierlistId).ToListAsync();
+        }
+
+        public async Task<List<UserTierlist>> GetUserTierlistsByUserId(int userId)
+        {
+            return await dbSet.Where(u => u.UserId == userId).ToListAsync();
+        }
     }
 }

@@ -9,5 +9,7 @@ namespace ShounenGaming.DataAccess.Interfaces.Tierlists
 {
     public interface IUserTierlistRepository : IBaseRepository<UserTierlist>
     {
+        Task<List<UserTierlist>> GetUserTierlistsByUserId(int userId);
+        Task<List<UserTierlist>> GetUserTierlistsByTierlistId(int tierlistId);
     }
 }

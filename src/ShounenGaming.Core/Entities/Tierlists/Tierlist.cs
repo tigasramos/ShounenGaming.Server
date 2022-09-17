@@ -10,9 +10,16 @@ namespace ShounenGaming.Core.Entities.Tierlists
     public class Tierlist : BaseEntity
     {
         public string Name { get; set; }
-        public string ImageUrl { get; set; }
-        public virtual User Creator { get; set; }
+
+        public int ImageId { get; set; }
+        public virtual FileData Image { get; set; }
+
+        public int UserId { get; set; }
+        public virtual User User { get; set; }
+
+        public int CategoryId { get; set; }
         public virtual TierlistCategory Category { get; set; }
+
         public virtual List<TierlistItem> Items { get; set; }
         public virtual List<Tier> DefaultTiers { get; set; }
     }
