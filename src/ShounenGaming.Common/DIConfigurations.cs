@@ -11,11 +11,15 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 using ShounenGaming.Business.Hubs;
 using ShounenGaming.Business.Interfaces.Base;
+using ShounenGaming.Business.Interfaces.Tierlists;
 using ShounenGaming.Business.Mappers;
 using ShounenGaming.Business.Services.Base;
+using ShounenGaming.Business.Services.Tierlists;
 using ShounenGaming.DataAccess.Interfaces.Base;
+using ShounenGaming.DataAccess.Interfaces.Tierlists;
 using ShounenGaming.DataAccess.Persistence;
 using ShounenGaming.DataAccess.Repositories.Base;
+using ShounenGaming.DataAccess.Repositories.Tierlists;
 using System.Text;
 
 namespace ShounenGaming.Common
@@ -149,11 +153,21 @@ namespace ShounenGaming.Common
             //Services
             services.AddTransient<IAuthService, AuthService>();
             services.AddTransient<IUserService, UserService>();
+            services.AddTransient<IFileService, FileService>();
+            services.AddTransient<ITierlistService, TierlistService>();
         }
         private static void AddRepositories(this IServiceCollection services)
         {
             services.AddTransient<IUserRepository, UserRepository>();
             services.AddTransient<IBotRepository, BotRepository>();
+            services.AddTransient<IFileDataRepository, FileDataRepository>();
+
+            services.AddTransient<ITierChoiceRepository, TierChoiceRepository>();
+            services.AddTransient<ITierlistCategoryRepository, TierlistCategoryRepository>();
+            services.AddTransient<ITierlistItemRepository, TierlistItemRepository>();
+            services.AddTransient<ITierlistRepository, TierlistRepository>();
+            services.AddTransient<ITierRepository, TierRepository>();
+            services.AddTransient<IUserTierlistRepository, UserTierlistRepository>();
         }
         private static void AddSQLDatabase(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env)
         {

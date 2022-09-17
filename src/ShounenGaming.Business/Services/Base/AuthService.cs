@@ -53,9 +53,9 @@ namespace ShounenGaming.Business.Services.Base
                 throw new InvalidParameterException("Birthday", $"Needs to be between {DateTime.UtcNow.Year - 100} and {DateTime.UtcNow.Year - 5}");
 
             //Validate DiscordId
-            var unregisteredUsers = await GetUnregisteredUsers();
-            if (!unregisteredUsers.Any(u => createUser.DiscordId == u.DiscordId))
-                throw new InvalidParameterException("DiscordId", "Discord Id was not found or already has an account");
+            //var unregisteredUsers = await GetUnregisteredUsers();
+            //if (!unregisteredUsers.Any(u => createUser.DiscordId == u.DiscordId))
+            //    throw new InvalidParameterException("DiscordId", "Discord Id was not found or already has an account");
 
             await _userRepo.Create(new User
             {
@@ -176,6 +176,8 @@ namespace ShounenGaming.Business.Services.Base
         {
             //Get Discord Users
             var usersFound = _cache.TryGetValue("DiscordUsers", out List<DiscordUserDTO> allUsers);
+            if (!usersFound)
+                return new List<DiscordUserDTO>();
 
             //Get Users
             var registeredUsers = await _userRepo.GetAll();

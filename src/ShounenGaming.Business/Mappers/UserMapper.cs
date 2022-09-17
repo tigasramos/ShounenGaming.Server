@@ -15,6 +15,9 @@ namespace ShounenGaming.Business.Mappers
         {
             CreateMap<User, UserDTO>()
                 .ForMember(dto => dto.FullName, opt => opt.MapFrom(src => $"{src.FirstName} {src.LastName}"));
+
+            CreateMap<User, SimpleUserDTO>()
+                .ForMember(dto => dto.FullName, opt => opt.MapFrom(src => $"{src.FirstName} {src.LastName}"));
         }
     }
 }

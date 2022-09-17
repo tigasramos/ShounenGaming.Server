@@ -1,0 +1,480 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using ShounenGaming.Business.Exceptions;
+using ShounenGaming.Business.Interfaces.Tierlists;
+using ShounenGaming.Business.Models.Tierlists;
+using ShounenGaming.Business.Models.Tierlists.Requests;
+
+namespace ShounenGaming.API.Controllers.Tierlists
+{
+    [Authorize]
+    [Route("api/[controller]")]
+    [ApiController]
+    public class TierlistsController : ControllerBase
+    {
+        private readonly ITierlistService _tierlistService;
+
+        public TierlistsController(ITierlistService tierlistService)
+        {
+            _tierlistService = tierlistService;
+        }
+        #region Tierlist
+        /// <summary>
+        /// Gets Tierlist by its Id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TierlistDTO))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetTierlistById(int id)
+        {
+            try
+            {
+                var tierlist = await _tierlistService.GetTierlistById(id);
+                return Ok(tierlist);
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Creates a Tierlist
+        /// </summary>
+        /// <param name="createTierlist"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TierlistDTO))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> CreateTierlist(CreateTierlist createTierlist)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirst(c => c.Type == "Id")!.Value);
+                var tierlist = await _tierlistService.CreateTierlist(createTierlist, userId);
+                return Ok(tierlist);
+            } 
+            catch(EntityNotFoundException ex)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, ex.Message);
+            } 
+            catch(Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Edits a Tierlist
+        /// </summary>
+        /// <param name="editTierlist"></param>
+        /// <returns></returns>
+        [HttpPut]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TierlistDTO))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> EditTierlist(EditTierlist editTierlist)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirst(c => c.Type == "Id")!.Value);
+                var tierlist = await _tierlistService.EditTierlist(editTierlist, userId);
+                return Ok(tierlist);
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+        
+        /// <summary>
+        /// Adds a Default Tier to a Tierlist
+        /// </summary>
+        /// <param name="tierlistId"></param>
+        /// <param name="tier"></param>
+        /// <returns></returns>
+        [HttpPost("{tierlistId}/tiers")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TierlistDTO))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> AddDefaultTier(int tierlistId, CreateTier tier)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirst(c => c.Type == "Id")!.Value);
+                var tierlist = await _tierlistService.AddDefaultTier(tierlistId, tier, userId);
+                return Ok(tierlist);
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Edits a Default Tier from a Tierlist
+        /// </summary>
+        /// <param name="tierlistId"></param>
+        /// <param name="tier"></param>
+        /// <returns></returns>
+        [HttpPut("{tierlistId}/tiers")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TierlistDTO))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> EditDefaultTier(int tierlistId, EditTier tier)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirst(c => c.Type == "Id")!.Value);
+                var tierlist = await _tierlistService.EditDefaultTier(tierlistId, tier, userId);
+                return Ok(tierlist);
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Deletes a Default Tier
+        /// </summary>
+        /// <param name="tierlistId"></param>
+        /// <param name="tierId"></param>
+        /// <returns></returns>
+        [HttpDelete("{tierlistId}/tiers")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TierlistDTO))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> DeleteDefaultTier(int tierlistId, int tierId)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirst(c => c.Type == "Id")!.Value);
+                var tierlist = await _tierlistService.RemoveDefaultTier(tierlistId, tierId, userId);
+                return Ok(tierlist);
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Adds a Tierlist Item
+        /// </summary>
+        /// <param name="tierlistId"></param>
+        /// <param name="tierlistItem"></param>
+        /// <returns></returns>
+        [HttpPost("{tierlistId}/items")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TierlistDTO))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> AddTierlistItem(int tierlistId, CreateTierlistItem tierlistItem)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirst(c => c.Type == "Id")!.Value);
+                var tierlist = await _tierlistService.AddTierlistItem(tierlistId, tierlistItem, userId);
+                return Ok(tierlist);
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+        #endregion
+
+        #region User
+
+        /// <summary>
+        /// Creates a User Tierlist
+        /// </summary>
+        /// <param name="userTierlist"></param>
+        /// <returns></returns>
+        [HttpPost("users")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<UserTierlistDTO>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> CreateUserTierlist(CreateUserTierlist userTierlist)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirst(c => c.Type == "Id")!.Value);
+                var userTierlists = await _tierlistService.CreateUserTierlist(userTierlist, userId);
+                return Ok(userTierlists);
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+        
+        /// <summary>
+        /// Edits a UserTierlist
+        /// </summary>
+        /// <param name="userTierlist"></param>
+        /// <returns></returns>
+        [HttpPut("users")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<UserTierlistDTO>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> EditUserTierlist(EditUserTierlist userTierlist)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirst(c => c.Type == "Id")!.Value);
+                var userTierlists = await _tierlistService.EditUserTierlist(userTierlist, userId);
+                return Ok(userTierlists);
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Adds a Tier to a UserTierlist
+        /// </summary>
+        /// <param name="userTierlistId"></param>
+        /// <param name="tier"></param>
+        /// <returns></returns>
+        [HttpPost("users/{userTierlistId}/tier")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<UserTierlistDTO>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> AddTierToUserTierlist(int userTierlistId, CreateTier tier)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirst(c => c.Type == "Id")!.Value);
+                var userTierlists = await _tierlistService.AddTierToUserTierlist(userTierlistId, tier, userId);
+                return Ok(userTierlists);
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Edits a Tier from a UserTierlist
+        /// </summary>
+        /// <param name="userTierlistId"></param>
+        /// <param name="tier"></param>
+        /// <returns></returns>
+        [HttpPut("users/{userTierlistId}/tier")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<UserTierlistDTO>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> EditTierFromUserTierlist(int userTierlistId, EditTier tier)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirst(c => c.Type == "Id")!.Value);
+                var userTierlists = await _tierlistService.EditTierFromUserTierlist(userTierlistId, tier, userId);
+                return Ok(userTierlists);
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Deletes a Tier from a UserTierlist
+        /// </summary>
+        /// <param name="userTierlistId"></param>
+        /// <param name="tierId"></param>
+        /// <returns></returns>
+        [HttpDelete("users/{userTierlistId}/tier")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<UserTierlistDTO>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> RemoveTierFromUserTierlist(int userTierlistId, int tierId)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirst(c => c.Type == "Id")!.Value);
+                var userTierlists = await _tierlistService.RemoveTierFromUserTierlist(userTierlistId, tierId, userId);
+                return Ok(userTierlists);
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+        
+        /// <summary>
+        /// Gets Users Tierlists
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("users")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<UserTierlistDTO>))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetUserTierlists()
+        {
+            try
+            {
+                var userTierlists = await _tierlistService.GetUserTierlists();
+                return Ok(userTierlists);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Gets All Users Tierlists by a User
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        [HttpGet("users/{userId}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<UserTierlistDTO>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetUserTierlistsByUserId(int userId)
+        {
+            try
+            {
+                var userTierlists = await _tierlistService.GetUserTierlistsByUserId(userId);
+                return Ok(userTierlists);
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Gets All Users Tierlists based on a Tierlist
+        /// </summary>
+        /// <param name="tierlistId"></param>
+        /// <returns></returns>
+        [HttpGet("users/tierlists/{tierlistId}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<UserTierlistDTO>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetUserTierlistsByTierlistId(int tierlistId)
+        {
+            try
+            {
+                var userTierlists = await _tierlistService.GetUserTierlistsByTierlistId(tierlistId);
+                return Ok(userTierlists);
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        #endregion
+
+        #region Category
+
+        /// <summary>
+        /// Gets all Tierlist Categories
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("categories")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<TierlistCategoryDTO>))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetTierlistCategories()
+        {
+            try
+            {
+                var categories = await _tierlistService.GetTierlistCategories();
+                return Ok(categories);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Creates a Tierlist Category
+        /// </summary>
+        /// <param name="tierListCategory"></param>
+        /// <returns></returns>
+        [HttpPost("categories")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TierlistCategoryDTO))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> CreateTierlistCategory(CreateTierlistCategory tierListCategory)
+        {
+            try
+            {
+                var category = await _tierlistService.CreateTierlistCategory(tierListCategory);
+                return Ok(category);
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        #endregion
+    }
+}
