@@ -26,15 +26,8 @@ namespace ShounenGaming.API.Controllers.Base
         [HttpPost("upload")]
         public async Task<IActionResult> Upload(IFormFile file)
         {
-            try
-            {
-                var id = await _fileService.UploadFile(file);
-                return Ok(id);
-            } 
-            catch(Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
+            var id = await _fileService.UploadFile(file);
+            return Ok(id);
         }
 
         /// <summary>
@@ -45,22 +38,14 @@ namespace ShounenGaming.API.Controllers.Base
         [HttpGet("download/{id}")]
         public async Task<IActionResult> Download(int id)
         {
-            try
+            var file = await _fileService.DownloadFile(id);
+            return file.Extension switch
             {
-                var file = await _fileService.DownloadFile(id);
-                return file.Extension switch
-                {
-                    "png" => File(file.Data, "image/png", file.Name),
-                    "jpg" => File(file.Data, "image/jpg", file.Name),
-                    "jpeg" => File(file.Data, "image/jpeg", file.Name),
-                    _ => File(file.Data, "application/octet-stream", file.Name),
-                };
-            }
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
-
+                "png" => File(file.Data, "image/png", file.Name),
+                "jpg" => File(file.Data, "image/jpg", file.Name),
+                "jpeg" => File(file.Data, "image/jpeg", file.Name),
+                _ => File(file.Data, "application/octet-stream", file.Name),
+            };
         }
     }
 }

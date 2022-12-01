@@ -54,6 +54,8 @@ namespace ShounenGaming.Common
             app.UseSwagger();
             app.UseSwaggerUI();
 
+            app.UseMiddleware<ExceptionMiddleware>();
+
             //TODO: Remove when deploying
             app.UseHttpsRedirection();
 

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ShounenGaming.Business.Exceptions
 {
-    internal class NoPermissionException : Exception
+    public class NoPermissionException : Exception
     {
 
         public NoPermissionException( )

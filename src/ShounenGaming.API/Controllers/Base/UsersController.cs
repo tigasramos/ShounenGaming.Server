@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using ShounenGaming.Business.Interfaces.Base;
 using ShounenGaming.Business.Models.Base;
+using static ShounenGaming.Common.ExceptionMiddleware;
 
 namespace ShounenGaming.API.Controllers.Base
 {
@@ -25,18 +26,10 @@ namespace ShounenGaming.API.Controllers.Base
         /// <returns></returns>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<UserDTO>))]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ErrorDetails))]
         public async Task<IActionResult> GetAll()
         {
-            try
-            {
-                return Ok(await _userService.GetUsers());
-            } 
-            catch(Exception ex)
-            {
-                Log.Error(ex.Message);
-                return StatusCode(500, ex.Message);
-            }
+            return Ok(await _userService.GetUsers());
         }
 
         /// <summary>
@@ -45,19 +38,11 @@ namespace ShounenGaming.API.Controllers.Base
         /// <returns></returns>
         [HttpGet("me")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserDTO))]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ErrorDetails))]
         public async Task<IActionResult> GetUserById()
         {
-            try
-            {
-                var userId = int.Parse(User.FindFirst(c => c.Type == "Id")!.Value);
-                return Ok(await _userService.GetUserById(userId));
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex.Message);
-                return StatusCode(500, ex.Message);
-            }
+            var userId = int.Parse(User.FindFirst(c => c.Type == "Id")!.Value);
+            return Ok(await _userService.GetUserById(userId));
         }
 
         /// <summary>
@@ -67,18 +52,10 @@ namespace ShounenGaming.API.Controllers.Base
         /// <returns></returns>
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserDTO))]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ErrorDetails))]
         public async Task<IActionResult> GetUserById(int id)
         {
-            try
-            {
-                return Ok(await _userService.GetUserById(id));
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex.Message);
-                return StatusCode(500, ex.Message);
-            }
+            return Ok(await _userService.GetUserById(id));
         }
     }
 }
