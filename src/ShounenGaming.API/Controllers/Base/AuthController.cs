@@ -7,7 +7,7 @@ using ShounenGaming.Business.Models.Base;
 
 namespace ShounenGaming.API.Controllers.Base
 {
-    [Route("api/[controller]")]
+    [Route("api/auth")]
     [ApiController]
     public class AuthController : ControllerBase
     {

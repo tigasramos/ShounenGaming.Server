@@ -4,6 +4,7 @@ namespace ShounenGaming.Business.Interfaces.Base
 {
     public interface IUserService
     {
+        Task<UserDTO> GetUserById(int id);
         Task<List<UserDTO>> GetUsers();
     }
 }
