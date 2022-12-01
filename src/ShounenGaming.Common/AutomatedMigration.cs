@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using ShounenGaming.DataAccess.Persistence;
 using System;
 using System.Collections.Generic;
@@ -10,16 +12,25 @@ namespace ShounenGaming.Common
 {
     public static class AutomatedMigration
     {
-        public static async Task MigrateAsync(IServiceProvider services)
+        public static WebApplication MigrateDatabase(this WebApplication webApp)
         {
-            var context = services.GetRequiredService<ShounenGamingContext>();
-
-            //TODO: Depends on DB
-            //if (context.Database.IsNpgsql())
-            //{
-            //    await context.Database.MigrateAsync();
-            //}
-
+            using (var scope = webApp.Services.CreateScope())
+            {
+                using var appContext = scope.ServiceProvider.GetRequiredService<ShounenGamingContext>();
+                try
+                {
+                    if (appContext.Database.IsNpgsql())
+                    {
+                        appContext.Database.Migrate();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    //Log errors or do anything you think it's needed
+                    throw;
+                }
+            }
+            return webApp;
         }
     }
 }

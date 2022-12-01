@@ -65,6 +65,8 @@ namespace ShounenGaming.Common
 
             app.MapControllers();
 
+            app.MigrateDatabase();
+
             app.Run();
         }
 
@@ -175,7 +177,8 @@ namespace ShounenGaming.Common
         {
             services.AddDbContext<DbContext, ShounenGamingContext>(opt =>
             {
-                opt.UseInMemoryDatabase("ShounenGamingDB");
+                //opt.UseInMemoryDatabase("ShounenGamingDB");
+                opt.UseNpgsql("User ID=postgres;Password=postgres;Host=localhost;Port=5432;Database=ShounenGamingDB;");
                 opt.ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning));
             });
         }

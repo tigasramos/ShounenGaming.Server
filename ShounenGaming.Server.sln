@@ -3,15 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32630.192
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShounenGaming.API", "src\ShounenGaming.API\ShounenGaming.API.csproj", "{A1146475-B1E0-4517-BCE9-4FD3E3C512DD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShounenGaming.API", "src\ShounenGaming.API\ShounenGaming.API.csproj", "{A1146475-B1E0-4517-BCE9-4FD3E3C512DD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShounenGaming.Core", "src\ShounenGaming.Core\ShounenGaming.Core.csproj", "{89CA9AD5-59D3-4BE5-856E-AE8D6E257726}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShounenGaming.Core", "src\ShounenGaming.Core\ShounenGaming.Core.csproj", "{89CA9AD5-59D3-4BE5-856E-AE8D6E257726}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShounenGaming.DataAccess", "src\ShounenGaming.DataAccess\ShounenGaming.DataAccess.csproj", "{B26C9070-C2AC-4691-89DA-3A9B5AE7C836}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShounenGaming.DataAccess", "src\ShounenGaming.DataAccess\ShounenGaming.DataAccess.csproj", "{B26C9070-C2AC-4691-89DA-3A9B5AE7C836}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShounenGaming.Business", "src\ShounenGaming.Business\ShounenGaming.Business.csproj", "{ED70DDB8-B2C6-4FFB-A31B-C447ECEF7C06}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShounenGaming.Business", "src\ShounenGaming.Business\ShounenGaming.Business.csproj", "{ED70DDB8-B2C6-4FFB-A31B-C447ECEF7C06}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShounenGaming.Common", "src\ShounenGaming.Common\ShounenGaming.Common.csproj", "{7F367ADD-237C-41E7-A54D-54FE23E4F4B5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShounenGaming.Common", "src\ShounenGaming.Common\ShounenGaming.Common.csproj", "{7F367ADD-237C-41E7-A54D-54FE23E4F4B5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -62,7 +62,7 @@ namespace ShounenGaming.Business.Services.Base
                 FirstName = createUser.FirstName,
                 LastName = createUser.LastName,
                 Username = createUser.Username,
-                Birthday = createUser.Birthday,
+                Birthday = new DateTime(createUser.Birthday.Year, createUser.Birthday.Month, createUser.Birthday.Day,0,0,0, DateTimeKind.Utc),
                 DiscordId = createUser.DiscordId,
                 DiscordVerified = false,
                 Email = createUser.Email,

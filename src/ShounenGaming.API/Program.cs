@@ -19,7 +19,7 @@ try
     //Services
     var builder = WebApplication.CreateBuilder(args);
     builder.Host.UseSerilog(); 
-    builder.Services.ConfigureServices(builder.Configuration, builder.Environment, Assembly.GetExecutingAssembly().GetName().Name);
+    builder.Services.ConfigureServices(builder.Configuration, builder.Environment, Assembly.GetExecutingAssembly().GetName().Name!);
 
     //App
     var app = builder.Build();
