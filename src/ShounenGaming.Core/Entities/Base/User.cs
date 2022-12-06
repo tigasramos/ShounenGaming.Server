@@ -1,4 +1,5 @@
 ﻿using ShounenGaming.Core.Entities.Base.Enums;
+using ShounenGaming.Core.Entities.LeagueOfLegends;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +15,7 @@ namespace ShounenGaming.Core.Entities.Base
 
         public string DiscordId { get; set; }
         public bool DiscordVerified { get; set; }
+        public string? DiscordImage { get; set; }
 
         public string Username { get; set; }
 
