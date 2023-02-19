@@ -23,7 +23,7 @@ namespace ShounenGaming.API.Controllers.Base
         /// </summary>
         /// <param name="file">Received IFormFile file</param>
         /// <returns>IAction Result</returns>
-        [HttpPost("upload")]
+        [HttpPost("upload"), DisableRequestSizeLimit]
         public async Task<IActionResult> Upload(IFormFile file)
         {
             var id = await _fileService.UploadFile(file);
@@ -35,7 +35,7 @@ namespace ShounenGaming.API.Controllers.Base
         /// </summary>
         /// <param name="id">unique identifier for the requested file</param>
         /// <returns>an IAction Result</returns>
-        [HttpGet("download/{id}")]
+        [HttpGet("download/{id}"), DisableRequestSizeLimit]
         public async Task<IActionResult> Download(int id)
         {
             var file = await _fileService.DownloadFile(id);

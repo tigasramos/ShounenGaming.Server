@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -28,15 +29,15 @@ namespace ShounenGaming.Common
     {
         public static void ConfigureServices(this IServiceCollection services, ConfigurationManager configuration, IWebHostEnvironment environment, string assemblyName)
         {
-            services.AddControllers();
-            services.AddSignalR();
-
+            services.AddJwt(configuration);
             services.AddSwagger(assemblyName);
             services.AddAutoMapper(typeof(UserMapper).Assembly);
             services.AddSQLDatabase(configuration, environment);
             services.AddRepositories();
             services.AddServices(environment, configuration);
-            services.AddJwt(configuration);
+
+            services.AddControllers();
+            services.AddSignalR();
 
             services.AddEndpointsApiExplorer();
 
@@ -57,7 +58,7 @@ namespace ShounenGaming.Common
             app.UseMiddleware<ExceptionMiddleware>();
 
             //TODO: Remove when deploying
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
             app.UseAuthentication();
             app.UseAuthorization();
@@ -75,6 +76,7 @@ namespace ShounenGaming.Common
         private static void MapSignalRHubs(this WebApplication app)
         {
             app.MapHub<AuthHub>("/authHub");
+            app.MapHub<LobbiesHub>("/lobbiesHub");
         }
         private static void AddSwagger(this IServiceCollection services, string assemblyName)
         {
@@ -129,6 +131,7 @@ namespace ShounenGaming.Common
             {
                 x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                x.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
             })
             .AddJwtBearer(x =>
             {
@@ -142,6 +145,27 @@ namespace ShounenGaming.Common
                     ValidateIssuer = false,
                     ValidateAudience = false,
                 };
+
+                x.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        //var accessToken = context.Request.Query["access_token"];
+                        //if (context.Request.Query.ContainsKey("access_token"))
+                        //{
+                        //    context.Token = context.Request.Query["access_token"];
+                        //}
+
+                        //Get Token from Header
+                        var accessToken = context.Request.Headers["Authorization"];
+                        if (accessToken.Count > 0)
+                        {
+                            //Remove the Bearer part
+                            context.Token = accessToken[0]!.Split(" ")[1];
+                        } 
+                        return Task.CompletedTask;
+                    }
+                };
             });
 
         }
@@ -153,6 +177,7 @@ namespace ShounenGaming.Common
 
             //Hubs
             services.AddTransient<AuthHub>();
+            services.AddTransient<LobbiesHub>();
 
             //Services
             services.AddTransient<IAuthService, AuthService>();
