@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ShounenGaming.Core.Entities;
 using ShounenGaming.Core.Entities.Base;
+using ShounenGaming.Core.Entities.Mangas;
 using ShounenGaming.Core.Entities.Tierlists;
 using System;
 using System.Collections.Generic;
@@ -25,6 +26,10 @@ namespace ShounenGaming.DataAccess.Persistence
         public DbSet<TierlistCategory> TierlistCategories { get; set; }
         public DbSet<TierChoice> TierChoices { get; set; }
         public DbSet<UserTierlist> UserTierlists { get; set; }
+
+
+        public DbSet<Manga> Mangas { get; set; }
+        public DbSet<MangaWriter> MangaWriters { get; set; }
 
 
         public ShounenGamingContext(DbContextOptions<ShounenGamingContext> options) : base(options)

@@ -10,7 +10,7 @@ try
         .MinimumLevel.Override("Microsoft.Hosting.Lifetime", Serilog.Events.LogEventLevel.Information)
         .Enrich.FromLogContext()
         .WriteTo.Console()
-        .WriteTo.File($"logs/log-.txt", rollingInterval: RollingInterval.Day)
+        .WriteTo.File($"Logs/log-.txt", rollingInterval: RollingInterval.Day)
         .CreateLogger();
 
 

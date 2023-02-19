@@ -17,9 +17,11 @@ using ShounenGaming.Business.Mappers;
 using ShounenGaming.Business.Services.Base;
 using ShounenGaming.Business.Services.Tierlists;
 using ShounenGaming.DataAccess.Interfaces.Base;
+using ShounenGaming.DataAccess.Interfaces.Mangas;
 using ShounenGaming.DataAccess.Interfaces.Tierlists;
 using ShounenGaming.DataAccess.Persistence;
 using ShounenGaming.DataAccess.Repositories.Base;
+using ShounenGaming.DataAccess.Repositories.Mangas;
 using ShounenGaming.DataAccess.Repositories.Tierlists;
 using System.Text;
 
@@ -197,13 +199,18 @@ namespace ShounenGaming.Common
             services.AddTransient<ITierlistRepository, TierlistRepository>();
             services.AddTransient<ITierRepository, TierRepository>();
             services.AddTransient<IUserTierlistRepository, UserTierlistRepository>();
+
+            services.AddTransient<IMangaRepository, MangaRepository>();
+            services.AddTransient<IMangaWriterRepository, MangaWriterRepository>();
+            services.AddTransient<IMangaTagRepository, MangaTagRepository>();
         }
         private static void AddSQLDatabase(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env)
         {
             services.AddDbContext<DbContext, ShounenGamingContext>(opt =>
             {
-                //opt.UseInMemoryDatabase("ShounenGamingDB");
-                opt.UseNpgsql("User ID=postgres;Password=postgres;Host=localhost;Port=5432;Database=ShounenGamingDB;");
+                opt.UseLazyLoadingProxies();
+                opt.UseInMemoryDatabase("ShounenGamingDB");
+                //opt.UseNpgsql("User ID=postgres;Password=postgres;Host=localhost;Port=5432;Database=ShounenGamingDB;");
                 opt.ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning));
             });
         }
