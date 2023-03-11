@@ -12,9 +12,11 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 using ShounenGaming.Business.Hubs;
 using ShounenGaming.Business.Interfaces.Base;
+using ShounenGaming.Business.Interfaces.Mangas;
 using ShounenGaming.Business.Interfaces.Tierlists;
 using ShounenGaming.Business.Mappers;
 using ShounenGaming.Business.Services.Base;
+using ShounenGaming.Business.Services.Mangas;
 using ShounenGaming.Business.Services.Tierlists;
 using ShounenGaming.DataAccess.Interfaces.Base;
 using ShounenGaming.DataAccess.Interfaces.Mangas;
@@ -186,6 +188,7 @@ namespace ShounenGaming.Common
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<IFileService, FileService>();
             services.AddTransient<ITierlistService, TierlistService>();
+            services.AddTransient<IMangaService, MangaService>();
         }
         private static void AddRepositories(this IServiceCollection services)
         {
@@ -193,14 +196,12 @@ namespace ShounenGaming.Common
             services.AddTransient<IBotRepository, BotRepository>();
             services.AddTransient<IFileDataRepository, FileDataRepository>();
 
-            services.AddTransient<ITierChoiceRepository, TierChoiceRepository>();
             services.AddTransient<ITierlistCategoryRepository, TierlistCategoryRepository>();
-            services.AddTransient<ITierlistItemRepository, TierlistItemRepository>();
             services.AddTransient<ITierlistRepository, TierlistRepository>();
-            services.AddTransient<ITierRepository, TierRepository>();
             services.AddTransient<IUserTierlistRepository, UserTierlistRepository>();
 
             services.AddTransient<IMangaRepository, MangaRepository>();
+            services.AddTransient<IMangaUserDataRepository, MangaUserDataRepository>();
             services.AddTransient<IMangaWriterRepository, MangaWriterRepository>();
             services.AddTransient<IMangaTagRepository, MangaTagRepository>();
         }

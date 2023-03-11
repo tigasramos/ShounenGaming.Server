@@ -14,5 +14,10 @@ namespace ShounenGaming.DataAccess.Repositories.Tierlists
         public TierlistCategoryRepository(DbContext context) : base(context)
         {
         }
+
+        public override void DeleteDependencies(TierlistCategory entity)
+        {
+            return;
+        }
     }
 }

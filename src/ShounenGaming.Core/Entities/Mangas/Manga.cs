@@ -17,13 +17,16 @@ namespace ShounenGaming.Core.Entities.Mangas
         public bool IsReleasing { get; set; }
         public virtual MangaWriter Writer { get; set; }
         public MangaType Type { get; set; }
-        public DateTime? LastChapterReleaseAt { get; set; }
-        public DateTime? FirstChapterReleaseAt { get; set; }
         public virtual List<MangaTag> Tags { get; set; }
 
         public virtual List<MangaChapter> Chapters { get; set; }
 
         public int? MangaMyAnimeListID { get; set; }
         public int? MangaAniListID { get; set; }
+
+        public virtual List<MangaUserData> UsersData { get; set; }
+        public virtual List<MangaVolume> Volumes { get; set; }
     }
+
+    
 }

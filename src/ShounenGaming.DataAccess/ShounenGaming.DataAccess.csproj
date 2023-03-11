@@ -25,7 +25,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Persistence\Configuration\" />
     <Folder Include="Persistence\Migrations\" />
     <Folder Include="Repositories\LeagueOfLegends\" />
   </ItemGroup>

@@ -10,5 +10,7 @@ namespace ShounenGaming.Core.Entities.Mangas
     {
         public string Name { get; set; }
         public virtual List<MangaTranslation> Translations { get; set; }
+        public virtual MangaVolume? Volume { get; set; }
+
     }
 }

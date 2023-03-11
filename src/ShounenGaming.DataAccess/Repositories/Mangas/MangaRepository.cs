@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace ShounenGaming.DataAccess.Repositories.Mangas
 {
@@ -17,19 +18,21 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
         {
         }
 
-        public async Task<bool> Delete(int id)
+        public async Task<List<Manga>> GetPopularMangas(int count = 5)
         {
-            var entityToRemove = await dbSet.FirstOrDefaultAsync(x => x.Id == id);
-            if (entityToRemove == null)
-                return false;
+            return await dbSet.OrderByDescending(m => m.UsersData.Where(c => c.Status == MangaUserStatusEnum.READING).Count()).Take(count).ToListAsync();
+        }
 
-            context.RemoveRange(entityToRemove.AlternativeNames);
 
-            foreach(var chapter in entityToRemove.Chapters)
+        public override void DeleteDependencies(Manga entity)
+        {
+            context.RemoveRange(entity.AlternativeNames);
+
+            foreach (var chapter in entity.Chapters)
             {
                 foreach (var translation in chapter.Translations)
                 {
-                    foreach(var page in translation.Pages)
+                    foreach (var page in translation.Pages)
                     {
                         context.Remove(page.Image);
                     }
@@ -37,11 +40,22 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
                 }
                 context.RemoveRange(chapter.Translations);
             }
-            context.RemoveRange(entityToRemove.Chapters);
+            context.RemoveRange(entity.Chapters);
+        }
 
-            dbSet.Remove(entityToRemove);
-            await context.SaveChangesAsync();
-            return true;
+        public async Task<List<Manga>> SearchMangaByName(string name)
+        {
+            return await dbSet.Where(m => m.Name.Contains(name) || m.AlternativeNames.Any(d => d.Name.Contains(name))).ToListAsync();
+        }
+
+        public async Task<List<Manga>> GetRecentlyAddedMangas()
+        {
+            return await dbSet.OrderByDescending(m => m.CreatedAt).ToListAsync();
+        }
+
+        public async Task<List<MangaChapter>> GetRecentlyReleasedChapters()
+        {
+            return await dbSet.OrderByDescending(m => m.Chapters.OrderByDescending(c => c.CreatedAt).FirstOrDefault().CreatedAt).Select(d => d.Chapters.First()).ToListAsync();
         }
     }
 }

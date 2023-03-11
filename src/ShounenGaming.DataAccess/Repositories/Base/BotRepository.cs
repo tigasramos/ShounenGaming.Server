@@ -14,6 +14,12 @@ namespace ShounenGaming.DataAccess.Repositories.Base
         public BotRepository(DbContext context) : base(context)
         {
         }
+
+        public override void DeleteDependencies(Bot entity)
+        {
+            return;
+        }
+
         public async Task<Bot?> GetBotByDiscordId(string discordId)
         {
             return await dbSet.Where(u => u.DiscordId == discordId).FirstOrDefaultAsync();

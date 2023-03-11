@@ -15,6 +15,11 @@ namespace ShounenGaming.DataAccess.Repositories.Tierlists
         {
         }
 
+        public override void DeleteDependencies(UserTierlist entity)
+        {
+            return;
+        }
+
         public async Task<List<UserTierlist>> GetUserTierlistsByTierlistId(int tierlistId)
         {
             return await dbSet.Where(u => u.TierlistId == tierlistId).ToListAsync();

@@ -29,10 +29,14 @@ namespace ShounenGaming.DataAccess.Repositories
             if (entityToRemove == null)
                 return false;
 
+            DeleteDependencies(entityToRemove);
+
             dbSet.Remove(entityToRemove);
             await context.SaveChangesAsync();
             return true;
         }
+
+        public abstract void DeleteDependencies(TEntity entity);
 
         public async Task<IList<TEntity>> GetAll()
         {

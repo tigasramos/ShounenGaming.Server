@@ -15,6 +15,9 @@ namespace ShounenGaming.DataAccess.Repositories.Base
         {
         }
 
-        
+        public override void DeleteDependencies(FileData entity)
+        {
+            return;
+        }
     }
 }

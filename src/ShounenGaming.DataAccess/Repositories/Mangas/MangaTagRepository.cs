@@ -16,5 +16,9 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
         {
         }
 
+        public override void DeleteDependencies(MangaTag entity)
+        {
+            return;
+        }
     }
 }
