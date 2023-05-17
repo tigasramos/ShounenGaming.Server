@@ -18,10 +18,10 @@ namespace ShounenGaming.DataAccess.Repositories.Tierlists
         public override void DeleteDependencies(Tierlist entity)
         {
             context.RemoveRange(entity.DefaultTiers);
-            context.Remove(entity.Image);
+            //context.Remove(entity.Image);
             foreach (var item in entity.Items)
             {
-                context.Remove(item.Image);
+                //context.Remove(item.Image);
             }
             context.RemoveRange(entity.Items);
         }

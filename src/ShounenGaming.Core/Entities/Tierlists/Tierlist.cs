@@ -12,7 +12,7 @@ namespace ShounenGaming.Core.Entities.Tierlists
         public string Name { get; set; }
 
         public int ImageId { get; set; }
-        public virtual FileData Image { get; set; }
+        public string ImageName { get; set; }
 
         public int UserId { get; set; }
         public virtual User User { get; set; }

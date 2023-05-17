@@ -19,17 +19,15 @@ namespace ShounenGaming.Business.Services.Tierlists
         private readonly ITierlistRepository _tierlistRepo;
         private readonly IUserTierlistRepository _userTierlistRepo;
         private readonly ITierlistCategoryRepository _tierlistCategoryRepo;
-        private readonly IFileDataRepository _fileRepo;
 
         private readonly IMapper _mapper;
 
-        public TierlistService(ITierlistRepository tierlistRepo, IUserTierlistRepository userTierlistRepo, ITierlistCategoryRepository tierlistCategoryRepo, IMapper mapper, IFileDataRepository fileRepo)
+        public TierlistService(ITierlistRepository tierlistRepo, IUserTierlistRepository userTierlistRepo, ITierlistCategoryRepository tierlistCategoryRepo, IMapper mapper)
         {
             _tierlistRepo = tierlistRepo;
             _userTierlistRepo = userTierlistRepo;
             _tierlistCategoryRepo = tierlistCategoryRepo;
             _mapper = mapper;
-            _fileRepo = fileRepo;
         }
 
         //Tierlist
@@ -48,10 +46,11 @@ namespace ShounenGaming.Business.Services.Tierlists
             if (tierlistCategory == null)
                 throw new EntityNotFoundException("TierlistCategory");
 
-            //Verify Picture
-            var image = await _fileRepo.GetById(createTierlist.ImageId);
+            //TODO: Verify Picture
+            /*var image = await _fileRepo.GetById(createTierlist.ImageId);
             if (tierlistCategory == null)
                 throw new EntityNotFoundException("Image");
+            */
 
             //Verify Orders
             if (createTierlist.DefaultTiers.Select(t => t.Order).Distinct().Count() != createTierlist.DefaultTiers.Count)
@@ -77,17 +76,17 @@ namespace ShounenGaming.Business.Services.Tierlists
             if (tierlist.UserId != userId)
                 throw new NoPermissionException();
 
-            //Verify Image
-            if (editTierlist.ImageId != null)
+            //TODO: Verify Image
+            /*if (editTierlist.ImageId != null)
             {
                 var image = await _fileRepo.GetById(editTierlist.ImageId.Value);
                 if (image == null)
                     throw new EntityNotFoundException("Image");
-            } 
+            } */
 
             tierlist.CategoryId = editTierlist.CategoryId ?? tierlist.CategoryId;
             tierlist.Name = editTierlist.Name ?? tierlist.Name;
-            tierlist.ImageId = editTierlist.ImageId ?? tierlist.ImageId;
+            //tierlist.ImageId = editTierlist.ImageId ?? tierlist.ImageId;
 
             tierlist = await _tierlistRepo.Update(tierlist);
             return _mapper.Map<TierlistDTO>(tierlist);
@@ -207,17 +206,14 @@ namespace ShounenGaming.Business.Services.Tierlists
 
             if (tierlist.UserId != userId)
                 throw new NoPermissionException();
-
-            var image = await _fileRepo.GetById(tierlistItem.ImageId);
-            if (image == null)
-                throw new EntityNotFoundException("Image");
             
+            //TODO: Check Image
+
             if (tierlist.Items == null)
                 tierlist.Items = new();
 
             tierlist.Items.Add(new Core.Entities.Tierlists.TierlistItem
             {
-                Image = image,
                 Name = tierlist.Name,
             });
 
@@ -392,10 +388,11 @@ namespace ShounenGaming.Business.Services.Tierlists
         }
         public async Task<TierlistCategoryDTO> CreateTierlistCategory(CreateTierlistCategory tierListCategory)
         {
-            //Verify Image
-            var image = await _fileRepo.GetById(tierListCategory.ImageId);
+            //TODO: Verify Image
+            /*var image = await _fileRepo.GetById(tierListCategory.ImageId);
             if (image == null)
                 throw new EntityNotFoundException("Image");
+            */
 
             var category = await _tierlistCategoryRepo.Create(new Core.Entities.Tierlists.TierlistCategory
             {

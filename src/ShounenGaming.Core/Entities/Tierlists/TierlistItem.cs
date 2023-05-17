@@ -10,7 +10,7 @@ namespace ShounenGaming.Core.Entities.Tierlists
     public class TierlistItem : BaseEntity
     {
         public string Name { get; set; }
-        public virtual FileData Image { get; set; }
+        //public virtual FileData Image { get; set; }
 
     }
 }
