@@ -10,6 +10,7 @@ namespace ShounenGaming.DataAccess.Interfaces.Mangas
 {
     public interface IMangaRepository : IBaseRepository<Manga>
     {
+        Task<Manga?> GetByMALId(long MALId);
         Task<List<Manga>> GetPopularMangas(int count);
         Task<List<Manga>> SearchMangaByName(string name);
         Task<List<Manga>> GetRecentlyAddedMangas();

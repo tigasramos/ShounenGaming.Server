@@ -9,5 +9,6 @@ namespace ShounenGaming.DataAccess.Interfaces.Mangas
 {
     public interface IMangaWriterRepository : IBaseRepository<MangaWriter>
     {
+        Task<MangaWriter?> GetWriterByName(string name);
     }
 }

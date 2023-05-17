@@ -13,7 +13,6 @@ namespace ShounenGaming.Core.Entities.Mangas
         public string Name { get; set; }
         public virtual List<MangaAlternativeName> AlternativeNames { get; set; }
         public string Description { get; set; }
-        public virtual FileData Image { get; set; }
         public bool IsReleasing { get; set; }
         public virtual MangaWriter Writer { get; set; }
         public MangaType Type { get; set; }
@@ -21,12 +20,15 @@ namespace ShounenGaming.Core.Entities.Mangas
 
         public virtual List<MangaChapter> Chapters { get; set; }
 
-        public int? MangaMyAnimeListID { get; set; }
-        public int? MangaAniListID { get; set; }
+        public long? MangaMyAnimeListID { get; set; }
+        public long? MangaAniListID { get; set; }
+
+        public virtual List<MangaSource> Sources { get; set; }
 
         public virtual List<MangaUserData> UsersData { get; set; }
-        public virtual List<MangaVolume> Volumes { get; set; }
-    }
 
-    
+        public DateTime? StartedAt { get; set; }
+        public DateTime? FinishedAt { get; set; }
+    }
+        
 }

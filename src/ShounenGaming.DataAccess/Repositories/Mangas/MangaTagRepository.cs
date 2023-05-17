@@ -20,5 +20,10 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
         {
             return;
         }
+
+        public async Task<MangaTag?> GetTagByName(string name)
+        {
+            return await dbSet.FirstOrDefaultAsync(x => x.Name == name);
+        }
     }
 }

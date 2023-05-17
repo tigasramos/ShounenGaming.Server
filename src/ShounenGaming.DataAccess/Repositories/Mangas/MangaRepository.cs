@@ -30,14 +30,6 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
 
             foreach (var chapter in entity.Chapters)
             {
-                foreach (var translation in chapter.Translations)
-                {
-                    foreach (var page in translation.Pages)
-                    {
-                        context.Remove(page.Image);
-                    }
-                    context.RemoveRange(translation.Pages);
-                }
                 context.RemoveRange(chapter.Translations);
             }
             context.RemoveRange(entity.Chapters);
@@ -56,6 +48,11 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
         public async Task<List<MangaChapter>> GetRecentlyReleasedChapters()
         {
             return await dbSet.OrderByDescending(m => m.Chapters.OrderByDescending(c => c.CreatedAt).FirstOrDefault().CreatedAt).Select(d => d.Chapters.First()).ToListAsync();
+        }
+
+        public async Task<Manga?> GetByMALId(long MALId)
+        {
+            return await dbSet.FirstOrDefaultAsync(m => m.MangaMyAnimeListID == MALId);
         }
     }
 }

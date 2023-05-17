@@ -10,7 +10,6 @@ namespace ShounenGaming.Core.Entities.Mangas
     public class MangaTranslation : BaseEntity
     {
         public TranslationLanguage Language { get; set; }
-        public virtual List<MangaChapterPage> Pages { get; set; }
         public DateTime? ReleasedDate { get; set; }
     }
 }

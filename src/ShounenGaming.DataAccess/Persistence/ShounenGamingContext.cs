@@ -17,7 +17,6 @@ namespace ShounenGaming.DataAccess.Persistence
         //Base
         public DbSet<User> Users { get; set; }
         public DbSet<Bot> Bots { get; set; }
-        public DbSet<FileData> Files { get; set; }
 
         //Tierlist
         public DbSet<Tierlist> Tierlists { get; set; }

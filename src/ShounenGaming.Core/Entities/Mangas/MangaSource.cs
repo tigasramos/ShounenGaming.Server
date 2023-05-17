@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace ShounenGaming.Core.Entities.Mangas
 {
-    public class MangaAlternativeName : SimpleEntity
+    public class MangaSource : BaseEntity
     {
-        public string Language { get; set; }
-        public string Name { get; set; }
+        public string Provider { get; set; }
+        public string URL { get; set; }
+        public bool BrokenLink { get; set; }
     }
 }

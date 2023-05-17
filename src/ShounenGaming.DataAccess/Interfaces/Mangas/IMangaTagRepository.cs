@@ -10,5 +10,6 @@ namespace ShounenGaming.DataAccess.Interfaces.Mangas
 
     public interface IMangaTagRepository : IBaseRepository<MangaTag>
     {
+        Task<MangaTag?> GetTagByName(string name);
     }
 }

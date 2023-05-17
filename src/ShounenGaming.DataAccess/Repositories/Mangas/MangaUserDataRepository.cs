@@ -24,5 +24,15 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
         {
             return await dbSet.Where(c => c.Status == status && c.User.Id == userId).ToListAsync();
         }
+
+        public async Task<List<MangaUserData>> GetByUser(int userId)
+        {
+            return await dbSet.Where(m => m.User.Id == userId).ToListAsync();
+        }
+
+        public async Task<MangaUserData?> GetByUserAndManga(int userId, int mangaId)
+        {
+            return await dbSet.FirstOrDefaultAsync(m => m.User.Id == userId && m.Manga.Id == mangaId);
+        }
     }
 }
