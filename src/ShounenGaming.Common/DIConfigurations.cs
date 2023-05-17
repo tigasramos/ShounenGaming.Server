@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using JikanDotNet;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -186,15 +187,15 @@ namespace ShounenGaming.Common
             //Services
             services.AddTransient<IAuthService, AuthService>();
             services.AddTransient<IUserService, UserService>();
-            services.AddTransient<IFileService, FileService>();
             services.AddTransient<ITierlistService, TierlistService>();
             services.AddTransient<IMangaService, MangaService>();
+            services.AddTransient<IMangaUserDataService, MangaUserDataService>();
+            services.AddTransient<IJikan, Jikan>();
         }
         private static void AddRepositories(this IServiceCollection services)
         {
             services.AddTransient<IUserRepository, UserRepository>();
             services.AddTransient<IBotRepository, BotRepository>();
-            services.AddTransient<IFileDataRepository, FileDataRepository>();
 
             services.AddTransient<ITierlistCategoryRepository, TierlistCategoryRepository>();
             services.AddTransient<ITierlistRepository, TierlistRepository>();

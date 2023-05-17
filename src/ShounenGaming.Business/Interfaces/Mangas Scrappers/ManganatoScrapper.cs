@@ -1,5 +1,6 @@
 ﻿using HtmlAgilityPack;
 using ShounenGaming.Business.Interfaces.Mangas_Scrappers.Models;
+using ShounenGaming.Business.Models.Mangas.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,29 +17,32 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
         {
             var web = new HtmlWeb();
             var mangasList = new List<ScrappedSimpleManga>();
-            int currentPage = 1, lastPage = 1;
+            int currentPage = 1;
 
-            do
-            {
-                var htmlDoc = await web.LoadFromWebAsync($"https://manganato.com/genre-all/{currentPage}");
-                var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//div[@class='content-genres-item']");
-                foreach(var manga in mangasFetched)
+            try { 
+                while (true)
                 {
-                    var mangaName = manga.SelectSingleNode("div/h3/a")?.InnerText  ?? "";
-                    var mangaURL = manga.SelectSingleNode("div/h3/a")?.GetAttributeValue("href", "") ?? "";
-                    mangasList.Add(new ScrappedSimpleManga
+                    var htmlDoc = await web.LoadFromWebAsync($"https://manganato.com/genre-all/{currentPage}");
+                    var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//div[@class='content-genres-item']");
+                    if (mangasFetched == null || !mangasFetched.Any()) break;
+
+                    foreach (var manga in mangasFetched)
                     {
-                        Name = mangaName,
-                        Link = mangaURL,
-                    });
-                }
-                currentPage++;
-
-                if (lastPage == 1)
-                    lastPage = Convert.ToInt16(htmlDoc.DocumentNode.SelectNodes("//a[@class='page-blue page-last']").Select(c => c.InnerText.Replace("LAST(", "").Replace(")", "")).Where(d => !string.IsNullOrEmpty(d)).Last());
-
-
-            } while (currentPage <= lastPage);
+                        var mangaName = manga.SelectSingleNode("div/h3/a")?.InnerText ?? "";
+                        var mangaURL = manga.SelectSingleNode("div/h3/a")?.GetAttributeValue("href", "") ?? "";
+                        var imageUrl = manga.SelectSingleNode("a/img").GetAttributeValue("src", "") ?? "";
+                        mangasList.Add(new ScrappedSimpleManga
+                        {
+                            Name = mangaName,
+                            Link = mangaURL,
+                            ImageURL = imageUrl,
+                            Source = GetMangaSourceEnumDTO()
+                        });
+                    }
+                    currentPage++;
+                } 
+            }
+            catch { }
 
             return mangasList;
         }
@@ -73,6 +77,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
                 Description = mangaDescription,
                 Chapters = chapters,
                 ImageURL = imageUrl,
+                Source = GetMangaSourceEnumDTO()
             };
         }
         //NOTE: Needs Header Referer:https://chapmanganato.com/ to work
@@ -88,6 +93,55 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
                 imagesUrls.Add(image.GetAttributeValue("src", "").Trim());
             }
             return imagesUrls;
+        }
+        public string GetLanguage()
+        {
+            return "EN";
+        }
+
+        public string GetBaseURLForManga()
+        {
+            return "https://chapmanganato.com";
+        }
+
+        public MangaSourceEnumDTO GetMangaSourceEnumDTO()
+        {
+            return MangaSourceEnumDTO.MANGANATO;
+        }
+
+        public async Task<List<ScrappedSimpleManga>> SearchManga(string name)
+        {
+            var web = new HtmlWeb();
+            var mangasList = new List<ScrappedSimpleManga>();
+            int currentPage = 1;
+
+            try
+            {
+                while (true)
+                {
+                    var htmlDoc = await web.LoadFromWebAsync($"https://manganato.com/search/story/{name.Replace(" ", "_")}?page={currentPage}");
+                    var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//div[@class='search-story-item']");
+                    if (mangasFetched == null || !mangasFetched.Any()) break;
+
+                    foreach (var manga in mangasFetched)
+                    {
+                        var mangaName = manga.SelectSingleNode("div/h3/a")?.InnerText ?? "";
+                        var mangaURL = manga.SelectSingleNode("div/h3/a")?.GetAttributeValue("href", "") ?? "";
+                        var imageUrl = manga.SelectSingleNode("a/img").GetAttributeValue("src", "") ?? "";
+                        mangasList.Add(new ScrappedSimpleManga
+                        {
+                            Name = mangaName,
+                            Link = mangaURL,
+                            ImageURL = imageUrl,
+                            Source = GetMangaSourceEnumDTO()
+                        });
+                    }
+                    currentPage++;
+
+                }
+            } catch { }
+
+            return mangasList;
         }
     }
 }

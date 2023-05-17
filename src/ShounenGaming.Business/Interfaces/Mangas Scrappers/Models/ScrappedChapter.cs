@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers.Models
 {
-    internal class ScrappedChapter
+    public class ScrappedChapter
     {
         public string Name { get; set; }
         public string Link { get; set; }

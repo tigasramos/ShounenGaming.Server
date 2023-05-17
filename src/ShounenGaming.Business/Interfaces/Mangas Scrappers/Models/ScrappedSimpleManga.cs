@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ShounenGaming.Business.Models.Mangas.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,5 +11,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers.Models
     {
         public string Name { get; set; }
         public string Link { get; set; }
+        public string? ImageURL { get; set; }
+        public MangaSourceEnumDTO Source { get; set; }
     }
 }

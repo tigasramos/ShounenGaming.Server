@@ -1,5 +1,6 @@
 ﻿using HtmlAgilityPack;
 using ShounenGaming.Business.Interfaces.Mangas_Scrappers.Models;
+using ShounenGaming.Business.Models.Mangas.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,30 +17,36 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
         {
             var web = new HtmlWeb();
             var mangasList = new List<ScrappedSimpleManga>();
-            int currentPage = 1, lastPage = 1;
-            do
-            {
-                var htmlDoc = await web.LoadFromWebAsync($"https://neoxscans.net/manga/page/{currentPage}");
-                var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//div[@class='page-listing-item']/div/div/div/div[@class='item-summary']");
-               
-                foreach(var manga in mangasFetched)
+            int currentPage = 1;
+            
+
+            try { 
+                while (true)
                 {
-                    var mangaName = manga.SelectSingleNode("div/h3/a")?.InnerText ?? "";
-                    if (mangaName.Contains("[Novel]"))
-                        continue;
-                    var mangaUrl = manga.SelectSingleNode("div/h3/a")?.GetAttributeValue("href","") ?? "";
-                    mangasList.Add(new ScrappedSimpleManga
+                    var htmlDoc = await web.LoadFromWebAsync($"https://neoxscans.net/manga/page/{currentPage}");
+                    var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//div[@class='col-6 col-md-2 badge-pos-2']/div");
+                    if (mangasFetched == null || !mangasFetched.Any()) break;
+
+                    foreach (var manga in mangasFetched)
                     {
-                        Name = mangaName,
-                        Link = mangaUrl.Remove(mangaUrl.Length - 1).Split("/").Last()
-                    });
-                }
-                currentPage++;
+                        var mangaName = manga.SelectSingleNode("div[@class='item-summary']/div/h3/a")?.InnerText ?? "";
+                        if (mangaName.Contains("[Novel]"))
+                            continue;
+                        var mangaUrl = manga.SelectSingleNode("div[@class='item-summary']/div/h3/a")?.GetAttributeValue("href", "") ?? "";
+                        var imageUrl = manga.SelectSingleNode("div[@class='item-thumb  c-image-hover']/a/img").GetAttributeValue("src", "") ?? "";
+                        mangasList.Add(new ScrappedSimpleManga
+                        {
+                            Name = mangaName,
+                            Link = mangaUrl.Remove(mangaUrl.Length - 1).Split("/").Last(),
+                            ImageURL = imageUrl,
+                            Source = GetMangaSourceEnumDTO()
+                        });
+                    }
 
-                if (lastPage == 1)
-                    lastPage = Convert.ToInt16(htmlDoc.DocumentNode.SelectNodes("//div[@class='wp-pagenavi']/a[@class='larger page']").Select(c => c.InnerText).Where(d => !string.IsNullOrEmpty(d)).Last());
+                    currentPage++;
 
-            } while (currentPage <= lastPage);
+                } 
+            } catch { }
 
             return mangasList;
         }
@@ -74,6 +81,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
                 Description = mangaDescription,
                 Chapters = chapters,
                 ImageURL = imageUrl,
+                Source = GetMangaSourceEnumDTO()
             };
         }
         public async Task<List<string>> GetChapterImages(string urlPart)
@@ -88,6 +96,55 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
                 imagesUrls.Add(image.GetAttributeValue("src", "").Trim());
             }
             return imagesUrls;
+        }
+        public string GetLanguage()
+        {
+            return "PT";
+        }
+
+        public string GetBaseURLForManga()
+        {
+            return "https://neoxscans.net/manga";
+        }
+
+        public MangaSourceEnumDTO GetMangaSourceEnumDTO()
+        {
+            return MangaSourceEnumDTO.NEO_X_SCANS;
+        }
+
+        public async Task<List<ScrappedSimpleManga>> SearchManga(string name)
+        {
+            var web = new HtmlWeb();
+            var mangasList = new List<ScrappedSimpleManga>();
+            int currentPage = 1;
+
+            try { 
+                while(true)
+                {
+                    var htmlDoc = await web.LoadFromWebAsync($"https://neoxscans.net/page/{currentPage}/?s={name.Replace(" ", "+")}&post_type=wp-manga");
+                    var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//div[@class='row c-tabs-item__content']");
+                    if (mangasFetched == null || !mangasFetched.Any()) break;
+
+                    foreach (var manga in mangasFetched)
+                    {
+                        var mangaName = manga.SelectSingleNode("div/div[@class='tab-summary']/div/h3/a")?.InnerText ?? "";
+                        if (mangaName.Contains("[Novel]"))
+                            continue;
+                        var mangaUrl = manga.SelectSingleNode("div/div[@class='tab-summary']/div/h3/a")?.GetAttributeValue("href", "") ?? "";
+                        var imageUrl = manga.SelectSingleNode("div/div[@class='tab-thumb c-image-hover']/a/img").GetAttributeValue("src", "") ?? "";
+                        mangasList.Add(new ScrappedSimpleManga
+                        {
+                            Name = mangaName,
+                            Link = mangaUrl.Remove(mangaUrl.Length - 1).Split("/").Last(),
+                            ImageURL = imageUrl,
+                            Source = GetMangaSourceEnumDTO()
+                        });
+                    }
+                    currentPage++;
+                }
+            } catch { }
+
+            return mangasList;
         }
     }
 }

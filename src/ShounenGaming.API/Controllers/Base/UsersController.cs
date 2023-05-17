@@ -39,7 +39,7 @@ namespace ShounenGaming.API.Controllers.Base
         [HttpGet("me")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserDTO))]
         [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ErrorDetails))]
-        public async Task<IActionResult> GetUserById()
+        public async Task<IActionResult> GetLoggedUser()
         {
             var userId = int.Parse(User.FindFirst(c => c.Type == "Id")!.Value);
             return Ok(await _userService.GetUserById(userId));

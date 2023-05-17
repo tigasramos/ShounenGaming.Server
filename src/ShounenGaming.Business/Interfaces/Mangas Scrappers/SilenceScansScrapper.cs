@@ -1,6 +1,7 @@
 ﻿using HtmlAgilityPack;
 using Newtonsoft.Json;
 using ShounenGaming.Business.Interfaces.Mangas_Scrappers.Models;
+using ShounenGaming.Business.Models.Mangas.Enums;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -19,25 +20,33 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
             var web = new HtmlWeb();
             var mangasList = new List<ScrappedSimpleManga>();
             var currentPage = 1;
-            while (true)
-            {
-                var htmlDoc = await web.LoadFromWebAsync($"https://silencescan.com.br/manga/?page={currentPage}");
-                var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//div[@class='listupd']/div/div/a");
-                if (mangasFetched == null)
-                    break;
 
-                foreach(var manga in mangasFetched)
+            try
+            {
+                while (true)
                 {
-                    var mangaName = manga.GetAttributeValue("title","") ?? "";
-                    var mangaURL = manga.GetAttributeValue("href", "") ?? "";
-                    mangasList.Add(new ScrappedSimpleManga
+                    var htmlDoc = await web.LoadFromWebAsync($"https://silencescan.com.br/manga/?page={currentPage}");
+                    var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//div[@class='listupd']/div/div/a");
+                    if (mangasFetched == null || !mangasFetched.Any()) break;
+
+                    foreach (var manga in mangasFetched)
                     {
-                        Name = mangaName,
-                        Link = mangaURL.Remove(mangaURL.Length - 1).Split("/").Last(),
-                    });
+                        var mangaName = manga.GetAttributeValue("title", "") ?? "";
+                        var mangaURL = manga.GetAttributeValue("href", "") ?? "";
+                        var imageURL = manga.SelectSingleNode("div[@class='limit']/img").GetAttributeValue("src", "") ?? "";
+                        mangasList.Add(new ScrappedSimpleManga
+                        {
+                            Name = mangaName,
+                            Link = mangaURL.Remove(mangaURL.Length - 1).Split("/").Last(),
+                            Source = GetMangaSourceEnumDTO()
+                        });
+                    }
+                    currentPage++;
+
                 }
-                currentPage++;
             }
+            catch { }
+            
 
             return mangasList;
         }
@@ -72,6 +81,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
                 Description = mangaDescription,
                 Chapters = chapters,
                 ImageURL = imageUrl,
+                Source = GetMangaSourceEnumDTO()
             };
         }
         
@@ -88,6 +98,57 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
                 imagesUrls.Add(image.GetAttributeValue("src", "").Trim());
             }
             return imagesUrls;
+        }
+
+        public string GetLanguage()
+        {
+            return "PT";
+        }
+
+        public string GetBaseURLForManga()
+        {
+            return "https://silencescan.com.br";
+        }
+
+        public MangaSourceEnumDTO GetMangaSourceEnumDTO()
+        {
+            return MangaSourceEnumDTO.SILENCE_SCANS;
+        }
+
+        public async Task<List<ScrappedSimpleManga>> SearchManga(string name)
+        {
+            var web = new HtmlWeb();
+            var mangasList = new List<ScrappedSimpleManga>();
+            var currentPage = 1;
+            try
+            {
+                while (true)
+                {
+                    var htmlDoc = await web.LoadFromWebAsync($"https://silencescan.com.br/page/{currentPage}/?s={name.Replace(" ", "+")}");
+                    var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//div[@class='listupd']/div/div/a");
+                    if (mangasFetched == null || !mangasFetched.Any()) break;
+
+                    foreach (var manga in mangasFetched)
+                    {
+                        var mangaName = manga.GetAttributeValue("title", "") ?? "";
+                        var mangaURL = manga.GetAttributeValue("href", "") ?? "";
+                        var imageURL = manga.SelectSingleNode("div[@class='limit']/img").GetAttributeValue("src", "") ?? "";
+                        mangasList.Add(new ScrappedSimpleManga
+                        {
+                            Name = mangaName,
+                            Link = mangaURL.Remove(mangaURL.Length - 1).Split("/").Last(),
+                            ImageURL = imageURL,
+                            Source = GetMangaSourceEnumDTO()
+                        });
+                    }
+                    currentPage++;
+                }
+
+            }
+            catch(Exception _) { }
+           
+
+            return mangasList;
         }
     }
 }

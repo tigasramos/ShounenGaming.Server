@@ -1,6 +1,7 @@
 ﻿using HtmlAgilityPack;
 using Newtonsoft.Json;
 using ShounenGaming.Business.Interfaces.Mangas_Scrappers.Models;
+using ShounenGaming.Business.Models.Mangas.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,7 +30,8 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
                     mangasList.Add(new ScrappedSimpleManga
                     {
                         Name = mangaName,
-                        Link = mangaUrl
+                        Link = mangaUrl,
+                        Source = GetMangaSourceEnumDTO()
                     });
                 }
                 currentPage++;
@@ -70,6 +72,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
                 Description = mangaDescription,
                 Chapters = chapters,
                 ImageURL = imageUrl,
+                Source = GetMangaSourceEnumDTO()
             };
         }
 
@@ -92,6 +95,25 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
         {
             public string Url { get; set; }
             public string Name { get; set; }
+        }
+        public string GetLanguage()
+        {
+            return "PT";
+        }
+
+        public string GetBaseURLForManga()
+        {
+            return "https://firemangas.com/manga/ler";
+        }
+
+        public MangaSourceEnumDTO GetMangaSourceEnumDTO()
+        {
+            return MangaSourceEnumDTO.FIRE_MANGAS;
+        }
+
+        public Task<List<ScrappedSimpleManga>> SearchManga(string name)
+        {
+            throw new NotImplementedException();
         }
     }
 }
