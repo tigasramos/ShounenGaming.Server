@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ShounenGaming.Business.Models.Mangas.Enums
+namespace ShounenGaming.Core.Entities.Mangas.Enums
 {
-    public enum MangaUserStatusEnumDTO
+    public enum MangaUserStatusEnum
     {
         READING = 0,
         PLANNED = 1,

@@ -24,7 +24,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// <param name="userId"></param>
         /// <param name="mangaId"></param>
         /// <returns></returns>
-        Task<MangaUserDataDTO?> GetMangaDataByUserAndManga(int userId, int mangaId);
+        Task<MangaUserDataDTO?> GetMangaDataByMangaByUser(int userId, int mangaId);
 
         /// <summary>
         /// Gets the User Status update history

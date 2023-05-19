@@ -20,8 +20,8 @@ namespace ShounenGaming.Business.Mappers
         {
             CreateMap<MangaUserStatusEnum, MangaUserStatusEnumDTO>();
             CreateMap<MangaUserStatusEnumDTO, MangaUserStatusEnum>();
-            CreateMap<MangaTypeDTOEnum, MangaType>();
-            CreateMap<MangaType, MangaTypeDTOEnum>();
+            CreateMap<MangaTypeDTOEnum, MangaTypeEnum>();
+            CreateMap<MangaTypeEnum, MangaTypeDTOEnum>();
 
 
             CreateMap<Manga, MangaDTO>()

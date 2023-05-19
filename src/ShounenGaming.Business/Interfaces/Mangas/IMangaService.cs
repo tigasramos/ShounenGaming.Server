@@ -24,9 +24,9 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// <summary>
         /// Searches a Manga by a Tag
         /// </summary>
-        /// <param name="tag"></param>
+        /// <param name="tags"></param>
         /// <returns></returns>
-        Task<PaginatedResponse<MangaDTO>> SearchMangaByTag(string tag);
+        Task<PaginatedResponse<MangaDTO>> SearchMangaByTags(List<string> tags);
 
         /// <summary>
         /// Gets the most Popular Mangas
@@ -45,7 +45,6 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// </summary>
         /// <returns></returns>
         Task<List<ChapterReleaseDTO>> GetRecentlyReleasedChapters();
-
 
         /// <summary>
         /// Get Manga Writer by its Id

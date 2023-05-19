@@ -189,6 +189,7 @@ namespace ShounenGaming.Common
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<ITierlistService, TierlistService>();
             services.AddTransient<IMangaService, MangaService>();
+            services.AddTransient<IImageService, ImageService>();
             services.AddTransient<IMangaUserDataService, MangaUserDataService>();
             services.AddTransient<IJikan, Jikan>();
         }

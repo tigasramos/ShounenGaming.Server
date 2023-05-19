@@ -15,7 +15,7 @@ namespace ShounenGaming.Core.Entities.Mangas
         public string Description { get; set; }
         public bool IsReleasing { get; set; }
         public virtual MangaWriter Writer { get; set; }
-        public MangaType Type { get; set; }
+        public MangaTypeEnum Type { get; set; }
         public virtual List<MangaTag> Tags { get; set; }
 
         public virtual List<MangaChapter> Chapters { get; set; }

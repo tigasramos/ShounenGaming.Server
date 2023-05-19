@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ShounenGaming.Core.Entities.Mangas;
+using ShounenGaming.Core.Entities.Mangas.Enums;
 using ShounenGaming.Core.Entities.Tierlists;
 using ShounenGaming.DataAccess.Interfaces.Mangas;
 using ShounenGaming.DataAccess.Interfaces.Tierlists;
@@ -53,6 +54,16 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
         public async Task<Manga?> GetByMALId(long MALId)
         {
             return await dbSet.FirstOrDefaultAsync(m => m.MangaMyAnimeListID == MALId);
+        }
+
+        public async Task<Manga?> GetByChapter(int chapterId)
+        {
+            return await dbSet.FirstOrDefaultAsync(m => m.Chapters.Any(c => c.Id == chapterId));
+        }
+
+        public async Task<List<Manga>> SearchMangaByTags(List<string> tags)
+        {
+            return await dbSet.Where(m => m.Tags.Any(t => tags.Contains(t.Name))).ToListAsync();
         }
     }
 }

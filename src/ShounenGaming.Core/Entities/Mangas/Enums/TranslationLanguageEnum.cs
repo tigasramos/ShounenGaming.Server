@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace ShounenGaming.Core.Entities.Mangas.Enums
 {
-    public enum MangaType
+    public enum TranslationLanguageEnum
     {
-        MANGA, MANHWA, MANHUA
+        PT, EN
     }
 }

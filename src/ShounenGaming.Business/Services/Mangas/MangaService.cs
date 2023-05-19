@@ -21,7 +21,7 @@ namespace ShounenGaming.Business.Services.Mangas
     public class MangaService : IMangaService
     {
         //Order by Priority (Scans first then remaining)
-        static List<IBaseMangaScrapper> scrappers = new() {
+        static readonly List<IBaseMangaScrapper> scrappers = new() {
                 new MangasChanScrapper(), new ManganatoScrapper(),
                 new GekkouScansScrapper(), new SilenceScansScrapper(),
                 new HuntersScansScrapper(), new NeoXScansScrapper(),
@@ -56,10 +56,16 @@ namespace ShounenGaming.Business.Services.Mangas
             return _mapper.Map<MangaDTO>(manga);
         }
 
+        //TODO: Finish
         public async Task<PaginatedResponse<MangaDTO>> SearchMangaByName(string name)
         {
             var mangas = await _mangaRepo.SearchMangaByName(name);
-            throw new NotImplementedException();
+            return new PaginatedResponse<MangaDTO>
+            {
+                CurrentPage = 0,
+                Data = _mapper.Map<List<MangaDTO>>(mangas),
+                MaxCount = mangas.Count
+            };
         }
 
 
@@ -80,7 +86,7 @@ namespace ShounenGaming.Business.Services.Mangas
 
         public async Task<List<MangaInfoDTO>> GetMangasByStatusByUser(int userId, MangaUserStatusEnumDTO status)
         {
-            var mangas = await _mangaUserDataRepo.GetByStatusByUser(_mapper.Map<MangaUserStatusEnum>(status), userId);
+            var mangas = await _mangaUserDataRepo.GetMangasByStatusByUser(_mapper.Map<MangaUserStatusEnum>(status), userId);
             return _mapper.Map<List<MangaInfoDTO>>(mangas);
         }
 
@@ -148,6 +154,24 @@ namespace ShounenGaming.Business.Services.Mangas
             return (await _jikan.SearchMangaAsync(name)).Data.ToList();
         }
 
+        public async Task<MangaWriterDTO> GetMangaWriterById(int id)
+        {
+            var writer = await _mangaWriterRepo.GetById(id);
+            return _mapper.Map<MangaWriterDTO>(writer);
+        }
+
+        //TODO: Finish
+        public async Task<PaginatedResponse<MangaDTO>> SearchMangaByTags(List<string> tags)
+        {
+            var mangas = await _mangaRepo.SearchMangaByTags(tags);
+            return new PaginatedResponse<MangaDTO>
+            {
+                CurrentPage = 0,
+                Data = _mapper.Map<List<MangaDTO>>(mangas),
+                MaxCount = mangas.Count
+            };
+        }
+
         public async Task UpdateMangasChapters()
         {
             Log.Information("Starting the Manga Chapters Update");
@@ -167,7 +191,7 @@ namespace ShounenGaming.Business.Services.Mangas
                         {
                             var scrapperEnum = (MangaSourceEnumDTO)Enum.Parse(typeof(MangaSourceEnumDTO), source.Provider);
                             var scrapper = GetScrapperByEnum(scrapperEnum);
-                            var scrapperTranslation = (TranslationLanguage)Enum.Parse(typeof(TranslationLanguage), scrapper.GetLanguage());
+                            var scrapperTranslation = (TranslationLanguageEnum)Enum.Parse(typeof(TranslationLanguageEnum), scrapper.GetLanguage());
 
                             var mangaInfo = await scrapper.GetManga(source.URL);
 
@@ -278,7 +302,7 @@ namespace ShounenGaming.Business.Services.Mangas
         }
        
         
-        private async Task SaveImage(IBaseMangaScrapper scrapper, TranslationLanguage scrapperTranslation, string mangaName, string chapterName, string chapterLink)
+        private async Task SaveImage(IBaseMangaScrapper scrapper, TranslationLanguageEnum scrapperTranslation, string mangaName, string chapterName, string chapterLink)
         {
             var chapterPages = await scrapper.GetChapterImages(chapterLink);
 
@@ -296,13 +320,13 @@ namespace ShounenGaming.Business.Services.Mangas
                 }
             }
         }
-        private static Core.Entities.Mangas.Enums.MangaType ConvertMALMangaType(string mangaType)
+        private static Core.Entities.Mangas.Enums.MangaTypeEnum ConvertMALMangaType(string mangaType)
         {
             return mangaType.ToLower() switch
             {
-                "manga" => Core.Entities.Mangas.Enums.MangaType.MANGA,
-                "manhua" => Core.Entities.Mangas.Enums.MangaType.MANHUA,
-                "manhwa" => Core.Entities.Mangas.Enums.MangaType.MANHWA,
+                "manga" => Core.Entities.Mangas.Enums.MangaTypeEnum.MANGA,
+                "manhua" => Core.Entities.Mangas.Enums.MangaTypeEnum.MANHUA,
+                "manhwa" => Core.Entities.Mangas.Enums.MangaTypeEnum.MANHWA,
                 _ => throw new Exception(),
             };
         }
@@ -313,14 +337,6 @@ namespace ShounenGaming.Business.Services.Mangas
         }
 
 
-        public Task<PaginatedResponse<MangaDTO>> SearchMangaByTag(string tag)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<MangaWriterDTO> GetMangaWriterById(int id)
-        {
-            throw new NotImplementedException();
-        }
+       
     }
 }

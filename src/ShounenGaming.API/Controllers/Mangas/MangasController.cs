@@ -18,6 +18,48 @@ namespace ShounenGaming.API.Controllers.Mangas
             _service = service;
         }
 
+        #region Get Mangas
+
+        /// <summary>
+        /// Gets a Manga by its Id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var manga = await _service.GetMangaById(id);
+            return Ok(manga);
+        }
+
+        /// <summary>
+        /// Searches a Manga by its Name
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchMangaByName([FromQuery] string name)
+        {
+            var mangas = await _service.SearchMangaByName(name);
+            return Ok(mangas);
+        }
+
+        /// <summary>
+        /// Searches a Manga by some tags
+        /// </summary>
+        /// <param name="tags"></param>
+        /// <returns></returns>
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchMangaByTag([FromQuery] List<string> tags)
+        {
+            var mangas = await _service.SearchMangaByTags(tags);
+            return Ok(mangas);
+        }
+
+        /// <summary>
+        /// Gets the most Popular Mangas at the current time
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("popular")]
         public async Task<IActionResult> GetPopular()
         {
@@ -25,20 +67,68 @@ namespace ShounenGaming.API.Controllers.Mangas
             return Ok(popularMangas);
         }
 
-        
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        /// <summary>
+        /// Gets the last Mangas added
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("recent")]
+        public async Task<IActionResult> GetRecentlyAddedMangas()
         {
-            var manga = await _service.GetMangaById(id);
-            return Ok(manga);
+            var mangas = await _service.GetRecentlyAddedMangas();
+            return Ok(mangas);
         }
-        
+
+        /// <summary>
+        /// Gets the last Chapters added
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("recent/chapters")]
+        public async Task<IActionResult> GetRecentlyReleasedChapters()
+        {
+            var chapters = await _service.GetRecentlyReleasedChapters();
+            return Ok(chapters);
+        }
+
+        #endregion
+
+        #region Tags & Writers
+
+        /// <summary>
+        /// Gets all Manga Tags
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("tags")]
+        public async Task<IActionResult> GetMangaTags()
+        {
+            var tags = await _service.GetMangaTags();
+            return Ok(tags);
+        }
+
+        /// <summary>
+        /// Gets all Manga Writers
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("writers")]
+        public async Task<IActionResult> GetMangaWriters()
+        {
+            var writers = await _service.GetMangaWriters();
+            return Ok(writers);
+        }
+
+        /// <summary>
+        /// Gets the Manga Writer by its Id
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("writers/{id}")]
+        public async Task<IActionResult> GetMangaWriterById(int id)
+        {
+            var writer = await _service.GetMangaWriterById(id);
+            return Ok(writer);
+        }
+
+        #endregion
 
         #region Manage Mangas
-        /*
-         * Mods Only
-         * Flow: Search Manga By Name in MAL -> Search Manga By Name in Sources -> Link Manga to Sources
-         */
 
         /// <summary>
         /// Search Manga from MyAnimeList
@@ -63,6 +153,7 @@ namespace ShounenGaming.API.Controllers.Mangas
             var mangas = await _service.SearchMangaSource(name);
             return Ok(mangas);
         }
+
         /// <summary>
         /// Gets All Mangas From a Source
         /// </summary>
@@ -88,6 +179,7 @@ namespace ShounenGaming.API.Controllers.Mangas
             return Ok(manga);
         }
 
+        #endregion
 
         [HttpPut("testing/update")]
         public async Task<IActionResult> Update()
@@ -95,6 +187,5 @@ namespace ShounenGaming.API.Controllers.Mangas
             await _service.UpdateMangasChapters();
             return Ok();
         }
-        #endregion
     }
 }

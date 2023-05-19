@@ -1,4 +1,5 @@
 ﻿using ShounenGaming.Core.Entities.Mangas;
+using ShounenGaming.Core.Entities.Mangas.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,6 @@ namespace ShounenGaming.DataAccess.Interfaces.Mangas
     {
         Task<List<MangaUserData>> GetByUser(int userId);
         Task<MangaUserData?> GetByUserAndManga(int userId, int mangaId);
-        Task<List<MangaUserData>> GetByStatusByUser(MangaUserStatusEnum status,int userId);
+        Task<List<MangaUserData>> GetMangasByStatusByUser(MangaUserStatusEnum status,int userId);
     }
 }
