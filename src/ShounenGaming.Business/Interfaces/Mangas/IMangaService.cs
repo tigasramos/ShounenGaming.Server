@@ -15,18 +15,24 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         Task<MangaDTO> GetMangaById(int id);
 
         /// <summary>
+        /// Searches Mangas
+        /// </summary>
+        /// <returns></returns>
+        Task<PaginatedResponse<MangaDTO>> SearchMangas();
+
+        /// <summary>
         /// Searches a Manga by its Name
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        Task<PaginatedResponse<MangaDTO>> SearchMangaByName(string name);
+        Task<PaginatedResponse<MangaDTO>> SearchMangasByName(string name);
 
         /// <summary>
         /// Searches a Manga by a Tag
         /// </summary>
         /// <param name="tags"></param>
         /// <returns></returns>
-        Task<PaginatedResponse<MangaDTO>> SearchMangaByTags(List<string> tags);
+        Task<PaginatedResponse<MangaDTO>> SearchMangasByTags(List<string> tags);
 
         /// <summary>
         /// Gets the most Popular Mangas

@@ -57,7 +57,19 @@ namespace ShounenGaming.Business.Services.Mangas
         }
 
         //TODO: Finish
-        public async Task<PaginatedResponse<MangaDTO>> SearchMangaByName(string name)
+        public async Task<PaginatedResponse<MangaDTO>> SearchMangas()
+        {
+            var mangas = await _mangaRepo.GetAll();
+            return new PaginatedResponse<MangaDTO>
+            {
+                CurrentPage = 0,
+                Data = _mapper.Map<List<MangaDTO>>(mangas),
+                MaxCount = mangas.Count
+            };
+        }
+
+        //TODO: Finish
+        public async Task<PaginatedResponse<MangaDTO>> SearchMangasByName(string name)
         {
             var mangas = await _mangaRepo.SearchMangaByName(name);
             return new PaginatedResponse<MangaDTO>
@@ -161,7 +173,7 @@ namespace ShounenGaming.Business.Services.Mangas
         }
 
         //TODO: Finish
-        public async Task<PaginatedResponse<MangaDTO>> SearchMangaByTags(List<string> tags)
+        public async Task<PaginatedResponse<MangaDTO>> SearchMangasByTags(List<string> tags)
         {
             var mangas = await _mangaRepo.SearchMangaByTags(tags);
             return new PaginatedResponse<MangaDTO>

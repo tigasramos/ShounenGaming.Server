@@ -37,6 +37,8 @@ namespace ShounenGaming.Business.Mappers
             CreateMap<MangaChapter, MangaChapterDTO>();
         }
 
+
+        //TODO: Get URL from Settings File
         private static string GetThumbnailImageName(string name)
         {
             var path = $"mangas/{name.NormalizeStringToDirectory()}/";

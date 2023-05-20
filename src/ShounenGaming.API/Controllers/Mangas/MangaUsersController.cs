@@ -56,6 +56,19 @@ namespace ShounenGaming.API.Controllers.Mangas
         }
 
         /// <summary>
+        /// Unmarks a Chapter as read for the current User
+        /// </summary>
+        /// <param name="chapterId"></param>
+        /// <returns></returns>
+        [HttpPut("unread/{chapterId}")]
+        public async Task<IActionResult> UnmarkChapterRead(int chapterId)
+        {
+            //TODO: Get User Id from JWT Token
+            await _mangaUsersService.UnmarkChapterRead(1, chapterId);
+            return Ok();
+        }
+
+        /// <summary>
         /// Updates the Status for the Manga to the current User
         /// </summary>
         /// <param name="mangaId"></param>

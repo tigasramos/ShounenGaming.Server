@@ -32,28 +32,20 @@ namespace ShounenGaming.API.Controllers.Mangas
             return Ok(manga);
         }
 
-        /// <summary>
-        /// Searches a Manga by its Name
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        [HttpGet("search")]
-        public async Task<IActionResult> SearchMangaByName([FromQuery] string name)
-        {
-            var mangas = await _service.SearchMangaByName(name);
-            return Ok(mangas);
-        }
 
         /// <summary>
-        /// Searches a Manga by some tags
+        /// Searches a Manga (by Name or by some tags)
         /// </summary>
+        /// <param name="name"></param>
         /// <param name="tags"></param>
         /// <returns></returns>
         [HttpGet("search")]
-        public async Task<IActionResult> SearchMangaByTag([FromQuery] List<string> tags)
+        public async Task<IActionResult> SearchMangaByTag([FromQuery] string? name, [FromQuery] List<string>? tags)
         {
-            var mangas = await _service.SearchMangaByTags(tags);
-            return Ok(mangas);
+            if (name is not null) return Ok(await _service.SearchMangasByName(name));
+            if (tags is not null && tags.Any()) return Ok(await _service.SearchMangasByTags(tags));
+
+            return Ok(await _service.SearchMangas());
         }
 
         /// <summary>
