@@ -1,4 +1,5 @@
-﻿using JikanDotNet;
+﻿using Coravel;
+using JikanDotNet;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -16,6 +17,7 @@ using ShounenGaming.Business.Interfaces.Base;
 using ShounenGaming.Business.Interfaces.Mangas;
 using ShounenGaming.Business.Interfaces.Tierlists;
 using ShounenGaming.Business.Mappers;
+using ShounenGaming.Business.Schedules;
 using ShounenGaming.Business.Services.Base;
 using ShounenGaming.Business.Services.Mangas;
 using ShounenGaming.Business.Services.Tierlists;
@@ -41,6 +43,7 @@ namespace ShounenGaming.Common
             services.AddRepositories();
             services.AddServices(environment, configuration);
 
+            services.AddScheduler();
             services.AddControllers();
             services.AddSignalR();
 
@@ -51,6 +54,14 @@ namespace ShounenGaming.Common
         public static void ConfigureApp(this WebApplication app)
         {
             app.UseSerilogRequestLogging();
+
+            //TODO: Check Coravel Cache Service
+            app.Services.UseScheduler(scheduler =>
+            {
+                scheduler.OnWorker("Mangas");
+                scheduler.Schedule<UpdateMangasInvocable>().EveryThirtyMinutes().PreventOverlapping("updateMangas");
+
+            }).OnError((ex) => Log.Error($"Running some schedule: {ex.Message}")); ;
 
             app.UseCors(corsPolicyBuilder =>
                 corsPolicyBuilder.AllowAnyOrigin()
@@ -183,6 +194,9 @@ namespace ShounenGaming.Common
             //Hubs
             services.AddTransient<AuthHub>();
             services.AddTransient<LobbiesHub>();
+
+            //Schedules
+            services.AddTransient<UpdateMangasInvocable>();
 
             //Services
             services.AddTransient<IAuthService, AuthService>();

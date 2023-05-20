@@ -62,6 +62,21 @@ namespace ShounenGaming.Business.Services.Mangas
             }
         }
 
+        public async Task UnmarkChapterRead(int userId, int chapterId)
+        {
+            var manga = await _mangaRepository.GetByChapter(chapterId) ?? throw new Exception("Chapter not Found");
+            var mangaUserInfo = await _mangaUserDataRepo.GetByUserAndManga(userId, manga.Id);
+            var chapter = manga.Chapters.First(c => c.Id == chapterId);
+
+            if (mangaUserInfo is null) return;
+
+            if (mangaUserInfo.ChaptersRead.Any(c => c.Id == chapterId))
+            {
+                mangaUserInfo.ChaptersRead.Remove(chapter);
+                await _mangaUserDataRepo.Update(mangaUserInfo);
+            }
+        }
+
         public async Task UpdateMangaStatusByUser(int userId, int mangaId, MangaUserStatusEnumDTO status)
         {
             var manga = await _mangaRepository.GetById(mangaId) ?? throw new Exception("Manga not Found");
