@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using ShounenGaming.Business.Models.Base;
 using ShounenGaming.Core.Entities.Base;
+using ShounenGaming.DTOs.Models.Base;
 using System;
 using System.Collections.Generic;
 using System.Linq;

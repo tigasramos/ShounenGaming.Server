@@ -1,5 +1,5 @@
-﻿using ShounenGaming.Business.Models.Mangas;
-using ShounenGaming.Business.Models.Mangas.Enums;
+﻿using ShounenGaming.DTOs.Models.Mangas;
+using ShounenGaming.DTOs.Models.Mangas.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;

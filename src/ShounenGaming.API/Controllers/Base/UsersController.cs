@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using ShounenGaming.Business.Interfaces.Base;
-using ShounenGaming.Business.Models.Base;
+using ShounenGaming.DTOs.Models.Base;
 using static ShounenGaming.Common.ExceptionMiddleware;
 
 namespace ShounenGaming.API.Controllers.Base

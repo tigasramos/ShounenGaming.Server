@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using ShounenGaming.Business.Interfaces.Base;
-using ShounenGaming.Business.Models.Base;
+using ShounenGaming.DTOs.Models.Base;
 using System;
 using System.Collections.Generic;
 using System.Linq;

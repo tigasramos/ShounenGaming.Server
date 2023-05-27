@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShounenGaming.Business", "s
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShounenGaming.Common", "src\ShounenGaming.Common\ShounenGaming.Common.csproj", "{7F367ADD-237C-41E7-A54D-54FE23E4F4B5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShounenGaming.DTOs", "src\ShounenGaming.DTOs\ShounenGaming.DTOs.csproj", "{94F300D8-E16C-48F3-8D55-B3861994DAEF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{7F367ADD-237C-41E7-A54D-54FE23E4F4B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7F367ADD-237C-41E7-A54D-54FE23E4F4B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7F367ADD-237C-41E7-A54D-54FE23E4F4B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94F300D8-E16C-48F3-8D55-B3861994DAEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94F300D8-E16C-48F3-8D55-B3861994DAEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94F300D8-E16C-48F3-8D55-B3861994DAEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94F300D8-E16C-48F3-8D55-B3861994DAEF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
 using ShounenGaming.Business.Exceptions;
 using ShounenGaming.Business.Interfaces.Tierlists;
-using ShounenGaming.Business.Models.Tierlists;
-using ShounenGaming.Business.Models.Tierlists.Requests;
 using ShounenGaming.DataAccess.Interfaces.Base;
 using ShounenGaming.DataAccess.Interfaces.Tierlists;
+using ShounenGaming.DTOs.Models.Tierlists;
+using ShounenGaming.DTOs.Models.Tierlists.Requests;
 using System;
 using System.Collections.Generic;
 using System.Drawing;

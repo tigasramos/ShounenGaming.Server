@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ShounenGaming.Business.Exceptions;
 using ShounenGaming.Business.Interfaces.Base;
-using ShounenGaming.Business.Models.Base;
+using ShounenGaming.DTOs.Models.Base;
 using static ShounenGaming.Common.ExceptionMiddleware;
 
 namespace ShounenGaming.API.Controllers.Base
@@ -59,7 +59,7 @@ namespace ShounenGaming.API.Controllers.Base
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ErrorDetails))]
-        public async Task<IActionResult> RegisterUser(CreateUser createUser)
+        public async Task<IActionResult> RegisterUser([FromBody]CreateUser createUser)
         {
             await _authService.RegisterUser(createUser);
             return Ok();

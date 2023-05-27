@@ -3,7 +3,6 @@ using Microsoft.Extensions.Caching.Memory;
 using Serilog;
 using ShounenGaming.Business.Exceptions;
 using ShounenGaming.Business.Interfaces.Base;
-using ShounenGaming.Business.Models.Base;
 using ShounenGaming.DataAccess.Interfaces.Base;
 using System;
 using System.Collections.Generic;
@@ -18,6 +17,7 @@ using System.Security.Claims;
 using ShounenGaming.Core.Entities.Base;
 using ShounenGaming.Business.Hubs;
 using Microsoft.AspNetCore.SignalR;
+using ShounenGaming.DTOs.Models.Base;
 
 namespace ShounenGaming.Business.Services.Base
 {

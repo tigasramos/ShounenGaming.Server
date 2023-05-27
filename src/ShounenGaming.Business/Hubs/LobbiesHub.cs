@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.SignalR;
 using MingweiSamuel.Camille.LolChallengesV1;
 using ShounenGaming.Business.Interfaces.Base;
-using ShounenGaming.Business.Models.Base;
 using System;
 using System.Collections.Generic;
 using System.Linq;

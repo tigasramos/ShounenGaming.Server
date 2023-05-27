@@ -1,7 +1,7 @@
 ﻿using ShounenGaming.Business.Interfaces.Mangas_Scrappers.Models;
-using ShounenGaming.Business.Models.Base;
-using ShounenGaming.Business.Models.Mangas;
-using ShounenGaming.Business.Models.Mangas.Enums;
+using ShounenGaming.DTOs.Models.Base;
+using ShounenGaming.DTOs.Models.Mangas;
+using ShounenGaming.DTOs.Models.Mangas.Enums;
 
 namespace ShounenGaming.Business.Interfaces.Mangas
 {

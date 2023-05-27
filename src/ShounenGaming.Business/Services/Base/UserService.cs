@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using ShounenGaming.Business.Exceptions;
 using ShounenGaming.Business.Interfaces.Base;
-using ShounenGaming.Business.Models.Base;
 using ShounenGaming.DataAccess.Interfaces.Base;
+using ShounenGaming.DTOs.Models.Base;
 
 namespace ShounenGaming.Business.Services.Base
 {

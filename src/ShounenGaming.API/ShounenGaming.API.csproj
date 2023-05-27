@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ShounenGaming.Common\ShounenGaming.Common.csproj" />
+    <ProjectReference Include="..\ShounenGaming.DTOs\ShounenGaming.DTOs.csproj" />
   </ItemGroup>
 
 </Project>

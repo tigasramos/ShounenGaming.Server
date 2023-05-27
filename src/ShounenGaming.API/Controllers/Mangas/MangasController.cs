@@ -2,8 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using ShounenGaming.DataAccess.Interfaces.Mangas;
 using ShounenGaming.Business.Interfaces.Mangas;
-using ShounenGaming.Business.Models.Mangas.Enums;
 using ShounenGaming.Business.Interfaces.Mangas_Scrappers.Models;
+using ShounenGaming.DTOs.Models.Mangas.Enums;
 
 namespace ShounenGaming.API.Controllers.Mangas
 {
@@ -40,7 +40,7 @@ namespace ShounenGaming.API.Controllers.Mangas
         /// <param name="tags"></param>
         /// <returns></returns>
         [HttpGet("search")]
-        public async Task<IActionResult> SearchMangaByTag([FromQuery] string? name, [FromQuery] List<string>? tags)
+        public async Task<IActionResult> SearchManga([FromQuery] string? name, [FromQuery] List<string>? tags)
         {
             if (name is not null) return Ok(await _service.SearchMangasByName(name));
             if (tags is not null && tags.Any()) return Ok(await _service.SearchMangasByTags(tags));

@@ -1,4 +1,4 @@
-﻿using ShounenGaming.Business.Models.Base;
+﻿using ShounenGaming.DTOs.Models.Base;
 
 namespace ShounenGaming.Business.Interfaces.Base
 {

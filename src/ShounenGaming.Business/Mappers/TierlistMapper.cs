@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using ShounenGaming.Business.Models.Tierlists;
 using ShounenGaming.Core.Entities.Tierlists;
+using ShounenGaming.DTOs.Models.Tierlists;
 using System;
 using System.Collections.Generic;
 using System.Linq;

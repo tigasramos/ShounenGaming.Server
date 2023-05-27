@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ShounenGaming.Business.Interfaces.Mangas;
-using ShounenGaming.Business.Models.Mangas.Enums;
+using ShounenGaming.DTOs.Models.Mangas.Enums;
 
 namespace ShounenGaming.API.Controllers.Mangas
 {

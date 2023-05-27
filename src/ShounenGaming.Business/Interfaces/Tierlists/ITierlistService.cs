@@ -1,5 +1,5 @@
-﻿using ShounenGaming.Business.Models.Tierlists;
-using ShounenGaming.Business.Models.Tierlists.Requests;
+﻿using ShounenGaming.DTOs.Models.Tierlists;
+using ShounenGaming.DTOs.Models.Tierlists.Requests;
 using System;
 using System.Collections.Generic;
 using System.Linq;

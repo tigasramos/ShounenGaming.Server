@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
 using ShounenGaming.Business.Interfaces.Mangas;
-using ShounenGaming.Business.Models.Mangas;
-using ShounenGaming.Business.Models.Mangas.Enums;
 using ShounenGaming.Core.Entities.Mangas.Enums;
 using ShounenGaming.DataAccess.Interfaces.Mangas;
+using ShounenGaming.DTOs.Models.Mangas;
+using ShounenGaming.DTOs.Models.Mangas.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;

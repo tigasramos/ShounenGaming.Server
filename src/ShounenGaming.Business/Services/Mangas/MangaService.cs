@@ -14,6 +14,9 @@ using ShounenGaming.Business.Models.Mangas.Enums;
 using ShounenGaming.Core.Entities.Mangas;
 using ShounenGaming.Core.Entities.Mangas.Enums;
 using ShounenGaming.DataAccess.Interfaces.Mangas;
+using ShounenGaming.DTOs.Models.Base;
+using ShounenGaming.DTOs.Models.Mangas;
+using ShounenGaming.DTOs.Models.Mangas.Enums;
 using System.Net;
 
 namespace ShounenGaming.Business.Services.Mangas
