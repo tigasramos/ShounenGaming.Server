@@ -11,6 +11,7 @@ namespace ShounenGaming.DTOs.Models.Mangas.Enums
         READING = 0,
         PLANNED = 1,
         DROPPED = 2,
-        IGNORED = 3
+        IGNORED = 3,
+        COMPLETED = 4,
     }
 }

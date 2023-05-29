@@ -104,7 +104,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// Updates all tracked Mangas (fetches new chapters or translations)
         /// </summary>
         /// <returns></returns>
-        Task UpdateMangasChapters();
+        Task UpdateMangasChapters(bool first = false);
 
     }
 }

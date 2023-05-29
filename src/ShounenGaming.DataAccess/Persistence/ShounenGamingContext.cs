@@ -28,7 +28,16 @@ namespace ShounenGaming.DataAccess.Persistence
 
 
         public DbSet<Manga> Mangas { get; set; }
+        public DbSet<MangaAlternativeName> MangaAlternativeNames { get; set; }
+        public DbSet<MangaChapter> MangaChapters { get; set; }
+        public DbSet<MangaSource> MangaSources { get; set; }
         public DbSet<MangaWriter> MangaWriters { get; set; }
+        public DbSet<MangaTag> MangaTags { get; set; }
+        public DbSet<MangaTranslation> MangaTranslations { get; set; }
+
+        public DbSet<MangaUserData> MangaUsersData { get; set; }
+        public DbSet<ChangedChapterStateAction> MangaChaptersHistory { get; set; }
+        public DbSet<ChangedMangaStatusAction> MangaStatusHistory { get; set; }
 
 
         public ShounenGamingContext(DbContextOptions<ShounenGamingContext> options) : base(options)
@@ -38,7 +47,7 @@ namespace ShounenGaming.DataAccess.Persistence
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
-            builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+            builder.ApplyConfigurationsFromAssembly(Assembly.GetAssembly(typeof(ShounenGamingContext)));
 
             base.OnModelCreating(builder);
         }

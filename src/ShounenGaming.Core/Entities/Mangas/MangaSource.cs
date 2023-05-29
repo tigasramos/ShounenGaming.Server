@@ -11,5 +11,8 @@ namespace ShounenGaming.Core.Entities.Mangas
         public string Provider { get; set; }
         public string URL { get; set; }
         public bool BrokenLink { get; set; }
+
+
+        public int MangaId { get; set; }
     }
 }

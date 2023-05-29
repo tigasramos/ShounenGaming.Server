@@ -28,7 +28,9 @@ using ShounenGaming.DataAccess.Persistence;
 using ShounenGaming.DataAccess.Repositories.Base;
 using ShounenGaming.DataAccess.Repositories.Mangas;
 using ShounenGaming.DataAccess.Repositories.Tierlists;
+using System.Reflection;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace ShounenGaming.Common
 {
@@ -44,7 +46,11 @@ namespace ShounenGaming.Common
             services.AddServices(environment, configuration);
 
             services.AddScheduler();
-            services.AddControllers();
+            services.AddControllers().AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+            });
             services.AddSignalR();
 
             services.AddEndpointsApiExplorer();
@@ -220,14 +226,16 @@ namespace ShounenGaming.Common
             services.AddTransient<IMangaUserDataRepository, MangaUserDataRepository>();
             services.AddTransient<IMangaWriterRepository, MangaWriterRepository>();
             services.AddTransient<IMangaTagRepository, MangaTagRepository>();
+            services.AddTransient<IChangedChapterStateActionRepository, ChangedChapterStateActionRepository>();
+            services.AddTransient<IChangedMangaStatusActionRepository, ChangedMangaStatusActionRepository>();
         }
         private static void AddSQLDatabase(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env)
         {
             services.AddDbContext<DbContext, ShounenGamingContext>(opt =>
             {
                 opt.UseLazyLoadingProxies();
-                opt.UseInMemoryDatabase("ShounenGamingDB");
-                //opt.UseNpgsql("User ID=postgres;Password=postgres;Host=localhost;Port=5432;Database=ShounenGamingDB;");
+                //opt.UseInMemoryDatabase("ShounenGamingDB");
+                opt.UseNpgsql("User ID=postgres;Password=postgres;Host=localhost;Port=5432;Database=ShounenGamingDB;", x => x.MigrationsAssembly(Assembly.GetAssembly(typeof(ShounenGamingContext)).ToString()));
                 opt.ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning));
             });
         }

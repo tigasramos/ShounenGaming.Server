@@ -10,5 +10,7 @@ namespace ShounenGaming.Core.Entities.Mangas
     {
         public string Language { get; set; }
         public string Name { get; set; }
+
+        public int MangaId { get; set; } 
     }
 }

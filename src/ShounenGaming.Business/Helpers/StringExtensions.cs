@@ -10,7 +10,7 @@ namespace ShounenGaming.Business.Helpers
     {
         public static string NormalizeStringToDirectory(this string str)
         {
-            return str.ToLower().Replace(".", "-").Replace(" ", "-").Replace(":","").Replace(";","");
+            return str.ToLower().Replace(".", "-").Replace(" ", "-").Replace(":","").Replace(";","").Replace("?","");
         }
     }
 }

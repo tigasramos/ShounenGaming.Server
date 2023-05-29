@@ -1,8 +1,6 @@
 ﻿using AutoMapper;
+using Microsoft.Extensions.Configuration;
 using ShounenGaming.Business.Helpers;
-using ShounenGaming.Business.Models.Base;
-using ShounenGaming.Business.Models.Mangas;
-using ShounenGaming.Business.Models.Mangas.Enums;
 using ShounenGaming.Core.Entities.Base;
 using ShounenGaming.Core.Entities.Mangas;
 using ShounenGaming.Core.Entities.Mangas.Enums;
@@ -23,21 +21,32 @@ namespace ShounenGaming.Business.Mappers
         {
             CreateMap<MangaUserStatusEnum, MangaUserStatusEnumDTO>();
             CreateMap<MangaUserStatusEnumDTO, MangaUserStatusEnum>();
-            CreateMap<MangaTypeDTOEnum, MangaTypeEnum>();
-            CreateMap<MangaTypeEnum, MangaTypeDTOEnum>();
+            CreateMap<MangaTypeEnumDTO, MangaTypeEnum>();
+            CreateMap<MangaTypeEnum, MangaTypeEnumDTO>();
+            CreateMap<MangaTranslationEnumDTO, TranslationLanguageEnum>();
+            CreateMap<TranslationLanguageEnum, MangaTranslationEnumDTO>();
 
 
             CreateMap<Manga, MangaDTO>()
-                .ForMember(m => m.AlternativeNames, (x) => x.MapFrom((a) => a.AlternativeNames.ToDictionary(s => s.Language, s => s.Name)))
+                .ForMember(m => m.AlternativeNames, (x) => x.MapFrom((a) => a.AlternativeNames.Select(s => new Pair<string, string>() { Id = s.Language, Value = s.Name})))
                 .ForMember(m => m.Tags, (x) => x.MapFrom((a) => a.Tags.Select(s => s.Name).ToList()))
-                .ForMember(m => m.ImageUrl, (x) => x.MapFrom((a) => GetThumbnailImageName(a.Name)));
+                .ForMember(m => m.ImageUrl, (x) => x.MapFrom((a) => "https://localhost:7252/" + GetThumbnailImageName(a.Name)));
 
             CreateMap<Manga, MangaInfoDTO>()
                 .ForMember(m => m.Tags, (x) => x.MapFrom((a) => a.Tags.Select(s => s.Name).ToList()))
                 .ForMember(m => m.ChaptersCount, (x) => x.MapFrom((a) => a.Chapters.Count))
-                .ForMember(m => m.ImageUrl, (x) => x.MapFrom((a) => GetThumbnailImageName(a.Name)));
+                .ForMember(m => m.MyAnimeListId, (x) => x.MapFrom((a) => a.MangaMyAnimeListID))
+                .ForMember(m => m.AnilistId, (x) => x.MapFrom((a) => a.MangaAniListID))
+                .ForMember(m => m.LastChapterDate, (x) => x.MapFrom((a) => a.Chapters.OrderByDescending(c => c.CreatedAt).First().CreatedAt))
+                .ForMember(m => m.ImageUrl, (x) => x.MapFrom((a) => "https://localhost:7252/" + GetThumbnailImageName(a.Name)));
 
             CreateMap<MangaChapter, MangaChapterDTO>();
+            CreateMap<MangaChapter, ChapterReleaseDTO>();
+            CreateMap<MangaWriter, MangaWriterDTO>();
+            CreateMap<MangaTranslation, MangaTranslationDTO>()
+                .ForMember(m => m.Language, (x) => x.MapFrom((a) => a.Language));
+
+
         }
 
 

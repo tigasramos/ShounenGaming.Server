@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ShounenGaming.DataAccess.Persistence;
@@ -11,9 +12,11 @@ using ShounenGaming.DataAccess.Persistence;
 namespace ShounenGaming.DataAccess.Persistence.Migrations
 {
     [DbContext(typeof(ShounenGamingContext))]
-    partial class ShounenGamingContextModelSnapshot : ModelSnapshot
+    [Migration("20230525115403_Initial")]
+    partial class Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -159,73 +162,6 @@ namespace ShounenGaming.DataAccess.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("ShounenGaming.Core.Entities.Mangas.ChangedChapterStateAction", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ChapterId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("Read")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ChapterId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("MangaChaptersHistory");
-                });
-
-            modelBuilder.Entity("ShounenGaming.Core.Entities.Mangas.ChangedMangaStatusAction", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("MangaId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("NewState")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("PreviousState")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MangaId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("MangaStatusHistory");
                 });
 
             modelBuilder.Entity("ShounenGaming.Core.Entities.Mangas.Manga", b =>
@@ -475,6 +411,33 @@ namespace ShounenGaming.DataAccess.Persistence.Migrations
                     b.ToTable("MangaWriters");
                 });
 
+            modelBuilder.Entity("ShounenGaming.Core.Entities.Mangas.MangasUserAction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Action")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("MangaId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MangaId");
+
+                    b.ToTable("MangaUsersActions");
+                });
+
             modelBuilder.Entity("ShounenGaming.Core.Entities.Tierlists.Tier", b =>
                 {
                     b.Property<int>("Id")
@@ -699,44 +662,6 @@ namespace ShounenGaming.DataAccess.Persistence.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ShounenGaming.Core.Entities.Mangas.ChangedChapterStateAction", b =>
-                {
-                    b.HasOne("ShounenGaming.Core.Entities.Mangas.MangaChapter", "Chapter")
-                        .WithMany()
-                        .HasForeignKey("ChapterId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ShounenGaming.Core.Entities.Base.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Chapter");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("ShounenGaming.Core.Entities.Mangas.ChangedMangaStatusAction", b =>
-                {
-                    b.HasOne("ShounenGaming.Core.Entities.Mangas.Manga", "Manga")
-                        .WithMany()
-                        .HasForeignKey("MangaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ShounenGaming.Core.Entities.Base.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Manga");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("ShounenGaming.Core.Entities.Mangas.Manga", b =>
                 {
                     b.HasOne("ShounenGaming.Core.Entities.Mangas.MangaWriter", "Writer")
@@ -759,13 +684,11 @@ namespace ShounenGaming.DataAccess.Persistence.Migrations
 
             modelBuilder.Entity("ShounenGaming.Core.Entities.Mangas.MangaChapter", b =>
                 {
-                    b.HasOne("ShounenGaming.Core.Entities.Mangas.Manga", "Manga")
+                    b.HasOne("ShounenGaming.Core.Entities.Mangas.Manga", null)
                         .WithMany("Chapters")
                         .HasForeignKey("MangaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Manga");
                 });
 
             modelBuilder.Entity("ShounenGaming.Core.Entities.Mangas.MangaSource", b =>
@@ -801,6 +724,17 @@ namespace ShounenGaming.DataAccess.Persistence.Migrations
                     b.Navigation("Manga");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ShounenGaming.Core.Entities.Mangas.MangasUserAction", b =>
+                {
+                    b.HasOne("ShounenGaming.Core.Entities.Mangas.Manga", "Manga")
+                        .WithMany()
+                        .HasForeignKey("MangaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Manga");
                 });
 
             modelBuilder.Entity("ShounenGaming.Core.Entities.Tierlists.Tier", b =>

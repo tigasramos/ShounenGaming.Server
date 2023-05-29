@@ -176,7 +176,7 @@ namespace ShounenGaming.API.Controllers.Mangas
         [HttpPut("testing/update")]
         public async Task<IActionResult> Update()
         {
-            await _service.UpdateMangasChapters();
+            await _service.UpdateMangasChapters(true);
             return Ok();
         }
     }

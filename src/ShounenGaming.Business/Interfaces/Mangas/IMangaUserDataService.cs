@@ -16,7 +16,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// <param name="userId"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        Task<List<MangaInfoDTO>> GetMangasByStatusByUser(int userId, MangaUserStatusEnumDTO status);
+        Task<List<MangaUserDataDTO>> GetMangasByStatusByUser(int userId, MangaUserStatusEnumDTO status);
 
         /// <summary>
         /// Gets the Manga info relative to a User
@@ -56,7 +56,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// <param name="mangaId"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        Task UpdateMangaStatusByUser(int userId, int mangaId, MangaUserStatusEnumDTO status);
+        Task<MangaUserDataDTO> UpdateMangaStatusByUser(int userId, int mangaId, MangaUserStatusEnumDTO status);
        
     }
 }

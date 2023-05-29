@@ -3,6 +3,7 @@ using ShounenGaming.Business.Interfaces.Mangas_Scrappers.Models;
 using ShounenGaming.DTOs.Models.Mangas.Enums;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -58,10 +59,10 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
             var htmlDoc = await web.LoadFromWebAsync($"https://mangaschan.com/{urlPart}");
 
             List<string> imagesUrls = new();
-            var images = htmlDoc.DocumentNode.SelectNodes("//div[@id='readerarea']/img");
+            var images = htmlDoc.DocumentNode.SelectNodes("//div[@id='readerarea']/noscript/p/img");
             foreach (var image in images)
             {
-                imagesUrls.Add(image.GetAttributeValue("data-src", "").Trim());
+                imagesUrls.Add(image.GetAttributeValue("src", "").Trim());
             }
             return imagesUrls;
         }
@@ -77,16 +78,16 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
             var htmlDoc = await web.LoadFromWebAsync($"https://mangaschan.com/manga/{urlPart}");
             var mangaName = htmlDoc.DocumentNode.SelectSingleNode("//h1[@class='entry-title']")?.InnerText.Trim() ?? "";
             var mangaDescription = htmlDoc.DocumentNode.SelectSingleNode("//div[@class='entry-content entry-content-single']/p")?.InnerText.Trim() ?? "";
-            var imageUrl = htmlDoc.DocumentNode.SelectSingleNode("//div[@class='thumb']/a/img")?.GetAttributeValue("src", "") ?? "";
+            var imageUrl = htmlDoc.DocumentNode.SelectSingleNode("//div[@class='thumb']/img")?.GetAttributeValue("src", "") ?? "";
 
             var chapters = new List<ScrappedChapter>();
             var scrappedChapters = htmlDoc.DocumentNode.SelectNodes("//ul[@class='clstyle']/li/div/div/a");
             foreach (var chapter in scrappedChapters)
             {
-                var chapterName = chapter.SelectSingleNode("span[@='chapternum']").InnerText.Replace("Capítulo", "").Trim() ?? "";
+                var chapterName = chapter.SelectSingleNode("span[@class='chapternum']").InnerText.Replace("Capítulo", "").Trim() ?? "";
                 var chapterUrl = chapter.GetAttributeValue("href", "") ?? "";
                 var chapterPageDate = chapter.SelectSingleNode("span[@class='chapterdate']")?.InnerText ?? "";
-                var parsed = DateTime.TryParseExact(chapterPageDate, "MMMM d, yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var chapterDate);
+                var parsed = DateTime.TryParseExact(chapterPageDate, "MMMM d, yyyy", CultureInfo.GetCultureInfo("pt-BR"), DateTimeStyles.None, out var chapterDate);
                 chapters.Add(new ScrappedChapter
                 {
                     Name = chapterName,
