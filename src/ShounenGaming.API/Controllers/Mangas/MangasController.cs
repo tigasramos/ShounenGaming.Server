@@ -32,6 +32,20 @@ namespace ShounenGaming.API.Controllers.Mangas
             return Ok(manga);
         }
 
+        /// <summary>
+        /// Gets a Manga Translation by its Id
+        /// </summary>
+        /// <param name="mangaId"></param>
+        /// <param name="chapterId"></param>
+        /// <param name="translation"></param>
+        /// <returns></returns>
+        [HttpGet("{mangaId}/chapters/{chapterId}/translations/{translation}")]
+        public async Task<IActionResult> GetMangaTranslation(int mangaId, int chapterId, MangaTranslationEnumDTO translation)
+        {
+            var mangaTranslation = await _service.GetMangaTranslation(mangaId, chapterId, translation);
+            return Ok(mangaTranslation);
+        }
+
 
         /// <summary>
         /// Searches a Manga (by Name or by some tags)

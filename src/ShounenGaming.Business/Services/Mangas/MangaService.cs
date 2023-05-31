@@ -54,26 +54,52 @@ namespace ShounenGaming.Business.Services.Mangas
             return manga == null ? throw new EntityNotFoundException("Manga") : _mapper.Map<MangaDTO>(manga);
         }
 
+        public async Task<MangaTranslationDTO> GetMangaTranslation(int mangaId, int chapterId, MangaTranslationEnumDTO translation)
+        {
+            var manga = await _mangaRepo.GetById(mangaId) ?? throw new EntityNotFoundException("Manga");
+            var mangaTranslation = manga.Chapters.Where(c => c.Id == chapterId).Select(s => s.Translations.FirstOrDefault(p => p.Language == _mapper.Map<TranslationLanguageEnum>(translation))).FirstOrDefault() ?? throw new EntityNotFoundException("MangaTranslation");
+            return MapMangaTranslation(mangaTranslation);
+        }
+
+        private MangaTranslationDTO MapMangaTranslation(MangaTranslation mangaTranslation)
+        {
+            var dto = new MangaTranslationDTO
+            {
+                MangaName = mangaTranslation.MangaChapter.Manga.Name,
+                Language = _mapper.Map<MangaTranslationEnumDTO>(mangaTranslation.Language),
+                ChapterId = mangaTranslation.MangaChapter.Id,
+                ChapterNumber = mangaTranslation.MangaChapter.Name,
+                Id = mangaTranslation.Id,
+                ReleasedDate = mangaTranslation.ReleasedDate,
+                Pages = _imageService.GetFilesFromFolder($"mangas/{mangaTranslation.MangaChapter.Manga.Name.NormalizeStringToDirectory()}/chapters/{mangaTranslation.Language.ToString().ToLower()}/{mangaTranslation.MangaChapter.Name.NormalizeStringToDirectory()}/")
+            };
+            var previousChapter = mangaTranslation.MangaChapter.Manga.Chapters.OrderByDescending(o => o.CreatedAt).SkipWhile(s => s.Id != mangaTranslation.MangaChapter.Id).Skip(1).Take(1).FirstOrDefault();
+            dto.PreviousChapterTranslationId = previousChapter?.Id;
+            var nextChapter = mangaTranslation.MangaChapter.Manga.Chapters.OrderBy(o => o.CreatedAt).SkipWhile(s => s.Id != mangaTranslation.MangaChapter.Id).Skip(1).Take(1).FirstOrDefault();
+            dto.NextChapterTranslationId = nextChapter?.Id;
+            return dto;
+        }
+
         //TODO: Finish
-        public async Task<PaginatedResponse<MangaDTO>> SearchMangas()
+        public async Task<PaginatedResponse<MangaInfoDTO>> SearchMangas()
         {
             var mangas = await _mangaRepo.GetAll();
-            return new PaginatedResponse<MangaDTO>
+            return new PaginatedResponse<MangaInfoDTO>
             {
                 CurrentPage = 1,
-                Data = _mapper.Map<List<MangaDTO>>(mangas),
+                Data = _mapper.Map<List<MangaInfoDTO>>(mangas),
                 MaxCount = mangas.Count
             };
         }
 
         //TODO: Finish
-        public async Task<PaginatedResponse<MangaDTO>> SearchMangasByName(string name)
+        public async Task<PaginatedResponse<MangaInfoDTO>> SearchMangasByName(string name)
         {
             var mangas = await _mangaRepo.SearchMangaByName(name);
-            return new PaginatedResponse<MangaDTO>
+            return new PaginatedResponse<MangaInfoDTO>
             {
                 CurrentPage = 1,
-                Data = _mapper.Map<List<MangaDTO>>(mangas),
+                Data = _mapper.Map<List<MangaInfoDTO>>(mangas),
                 MaxCount = mangas.Count
             };
         }
@@ -168,13 +194,13 @@ namespace ShounenGaming.Business.Services.Mangas
         }
 
         //TODO: Finish
-        public async Task<PaginatedResponse<MangaDTO>> SearchMangasByTags(List<string> tags)
+        public async Task<PaginatedResponse<MangaInfoDTO>> SearchMangasByTags(List<string> tags)
         {
             var mangas = await _mangaRepo.SearchMangaByTags(tags);
-            return new PaginatedResponse<MangaDTO>
+            return new PaginatedResponse<MangaInfoDTO>
             {
                 CurrentPage = 0,
-                Data = _mapper.Map<List<MangaDTO>>(mangas),
+                Data = _mapper.Map<List<MangaInfoDTO>>(mangas),
                 MaxCount = mangas.Count
             };
         }

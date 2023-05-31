@@ -51,8 +51,7 @@ namespace ShounenGaming.API.Controllers.Mangas
         public async Task<IActionResult> MarkChapterRead(int chapterId)
         {
             //TODO: Get User Id from JWT Token
-            await _mangaUsersService.MarkChapterRead(1, chapterId); 
-            return Ok();
+            return Ok(await _mangaUsersService.MarkChapterRead(1, chapterId));
         }
 
         /// <summary>
@@ -64,8 +63,7 @@ namespace ShounenGaming.API.Controllers.Mangas
         public async Task<IActionResult> UnmarkChapterRead(int chapterId)
         {
             //TODO: Get User Id from JWT Token
-            await _mangaUsersService.UnmarkChapterRead(1, chapterId);
-            return Ok();
+            return Ok(await _mangaUsersService.UnmarkChapterRead(1, chapterId));
         }
 
         /// <summary>
@@ -78,8 +76,7 @@ namespace ShounenGaming.API.Controllers.Mangas
         public async Task<IActionResult> UpdateMangaStatusByUser(int mangaId, MangaUserStatusEnumDTO status)
         {
             //TODO: Get User Id from JWT Token
-            await _mangaUsersService.UpdateMangaStatusByUser(1, mangaId, status);
-            return Ok();
+            return Ok(await _mangaUsersService.UpdateMangaStatusByUser(1, mangaId, status));
         }
     }
 }

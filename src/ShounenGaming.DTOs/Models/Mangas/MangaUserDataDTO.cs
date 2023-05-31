@@ -17,6 +17,6 @@ namespace ShounenGaming.DTOs.Models.Mangas
 
         public DateTime? StartedReadingDate { get; set; }
         public DateTime? FinishedReadingDate { get; set; }
-        public int ChaptersRead { get; set; }
+        public List<int> ChaptersRead { get; set; }
     }
 }

@@ -10,6 +10,7 @@ namespace ShounenGaming.Business.Interfaces.Base
     {
         Task SaveImage(byte[] image, string pathToSave);
         Task<byte[]> GetImage(string imagePath);
+        List<string> GetFilesFromFolder(string folderPath);
     }
 }
 

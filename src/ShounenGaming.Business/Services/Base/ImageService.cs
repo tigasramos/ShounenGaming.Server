@@ -3,10 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ShounenGaming.Business.Services.Base
 {
@@ -21,6 +21,13 @@ namespace ShounenGaming.Business.Services.Base
         {
             new FileInfo(pathToSave).Directory?.Create();
             await File.WriteAllBytesAsync(pathToSave, image);
+        }
+
+        public List<string> GetFilesFromFolder(string folderPath)
+        {
+            var files = new DirectoryInfo(folderPath).GetFiles();
+            if (files is null) return new List<string>();
+            return files.OrderBy(f => Convert.ToInt16(f.Name.Split(".").First())).Select(f => $"https://localhost:7252/{folderPath}{f.Name}").ToList(); //TODO: Remove this
         }
     }
 }

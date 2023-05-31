@@ -18,21 +18,21 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// Searches Mangas
         /// </summary>
         /// <returns></returns>
-        Task<PaginatedResponse<MangaDTO>> SearchMangas();
+        Task<PaginatedResponse<MangaInfoDTO>> SearchMangas();
 
         /// <summary>
         /// Searches a Manga by its Name
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        Task<PaginatedResponse<MangaDTO>> SearchMangasByName(string name);
+        Task<PaginatedResponse<MangaInfoDTO>> SearchMangasByName(string name);
 
         /// <summary>
         /// Searches a Manga by a Tag
         /// </summary>
         /// <param name="tags"></param>
         /// <returns></returns>
-        Task<PaginatedResponse<MangaDTO>> SearchMangasByTags(List<string> tags);
+        Task<PaginatedResponse<MangaInfoDTO>> SearchMangasByTags(List<string> tags);
 
         /// <summary>
         /// Gets the most Popular Mangas
@@ -70,6 +70,13 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// </summary>
         /// <returns></returns>
         Task<List<string>> GetMangaTags();
+
+        /// <summary>
+        /// Gets a Manga Translation by its Id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        Task<MangaTranslationDTO> GetMangaTranslation(int mangaId, int chapterId, MangaTranslationEnumDTO translation);
 
         /// <summary>
         /// Searches a Manga from MyAnimeList by its Name

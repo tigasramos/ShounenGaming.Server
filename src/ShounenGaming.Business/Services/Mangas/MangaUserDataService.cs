@@ -3,6 +3,7 @@ using ShounenGaming.Business.Interfaces.Mangas;
 using ShounenGaming.Core.Entities.Base;
 using ShounenGaming.Core.Entities.Mangas.Enums;
 using ShounenGaming.DataAccess.Interfaces.Mangas;
+using ShounenGaming.DTOs.Models.Base;
 using ShounenGaming.DTOs.Models.Mangas;
 using ShounenGaming.DTOs.Models.Mangas.Enums;
 using System;
@@ -50,7 +51,7 @@ namespace ShounenGaming.Business.Services.Mangas
             return dtoMangas;
         }        
 
-        public async Task MarkChapterRead(int userId, int chapterId)
+        public async Task<MangaUserDataDTO> MarkChapterRead(int userId, int chapterId)
         {
             var manga = await _mangaRepository.GetByChapter(chapterId) ?? throw new Exception("Chapter not Found");
             var mangaUserInfo = await _mangaUserDataRepo.GetByUserAndManga(userId, manga.Id);
@@ -65,7 +66,7 @@ namespace ShounenGaming.Business.Services.Mangas
                     Status = MangaUserStatusEnum.READING
                 };
 
-                await _mangaUserDataRepo.Create(mangaUserInfo);
+                var userData = await _mangaUserDataRepo.Create(mangaUserInfo);
                 await _mangaChangedStatusActionRepo.Create(new Core.Entities.Mangas.ChangedMangaStatusAction
                 {
                     UserId = userId,
@@ -73,40 +74,46 @@ namespace ShounenGaming.Business.Services.Mangas
                     PreviousState = null,
                     NewState = mangaUserInfo.Status
                 });
+                return await MapMangaUserData(userData);
             }
 
             if (!mangaUserInfo.ChaptersRead.Any(c => c.Id == chapterId))
             {
                 mangaUserInfo.ChaptersRead.Add(chapter);
-                await _mangaUserDataRepo.Update(mangaUserInfo); 
+                var userData =await _mangaUserDataRepo.Update(mangaUserInfo); 
                 await _mangaChangedChapterStateActionRepo.Create(new Core.Entities.Mangas.ChangedChapterStateAction
                 {
                     ChapterId = chapterId,
                     UserId = userId,
                     Read = true,
                 });
+                return await MapMangaUserData(userData);
             }
+
+            return await MapMangaUserData(mangaUserInfo);
         }
 
-        public async Task UnmarkChapterRead(int userId, int chapterId)
+        public async Task<MangaUserDataDTO?> UnmarkChapterRead(int userId, int chapterId)
         {
             var manga = await _mangaRepository.GetByChapter(chapterId) ?? throw new Exception("Chapter not Found");
             var mangaUserInfo = await _mangaUserDataRepo.GetByUserAndManga(userId, manga.Id);
             var chapter = manga.Chapters.First(c => c.Id == chapterId);
 
-            if (mangaUserInfo is null) return;
+            if (mangaUserInfo is null) return null;
 
             if (mangaUserInfo.ChaptersRead.Any(c => c.Id == chapterId))
             {
                 mangaUserInfo.ChaptersRead.Remove(chapter);
-                await _mangaUserDataRepo.Update(mangaUserInfo);
+                var userData = await _mangaUserDataRepo.Update(mangaUserInfo);
                 await _mangaChangedChapterStateActionRepo.Create(new Core.Entities.Mangas.ChangedChapterStateAction
                 {
                     ChapterId = chapterId,
                     UserId = userId,
                     Read = false,
                 });
+                return await MapMangaUserData(userData);
             }
+            return await MapMangaUserData(mangaUserInfo);
         }
 
         public async Task<MangaUserDataDTO> UpdateMangaStatusByUser(int userId, int mangaId, MangaUserStatusEnumDTO status)
@@ -161,7 +168,7 @@ namespace ShounenGaming.Business.Services.Mangas
             return new MangaUserDataDTO
             {
                 AddedToStatusDate = lastStatusUpdate?.CreatedAt,
-                ChaptersRead = mangaUserData.ChaptersRead is not  null ? mangaUserData.ChaptersRead.Count : 0,
+                ChaptersRead = mangaUserData.ChaptersRead is not null ? mangaUserData.ChaptersRead.Select(c => c.Id).ToList() : new List<int>(),
                 FinishedReadingDate = lastChapterReadUpdate?.CreatedAt,
                 Manga = _mapper.Map<MangaInfoDTO>(mangaUserData.Manga),
                 StartedReadingDate = firstChapterReadUpdate?.CreatedAt,
