@@ -45,7 +45,9 @@ namespace ShounenGaming.Common
             services.AddAutoMapper(typeof(UserMapper).Assembly);
             services.AddSQLDatabase(configuration, environment);
             services.AddRepositories();
-            services.AddServices(environment, configuration); 
+            services.AddServices(environment, configuration);
+
+            services.AddHealthChecks();
 
             services.AddScheduler();
             services.AddControllers().AddJsonOptions(options =>
@@ -90,6 +92,8 @@ namespace ShounenGaming.Common
             app.UseSwaggerUI();
 
             app.UseMiddleware<ExceptionMiddleware>();
+
+            app.MapHealthChecks("/healthz");
 
             //TODO: Remove when deploying
             //app.UseHttpsRedirection();
