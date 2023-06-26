@@ -31,23 +31,8 @@ namespace ShounenGaming.API.Controllers.Base
         [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ErrorDetails))]
         public async Task<IActionResult> LoginBot([FromQuery]string discordId, [FromQuery]string password)
         {
-            var response = await _authService.LoginBot(discordId, password);
+            var response = _authService.LoginBot(discordId, password);
             return Ok(response);
-        }
-
-        /// <summary>
-        /// Creates a Bot
-        /// </summary>
-        /// <param name="createBot"></param>
-        /// <returns></returns>
-        //[Authorize(Policy = "Admin")] TODO: Remove after testing
-        [HttpPost("bot")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ErrorDetails))]
-        public async Task<IActionResult> RegisterBot(CreateBot createBot)
-        {
-            await _authService.RegisterBot(createBot);
-            return Ok();
         }
 
         /// <summary>
@@ -63,6 +48,19 @@ namespace ShounenGaming.API.Controllers.Base
         {
             await _authService.RegisterUser(createUser);
             return Ok();
+        }
+
+        /// <summary>
+        /// Gets the unregistered Server Members
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("members")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorDetails))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ErrorDetails))]
+        public async Task<IActionResult> GetNotRegisteredServerMembers()
+        {
+            return Ok(await _authService.GetNotRegisteredServerMembers());
         }
 
         /// <summary>
@@ -107,21 +105,9 @@ namespace ShounenGaming.API.Controllers.Base
         [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ErrorDetails))]
         public async Task<IActionResult> RefreshToken([FromQuery] string refreshToken)
         {
-            var response = await _authService.RefreshToken(refreshToken, User.HasClaim("Role", "Bot"));
+            var response = await _authService.RefreshToken(refreshToken);
             return Ok(response);
         }
 
-        /// <summary>
-        /// Returns the Users that are in the Discord Server but do not have account created
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet("user/unregistered")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<DiscordUserDTO>))]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ErrorDetails))]
-        public async Task<IActionResult> GetUnregisteredDiscordUsers()
-        {
-            var response = await _authService.GetUnregisteredUsers();
-            return Ok(response);
-        }
     }
 }

@@ -1,4 +1,6 @@
-﻿using ShounenGaming.DTOs.Models.Base;
+﻿
+using ShounenGaming.Core.Entities.Base.Enums;
+using ShounenGaming.DTOs.Models.Base;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,16 +11,15 @@ namespace ShounenGaming.Business.Interfaces.Base
 {
     public interface IAuthService
     {
-        Task RegisterBot(CreateBot createBot);
+        Task<List<ServerMemberDTO>> GetNotRegisteredServerMembers();
         Task RegisterUser(CreateUser createUser);
         Task RequestEntryToken(string username);
         Task<AuthResponse> LoginUser(string username, string token);
-        Task<AuthResponse> LoginBot(string discordId, string password);
-        Task<AuthResponse> RefreshToken(string refreshToken, bool isBot);
-        Task<List<DiscordUserDTO>> GetUnregisteredUsers();
+        AuthResponse LoginBot(string discordId, string password);
+        Task<AuthResponse> RefreshToken(string refreshToken);
         Task VerifyDiscordAccount(string discordId);
-        void SetDiscordUsers(List<DiscordUserDTO> users);
 
-        //TODO: VerifyEmail
+        Task UpdateServerMember(string discordId, string discordImageUrl, string displayName, string username, RolesEnum? role);
+
     }
 }

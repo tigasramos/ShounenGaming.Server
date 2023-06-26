@@ -12,6 +12,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using ShounenGaming.Business;
 using ShounenGaming.Business.Hubs;
 using ShounenGaming.Business.Interfaces.Base;
 using ShounenGaming.Business.Interfaces.Mangas;
@@ -65,7 +66,7 @@ namespace ShounenGaming.Common
             app.Services.UseScheduler(scheduler =>
             {
                 scheduler.OnWorker("Mangas");
-                scheduler.Schedule<UpdateMangasInvocable>().EveryThirtyMinutes().PreventOverlapping("updateMangas");
+               // scheduler.Schedule<UpdateMangasInvocable>().EveryThirtyMinutes().PreventOverlapping("updateMangas");
 
             }).OnError((ex) => Log.Error($"Running some schedule: {ex.Message}")); ;
 
@@ -97,7 +98,8 @@ namespace ShounenGaming.Common
         #region Private
         private static void MapSignalRHubs(this WebApplication app)
         {
-            app.MapHub<AuthHub>("/authHub");
+            app.MapHub<DiscordEventsHub>("/discordEventsHub");
+            app.MapHub<MangasHub>("/mangasHub");
             app.MapHub<LobbiesHub>("/lobbiesHub");
         }
         private static void AddSwagger(this IServiceCollection services, string assemblyName)
@@ -147,7 +149,7 @@ namespace ShounenGaming.Common
                 opt.AddPolicy("Bot", policy => policy.RequireClaim("Role", new string[] { "Bot" }));
             });
 
-            var secretKey = "TODO_SUPER_HUGE_SECRET_KEY"; //TODO: Change to Settings
+            var secretKey = configuration.GetRequiredSection("settings").Get<AppSettings>()!.JwtSecret;
             var key = Encoding.ASCII.GetBytes(secretKey);
             services.AddAuthentication(x =>
             {
@@ -194,11 +196,13 @@ namespace ShounenGaming.Common
 
         private static void AddServices(this IServiceCollection services, IWebHostEnvironment env, IConfiguration configuration)
         {
+            var settings = configuration.GetRequiredSection("settings").Get<AppSettings>()!;
             //Others
             services.AddMemoryCache();
+            services.AddSingleton(settings);
 
             //Hubs
-            services.AddTransient<AuthHub>();
+            services.AddTransient<DiscordEventsHub>();
             services.AddTransient<LobbiesHub>();
 
             //Schedules
@@ -216,7 +220,7 @@ namespace ShounenGaming.Common
         private static void AddRepositories(this IServiceCollection services)
         {
             services.AddTransient<IUserRepository, UserRepository>();
-            services.AddTransient<IBotRepository, BotRepository>();
+            services.AddTransient<IServerMemberRepository, ServerMemberRepository>();
 
             services.AddTransient<ITierlistCategoryRepository, TierlistCategoryRepository>();
             services.AddTransient<ITierlistRepository, TierlistRepository>();
@@ -226,6 +230,7 @@ namespace ShounenGaming.Common
             services.AddTransient<IMangaUserDataRepository, MangaUserDataRepository>();
             services.AddTransient<IMangaWriterRepository, MangaWriterRepository>();
             services.AddTransient<IMangaTagRepository, MangaTagRepository>();
+            services.AddTransient<IAddedMangaActionRepository, AddedMangaActionRepository>();
             services.AddTransient<IChangedChapterStateActionRepository, ChangedChapterStateActionRepository>();
             services.AddTransient<IChangedMangaStatusActionRepository, ChangedMangaStatusActionRepository>();
         }

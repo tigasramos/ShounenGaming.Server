@@ -15,10 +15,6 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
         {
         }
 
-        public override void DeleteDependencies(MangaWriter entity)
-        {
-            return;
-        }
 
         public async Task<MangaWriter?> GetWriterByName(string name)
         {

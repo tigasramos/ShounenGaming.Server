@@ -5,12 +5,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers.Models
+namespace ShounenGaming.DTOs.Models.Mangas
 {
-    public class ScrappedSimpleManga
+    public class MangaSourceDTO
     {
         public string Name { get; set; }
-        public string Link { get; set; }
+        public string Url { get; set; }
         public string? ImageURL { get; set; }
         public MangaSourceEnumDTO Source { get; set; }
     }

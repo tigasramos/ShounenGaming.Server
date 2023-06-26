@@ -17,7 +17,7 @@ namespace ShounenGaming.Core.Entities.Mangas
     public class ChangedMangaStatusAction : MangasUserAction 
     {
         public MangaUserStatusEnum? PreviousState { get; set; }
-        public MangaUserStatusEnum NewState { get; set; }
+        public MangaUserStatusEnum? NewState { get; set; }
         public int MangaId { get; set; }
         public virtual Manga Manga { get; set; }
     }
@@ -27,5 +27,11 @@ namespace ShounenGaming.Core.Entities.Mangas
         public int ChapterId { get; set; }
         public virtual MangaChapter Chapter { get; set; }
         public bool Read { get; set; }
+    }
+
+    public class AddedMangaAction : MangasUserAction
+    {
+        public int MangaId { get; set; }
+        public virtual Manga Manga { get; set; }
     }
 }

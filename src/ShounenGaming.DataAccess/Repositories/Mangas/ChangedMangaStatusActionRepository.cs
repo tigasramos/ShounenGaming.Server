@@ -15,10 +15,6 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
         {
         }
 
-        public override void DeleteDependencies(ChangedMangaStatusAction entity)
-        {
-            return;
-        }
 
         public async Task<ChangedMangaStatusAction?> GetLastMangaUserStatusUpdate(int userId, int mangaId)
         {

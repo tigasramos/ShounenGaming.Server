@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Serilog;
 using ShounenGaming.Business.Interfaces.Base;
+using ShounenGaming.Core.Entities.Base.Enums;
 using ShounenGaming.DTOs.Models.Base;
 using System;
 using System.Collections.Generic;
@@ -10,29 +12,22 @@ using System.Threading.Tasks;
 
 namespace ShounenGaming.Business.Hubs
 {
-    public interface IAuthHubClient
+    public interface IDiscordEventsHubClient
     {
         Task SendVerifyAccount(string discordId, string fullName);
         Task SendToken(string discordId, string token, DateTime expireDate);
     }
 
-    [Authorize]
-    public class AuthHub : Hub<IAuthHubClient>
+    [Authorize(Policy = "Bot")]
+    public class DiscordEventsHub : Hub<IDiscordEventsHubClient>
     {
         private readonly IAuthService _authService;
 
-        public AuthHub(IAuthService authService)
+        public DiscordEventsHub(IAuthService authService)
         {
             _authService = authService;
         }
 
-        [Authorize(Policy = "Bot")]
-        public void UpdateDiscordUsers(List<DiscordUserDTO> users)
-        {
-            _authService.SetDiscordUsers(users ?? new List<DiscordUserDTO>());
-        }
-
-        [Authorize(Policy = "Bot")]
         public async Task<bool> VerifyAccount(string discordId)
         {
             try
@@ -45,5 +40,11 @@ namespace ShounenGaming.Business.Hubs
                 return false;
             }
         }
+
+        public async Task UpdateServerMember(string discordId, string discordImageUrl, string displayName, string username, RolesEnum? role)
+        {
+            await _authService.UpdateServerMember(discordId, discordImageUrl, displayName, username, role);
+        }
+        
     }
 }

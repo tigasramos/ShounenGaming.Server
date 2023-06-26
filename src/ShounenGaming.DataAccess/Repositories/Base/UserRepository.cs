@@ -15,14 +15,10 @@ namespace ShounenGaming.DataAccess.Repositories.Base
         {
         }
 
-        public override void DeleteDependencies(User entity)
-        {
-            return;
-        }
 
         public async Task<User?> GetUserByDiscordId(string discordId)
         {
-            return await dbSet.Where(u => u.DiscordId == discordId).FirstOrDefaultAsync();
+            return await dbSet.Where(u => u.ServerMember != null && u.ServerMember.DiscordId == discordId).FirstOrDefaultAsync();
         }
 
         public async Task<User?> GetUserByRefreshToken(string refreshToken)

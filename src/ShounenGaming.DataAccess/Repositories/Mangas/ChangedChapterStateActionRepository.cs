@@ -15,11 +15,6 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
         {
         }
 
-        public override void DeleteDependencies(ChangedChapterStateAction entity)
-        {
-            return;
-        }
-
         public async Task<ChangedChapterStateAction?> GetFirstChapterUserReadFromManga(int userId, int mangaId)
         {
             return await dbSet.Where(h => h.UserId == userId && h.Chapter.MangaId == mangaId).OrderByDescending(o => o.CreatedAt).FirstOrDefaultAsync();

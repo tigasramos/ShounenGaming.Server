@@ -15,24 +15,18 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         Task<MangaDTO> GetMangaById(int id);
 
         /// <summary>
+        /// Gets the Manga Sources by its Id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        Task<List<MangaSourceDTO>> GetMangaSourcesById(int id);
+
+        /// <summary>
         /// Searches Mangas
         /// </summary>
         /// <returns></returns>
-        Task<PaginatedResponse<MangaInfoDTO>> SearchMangas();
+        Task<PaginatedResponse<MangaInfoDTO>> SearchMangas(SearchMangaQueryDTO query, int page, int? userId = null);
 
-        /// <summary>
-        /// Searches a Manga by its Name
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        Task<PaginatedResponse<MangaInfoDTO>> SearchMangasByName(string name);
-
-        /// <summary>
-        /// Searches a Manga by a Tag
-        /// </summary>
-        /// <param name="tags"></param>
-        /// <returns></returns>
-        Task<PaginatedResponse<MangaInfoDTO>> SearchMangasByTags(List<string> tags);
 
         /// <summary>
         /// Gets the most Popular Mangas
@@ -79,39 +73,79 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         Task<MangaTranslationDTO> GetMangaTranslation(int mangaId, int chapterId, MangaTranslationEnumDTO translation);
 
         /// <summary>
+        /// Adds a Manga from a Metadata Source with that Id
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="mangaId"></param>
+        /// <returns></returns>
+        Task<MangaDTO> AddManga(MangaMetadataSourceEnumDTO source, long mangaId, int userId);
+
+        /// <summary>
+        /// Adds a Manga from a Metadata Source with that DiscordId
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="mangaId"></param>
+        /// <returns></returns>
+        Task<MangaDTO> AddManga(MangaMetadataSourceEnumDTO source, long mangaId, string discordId);
+
+
+        /// <summary>
         /// Searches a Manga from MyAnimeList by its Name
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        Task<List<JikanDotNet.Manga>> SearchMangaMetaData(string name);
+        Task<List<MangaMetadataDTO>> SearchMangaMetadata(MangaMetadataSourceEnumDTO source, string name);
 
         /// <summary>
         /// Searches several Mangas in all Sources available by its Name
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        Task<List<ScrappedSimpleManga>> SearchMangaSource(string name);
+        Task<List<MangaSourceDTO>> SearchMangaSource(string name);
 
         /// <summary>
-        /// Gets all Mangas from a Source
+        /// Gets all Mangas from a Source by Page
         /// </summary>
         /// <param name="source"></param>
+        /// <param name="page"></param>
         /// <returns></returns>
-        Task<List<ScrappedSimpleManga>> GetAllMangasFromSource(MangaSourceEnumDTO source);
+        Task<List<MangaSourceDTO>> GetAllMangasFromSourceByPage(MangaSourceEnumDTO source, int page);
 
         /// <summary>
-        /// Adds a new Manga to the DB (if not exists) and links it to the Sources selected
+        /// Adds Sources to an already existing Manga with that Id
         /// </summary>
-        /// <param name="myAnimeListMangaId"></param>
+        /// <param name="mangaId"></param>
         /// <param name="mangas"></param>
         /// <returns></returns>
-        Task<MangaDTO> LinkSourcesToManga(int myAnimeListMangaId, List<ScrappedSimpleManga> mangas);
+        Task<List<MangaSourceDTO>> LinkSourcesToManga(int mangaId, List<MangaSourceDTO> mangas);
 
+        
         /// <summary>
         /// Updates all tracked Mangas (fetches new chapters or translations)
         /// </summary>
         /// <returns></returns>
-        Task UpdateMangasChapters(bool first = false);
+        Task UpdateMangasChapters();
 
+        /// <summary>
+        /// Fetches all Chapters from a Manga by its Sources
+        /// </summary>
+        /// <param name="mangaId"></param>
+        /// <returns></returns>
+        Task FetchChaptersForManga(int mangaId);
+
+        /// <summary>
+        /// Delete everything related to that Source (when source is not working anymore)
+        /// </summary>
+        /// <param name="mangaId"></param>
+        /// <param name="oldSource"></param>
+        /// <returns></returns>
+        Task ChangeSourceFromManga(int mangaId, MangaSourceEnumDTO oldSource);
+
+        /// <summary>
+        /// Updates all Mangas Metadata
+        /// </summary>
+        /// <returns></returns>
+        Task UpdateMangasMetadata();
+        Task LoadInitialMangas();
     }
 }

@@ -56,7 +56,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// <param name="mangaId"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        Task<MangaUserDataDTO> UpdateMangaStatusByUser(int userId, int mangaId, MangaUserStatusEnumDTO status);
+        Task<MangaUserDataDTO> UpdateMangaStatusByUser(int userId, int mangaId, MangaUserStatusEnumDTO? status);
        
     }
 }

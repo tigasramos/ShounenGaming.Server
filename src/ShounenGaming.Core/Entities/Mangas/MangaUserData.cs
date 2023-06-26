@@ -18,6 +18,9 @@ namespace ShounenGaming.Core.Entities.Mangas
         public MangaUserStatusEnum Status { get; set; }
 
         public virtual List<MangaChapter> ChaptersRead { get; set; }
+
+
+        public bool IsPrivate { get; set; }
     }
 
 }

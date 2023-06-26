@@ -8,8 +8,9 @@ namespace ShounenGaming.Core.Entities.Mangas
 {
     public class MangaChapter : BaseEntity
     {
-        public string Name { get; set; }
+        public double Name { get; set; }
         public virtual List<MangaTranslation> Translations { get; set; }
+
 
         public int MangaId { get; set; }
         public virtual Manga Manga { get; set; }

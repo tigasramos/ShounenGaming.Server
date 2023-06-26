@@ -10,7 +10,7 @@ namespace ShounenGaming.DTOs.Models.Mangas
         public MangaTypeEnumDTO Type { get; set; }
         public List<string> Tags { get; set; }
         public int ChaptersCount { get; set; }
-        public string ImageUrl { get; set; }
+        public List<string> ImagesUrls { get; set; }
         public int? MyAnimeListId { get; set; }
         public int? AnilistId { get; set; }
         public DateTime? StartedAt { get; set; }

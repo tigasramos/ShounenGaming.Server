@@ -57,13 +57,15 @@ namespace ShounenGaming.Business.Services.Mangas
             var mangaUserInfo = await _mangaUserDataRepo.GetByUserAndManga(userId, manga.Id);
             var chapter = manga.Chapters.First(c => c.Id == chapterId);
 
+            //First Chapter Seen
             if (mangaUserInfo is null)
             {
                 mangaUserInfo = new Core.Entities.Mangas.MangaUserData
                 {
                     MangaId = manga.Id,
                     UserId = userId,
-                    Status = MangaUserStatusEnum.READING
+                    Status = MangaUserStatusEnum.READING,
+                    IsPrivate = false
                 };
 
                 var userData = await _mangaUserDataRepo.Create(mangaUserInfo);
@@ -77,10 +79,11 @@ namespace ShounenGaming.Business.Services.Mangas
                 return await MapMangaUserData(userData);
             }
 
+            //Chapter Not Seen Yet
             if (!mangaUserInfo.ChaptersRead.Any(c => c.Id == chapterId))
             {
                 mangaUserInfo.ChaptersRead.Add(chapter);
-                var userData =await _mangaUserDataRepo.Update(mangaUserInfo); 
+                var userData = await _mangaUserDataRepo.Update(mangaUserInfo);
                 await _mangaChangedChapterStateActionRepo.Create(new Core.Entities.Mangas.ChangedChapterStateAction
                 {
                     ChapterId = chapterId,
@@ -104,7 +107,7 @@ namespace ShounenGaming.Business.Services.Mangas
             if (mangaUserInfo.ChaptersRead.Any(c => c.Id == chapterId))
             {
                 mangaUserInfo.ChaptersRead.Remove(chapter);
-                var userData = await _mangaUserDataRepo.Update(mangaUserInfo);
+                var userData = await _mangaUserDataRepo.Update(mangaUserInfo); 
                 await _mangaChangedChapterStateActionRepo.Create(new Core.Entities.Mangas.ChangedChapterStateAction
                 {
                     ChapterId = chapterId,
@@ -116,17 +119,21 @@ namespace ShounenGaming.Business.Services.Mangas
             return await MapMangaUserData(mangaUserInfo);
         }
 
-        public async Task<MangaUserDataDTO> UpdateMangaStatusByUser(int userId, int mangaId, MangaUserStatusEnumDTO status)
+        public async Task<MangaUserDataDTO?> UpdateMangaStatusByUser(int userId, int mangaId, MangaUserStatusEnumDTO? status)
         {
             var manga = await _mangaRepository.GetById(mangaId) ?? throw new Exception("Manga not Found");
             var mangaUserInfo = await _mangaUserDataRepo.GetByUserAndManga(userId, manga.Id);
 
+            //If first time
             if (mangaUserInfo is null)
             {
+                if (status == null) return null;
+
                 mangaUserInfo = new Core.Entities.Mangas.MangaUserData
                 {
                     MangaId = manga.Id,
                     UserId = userId,
+                    IsPrivate = false,
                     Status = _mapper.Map<MangaUserStatusEnum>(status)
                 };
                 var dbMangaUserInfo = await _mangaUserDataRepo.Create(mangaUserInfo);
@@ -140,8 +147,30 @@ namespace ShounenGaming.Business.Services.Mangas
                 });
 
                 return await MapMangaUserData(dbMangaUserInfo);
-            } else
+            } 
+            else
             {
+                if (status == null)
+                {
+                    if (mangaUserInfo.ChaptersRead.Count == 0)
+                    {
+                        //Delete 
+                        await _mangaChangedStatusActionRepo.Create(new Core.Entities.Mangas.ChangedMangaStatusAction
+                        {
+                            UserId = userId,
+                            MangaId = mangaId,
+                            PreviousState = mangaUserInfo.Status,
+                            NewState = null
+                        });
+
+                        await _mangaUserDataRepo.Delete(mangaUserInfo.Id);
+
+                        return null;
+                    } 
+                    else throw new Exception("Invalid Status");
+                }
+
+                //Change
                 var previousState = mangaUserInfo.Status;
                 mangaUserInfo.Status = _mapper.Map<MangaUserStatusEnum>(status);
                 var dbMangaUserInfo = await _mangaUserDataRepo.Update(mangaUserInfo);

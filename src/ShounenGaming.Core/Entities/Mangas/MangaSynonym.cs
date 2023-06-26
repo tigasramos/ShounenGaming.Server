@@ -6,14 +6,10 @@ using System.Threading.Tasks;
 
 namespace ShounenGaming.Core.Entities.Mangas
 {
-    public class MangaSource : BaseEntity
+    public class MangaSynonym : SimpleEntity
     {
         public string Name { get; set; }
-        public string Url { get; set; }
-        public string? ImageURL { get; set; }
-        public string Source { get; set; }
 
-
-        public int MangaId { get; set; }
+        public virtual Manga Manga { get; set; }
     }
 }

@@ -2,6 +2,7 @@
 using ShounenGaming.Core.Entities.LeagueOfLegends;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,17 +14,15 @@ namespace ShounenGaming.Core.Entities.Base
         public string FirstName { get; set; }
         public string LastName { get; set; }
 
-        public string DiscordId { get; set; }
         public bool DiscordVerified { get; set; }
-        public string? DiscordImage { get; set; }
 
         public string Username { get; set; }
 
-        public string Email { get; set; }
-        public bool EmailVerified { get; set; }
-
         public DateTime Birthday { get; set; }
-        public RolesEnum Role { get; set; }
 
+        public bool IsInServer => ServerMemberId != null;
+
+        public int? ServerMemberId { get; set; }
+        public virtual ServerMember? ServerMember { get; set; }
     }
 }

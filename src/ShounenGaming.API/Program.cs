@@ -20,7 +20,11 @@ try
 
     //Services
     var builder = WebApplication.CreateBuilder(args);
-    builder.Host.UseSerilog(); 
+    builder.Host.UseSerilog();
+    builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json",
+        optional: false,
+        reloadOnChange: true);
+
     builder.Services.ConfigureServices(builder.Configuration, builder.Environment, Assembly.GetExecutingAssembly().GetName().Name!);
 
     //App

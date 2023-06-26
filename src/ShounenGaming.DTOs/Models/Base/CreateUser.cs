@@ -19,13 +19,9 @@ namespace ShounenGaming.DTOs.Models.Base
         [DataType(DataType.Date)]
         public DateTime Birthday { get; set; }
 
-        [Required(AllowEmptyStrings = false)]
-        public string Username { get; set; }
+        public string? Username { get; set; }
 
         [Required(AllowEmptyStrings = false)]
         public string DiscordId { get; set; }
-
-        [Required(AllowEmptyStrings = false)]
-        public string Email { get; set; }
     }
 }

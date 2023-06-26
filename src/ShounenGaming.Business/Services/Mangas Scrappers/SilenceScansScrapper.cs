@@ -1,6 +1,8 @@
 ﻿using HtmlAgilityPack;
 using Newtonsoft.Json;
+using Serilog;
 using ShounenGaming.Business.Interfaces.Mangas_Scrappers.Models;
+using ShounenGaming.DTOs.Models.Mangas;
 using ShounenGaming.DTOs.Models.Mangas.Enums;
 using System;
 using System.Collections.Generic;
@@ -15,10 +17,10 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
     {
         //SilenceScan PT
         //2 seg -> 71
-        public async Task<List<ScrappedSimpleManga>> GetAllMangas()
+        public async Task<List<MangaSourceDTO>> GetAllMangas()
         {
             var web = new HtmlWeb();
-            var mangasList = new List<ScrappedSimpleManga>();
+            var mangasList = new List<MangaSourceDTO>();
             var currentPage = 1;
 
             try
@@ -34,10 +36,10 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
                         var mangaName = manga.GetAttributeValue("title", "") ?? "";
                         var mangaURL = manga.GetAttributeValue("href", "") ?? "";
                         var imageURL = manga.SelectSingleNode("div[@class='limit']/img").GetAttributeValue("src", "") ?? "";
-                        mangasList.Add(new ScrappedSimpleManga
+                        mangasList.Add(new MangaSourceDTO
                         {
-                            Name = mangaName,
-                            Link = mangaURL.Remove(mangaURL.Length - 1).Split("/").Last(),
+                            Name = mangaName.Trim(),
+                            Url = mangaURL.Remove(mangaURL.Length - 1).Split("/").Last(),
                             Source = GetMangaSourceEnumDTO()
                         });
                     }
@@ -45,8 +47,44 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
 
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Log.Error($"SilenceScans - GetAllMangas: {ex.Message}");
+            }
             
+
+            return mangasList;
+        }
+
+        public async Task<List<MangaSourceDTO>> GetAllMangasByPage(int page)
+        {
+            var web = new HtmlWeb();
+            var mangasList = new List<MangaSourceDTO>();
+
+            try
+            {
+                var htmlDoc = await web.LoadFromWebAsync($"https://silencescan.com.br/manga/?page={page}");
+                var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//div[@class='listupd']/div/div/a");
+                if (mangasFetched == null || !mangasFetched.Any()) return new List<MangaSourceDTO>();
+
+                foreach (var manga in mangasFetched)
+                {
+                    var mangaName = manga.GetAttributeValue("title", "") ?? "";
+                    var mangaURL = manga.GetAttributeValue("href", "") ?? "";
+                    var imageURL = manga.SelectSingleNode("div[@class='limit']/img").GetAttributeValue("src", "") ?? "";
+                    mangasList.Add(new MangaSourceDTO
+                    {
+                        Name = mangaName.Trim(),
+                        Url = mangaURL.Remove(mangaURL.Length - 1).Split("/").Last(),
+                        Source = GetMangaSourceEnumDTO()
+                    });
+                }
+            }
+            catch (Exception ex) 
+            {
+                Log.Error($"SilenceScans - GetAllMangasByPage: {ex.Message}");
+            }
+
 
             return mangasList;
         }
@@ -69,7 +107,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
                 var parsed = DateTime.TryParseExact(chapterPageDate, "MMMM d,yyyy", new CultureInfo("pt"), DateTimeStyles.AllowWhiteSpaces, out var chapterDate);
                 chapters.Add(new ScrappedChapter
                 {
-                    Name = chapterName,
+                    Name = chapterName.Trim(),
                     Link = chapterUrl.Replace("https://silencescan.com.br/", "").Trim(),
                     ReleasedAt = parsed ? chapterDate : null
                 });
@@ -77,7 +115,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
 
             return new ScrappedManga
             {
-                Name = mangaName,
+                Name = mangaName.Trim(),
                 Description = mangaDescription,
                 Chapters = chapters,
                 ImageURL = imageUrl,
@@ -115,10 +153,10 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
             return MangaSourceEnumDTO.SILENCE_SCANS;
         }
 
-        public async Task<List<ScrappedSimpleManga>> SearchManga(string name)
+        public async Task<List<MangaSourceDTO>> SearchManga(string name)
         {
             var web = new HtmlWeb();
-            var mangasList = new List<ScrappedSimpleManga>();
+            var mangasList = new List<MangaSourceDTO>();
             var currentPage = 1;
             try
             {
@@ -133,10 +171,10 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
                         var mangaName = manga.GetAttributeValue("title", "") ?? "";
                         var mangaURL = manga.GetAttributeValue("href", "") ?? "";
                         var imageURL = manga.SelectSingleNode("div[@class='limit']/img").GetAttributeValue("src", "") ?? "";
-                        mangasList.Add(new ScrappedSimpleManga
+                        mangasList.Add(new MangaSourceDTO
                         {
-                            Name = mangaName,
-                            Link = mangaURL.Remove(mangaURL.Length - 1).Split("/").Last(),
+                            Name = mangaName.Trim(),
+                            Url = mangaURL.Remove(mangaURL.Length - 1).Split("/").Last(),
                             ImageURL = imageURL,
                             Source = GetMangaSourceEnumDTO()
                         });
@@ -145,7 +183,10 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
                 }
 
             }
-            catch(Exception _) { }
+            catch(Exception ex)
+            {
+                Log.Error($"SilenceScans - SearchManga: {ex.Message}");
+            }
            
 
             return mangasList;

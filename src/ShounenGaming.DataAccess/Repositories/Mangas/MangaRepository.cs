@@ -19,9 +19,9 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
         {
         }
 
-        public async Task<List<Manga>> GetPopularMangas(int count = 5)
+        public async Task<List<Manga>> GetPopularMangas()
         {
-            return await dbSet.OrderByDescending(m => m.UsersData.Where(c => c.Status == MangaUserStatusEnum.READING).Count()).Take(count).ToListAsync();
+            return await dbSet.OrderByDescending(m => ((m.MALPopularity ?? m.ALPopularity) + (m.ALPopularity ?? m.MALPopularity)) / 2).Take(10).ToListAsync();
         }
 
 
@@ -36,9 +36,29 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
             context.RemoveRange(entity.Chapters);
         }
 
-        public async Task<List<Manga>> SearchMangaByName(string name)
+        public async Task<List<Manga>> SearchManga(int page, string? name = null, int? userId = null)
         {
-            return await dbSet.Where(m => m.Name.Contains(name) || m.AlternativeNames.Any(d => d.Name.Contains(name))).ToListAsync();
+            return await SearchQuery(name, userId).OrderBy(c => c.Name).Skip(25 * (page - 1)).Take(25).ToListAsync();
+        }
+
+        public async Task<int> GetAllCount(string? name = null, int? userId = null)
+        {
+            return await SearchQuery(name, userId).CountAsync();
+        }
+
+        private IQueryable<Manga> SearchQuery(string? name = null, int? userId = null)
+        {
+            IQueryable<Manga> query = dbSet;
+
+            if (userId is not null)
+                query = query.Where(m => !m.UsersData.Any(ud => ud.UserId == userId && ud.Status == MangaUserStatusEnum.IGNORED));
+
+
+            if (!string.IsNullOrEmpty(name))
+                query = query.Where(m => m.Name.ToLower().Contains(name) || m.AlternativeNames.Any(d => d.Name.ToLower().Contains(name)) || m.Synonyms.Any(s => s.Name.ToLower().Contains(name)));
+
+
+            return query;
         }
 
         public async Task<List<Manga>> GetRecentlyAddedMangas()
@@ -48,7 +68,8 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
 
         public async Task<List<MangaChapter>> GetRecentlyReleasedChapters()
         {
-            return await dbSet.OrderByDescending(m => m.Chapters.OrderByDescending(c => c.CreatedAt).FirstOrDefault().CreatedAt).Select(d => d.Chapters.First()).ToListAsync();
+            return await dbSet.Where(m => m.Chapters.Any()).Select(m => m.Chapters.OrderByDescending(c => c.Name).First()).OrderByDescending(c => c.CreatedAt).ToListAsync();
+           // return await dbSet.OrderByDescending(m => m.Chapters.OrderByDescending(c => c.CreatedAt).FirstOrDefault().CreatedAt).Select(d => d.Chapters.OrderByDescending(c => c.CreatedAt).First()).ToListAsync();
         }
 
         public async Task<Manga?> GetByMALId(long MALId)
@@ -61,9 +82,28 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
             return await dbSet.FirstOrDefaultAsync(m => m.Chapters.Any(c => c.Id == chapterId));
         }
 
-        public async Task<List<Manga>> SearchMangaByTags(List<string> tags)
+
+        public async Task<Manga?> GetByALId(long alId)
         {
-            return await dbSet.Where(m => m.Tags.Any(t => tags.Contains(t.Name))).ToListAsync();
+            return await dbSet.Where(m => m.MangaAniListID == alId).FirstOrDefaultAsync();
         }
+
+        public async Task<Manga?> ClearSources(int mangaId)
+        {
+            var manga = await dbSet.FirstOrDefaultAsync(m => m.Id == mangaId);
+            context.Set<MangaSource>().RemoveRange(manga.Sources);
+            await context.SaveChangesAsync();
+
+            return await dbSet.FirstOrDefaultAsync(m => m.Id == mangaId);
+        }
+
+        public async Task<Manga?> ClearTranslations(int mangaId, IEnumerable<MangaTranslation> translations)
+        {
+            context.Set<MangaTranslation>().RemoveRange(translations);
+            await context.SaveChangesAsync();
+
+            return await dbSet.FirstOrDefaultAsync(m => m.Id == mangaId);
+        }
+
     }
 }

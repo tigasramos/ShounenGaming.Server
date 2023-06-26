@@ -16,17 +16,17 @@ namespace ShounenGaming.DataAccess.Persistence
     {
         //Base
         public DbSet<User> Users { get; set; }
-        public DbSet<Bot> Bots { get; set; }
+        public DbSet<ServerMember> ServerMembers { get; set; }
 
         //Tierlist
-        public DbSet<Tierlist> Tierlists { get; set; }
-        public DbSet<Tier> Tiers { get; set; }
-        public DbSet<TierlistItem> TierlistItems { get; set; }
-        public DbSet<TierlistCategory> TierlistCategories { get; set; }
-        public DbSet<TierChoice> TierChoices { get; set; }
-        public DbSet<UserTierlist> UserTierlists { get; set; }
+        //public DbSet<Tierlist> Tierlists { get; set; }
+        //public DbSet<Tier> Tiers { get; set; }
+        //public DbSet<TierlistItem> TierlistItems { get; set; }
+        //public DbSet<TierlistCategory> TierlistCategories { get; set; }
+        //public DbSet<TierChoice> TierChoices { get; set; }
+        //public DbSet<UserTierlist> UserTierlists { get; set; }
 
-
+        //Mangas
         public DbSet<Manga> Mangas { get; set; }
         public DbSet<MangaAlternativeName> MangaAlternativeNames { get; set; }
         public DbSet<MangaChapter> MangaChapters { get; set; }
@@ -38,6 +38,7 @@ namespace ShounenGaming.DataAccess.Persistence
         public DbSet<MangaUserData> MangaUsersData { get; set; }
         public DbSet<ChangedChapterStateAction> MangaChaptersHistory { get; set; }
         public DbSet<ChangedMangaStatusAction> MangaStatusHistory { get; set; }
+        public DbSet<AddedMangaAction> AddedMangaHistory { get; set; }
 
 
         public ShounenGamingContext(DbContextOptions<ShounenGamingContext> options) : base(options)
