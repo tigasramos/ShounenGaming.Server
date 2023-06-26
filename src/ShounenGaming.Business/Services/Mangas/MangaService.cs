@@ -460,8 +460,10 @@ namespace ShounenGaming.Business.Services.Mangas
         }
 
         #region Jobs
-        public async Task UpdateMangasMetadata()
+        public async Task<int> UpdateMangasMetadata()
         {
+            int updatedMangas = 0;
+
             var mangas = await _mangaRepo.GetAll();
             foreach (var manga in mangas)
             {
@@ -558,8 +560,12 @@ namespace ShounenGaming.Business.Services.Mangas
                 {
                     Log.Information($"Manga {manga.Name} just updated metadata");
                     await _mangaRepo.Update(manga);
+                    updatedMangas++;
+                    await Task.Delay(1000);
                 }
             }
+
+            return updatedMangas;
         }
         public async Task UpdateMangasChapters()
         {

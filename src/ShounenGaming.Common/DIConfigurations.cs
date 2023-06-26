@@ -65,8 +65,12 @@ namespace ShounenGaming.Common
             //TODO: Check Coravel Cache Service
             app.Services.UseScheduler(scheduler =>
             {
-                scheduler.OnWorker("Mangas");
-               // scheduler.Schedule<UpdateMangasInvocable>().EveryThirtyMinutes().PreventOverlapping("updateMangas");
+                //scheduler.OnWorker("MangasChapters");
+                //scheduler.Schedule<FetchMangasChapters>().EveryThirtyMinutes().PreventOverlapping("MangasChapters");
+
+                scheduler.OnWorker("MangasMetadata");
+                scheduler.Schedule<UpdateMangasMetadata>().EveryThirtyMinutes().RunOnceAtStart().PreventOverlapping("MangasMetadata");
+
 
             }).OnError((ex) => Log.Error($"Running some schedule: {ex.Message}")); ;
 
@@ -206,7 +210,7 @@ namespace ShounenGaming.Common
             services.AddTransient<LobbiesHub>();
 
             //Schedules
-            services.AddTransient<UpdateMangasInvocable>();
+            services.AddTransient<FetchMangasChapters>();
 
             //Services
             services.AddTransient<IAuthService, AuthService>();

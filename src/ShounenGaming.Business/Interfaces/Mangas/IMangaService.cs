@@ -119,12 +119,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// <returns></returns>
         Task<List<MangaSourceDTO>> LinkSourcesToManga(int mangaId, List<MangaSourceDTO> mangas);
 
-        
-        /// <summary>
-        /// Updates all tracked Mangas (fetches new chapters or translations)
-        /// </summary>
-        /// <returns></returns>
-        Task UpdateMangasChapters();
+       
 
         /// <summary>
         /// Fetches all Chapters from a Manga by its Sources
@@ -141,11 +136,20 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// <returns></returns>
         Task ChangeSourceFromManga(int mangaId, MangaSourceEnumDTO oldSource);
 
+
+        #region Jobs
         /// <summary>
         /// Updates all Mangas Metadata
         /// </summary>
         /// <returns></returns>
-        Task UpdateMangasMetadata();
-        Task LoadInitialMangas();
+        internal Task<int> UpdateMangasMetadata();
+
+        /// <summary>
+        /// Updates all tracked Mangas (fetches new chapters or translations)
+        /// </summary>
+        /// <returns></returns>
+        internal Task UpdateMangasChapters();
+        internal Task LoadInitialMangas();
+        #endregion
     }
 }

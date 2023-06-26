@@ -227,27 +227,5 @@ namespace ShounenGaming.API.Controllers.Mangas
 
         #endregion
 
-
-        //Admin only section
-        [HttpPut("testing/update")]
-        public async Task<IActionResult> Update()
-        {
-            await _service.UpdateMangasChapters();
-            return Ok();
-        }
-        [HttpPut("testing/update/metadata")]
-        public async Task<IActionResult> UpdateMetadata()
-        {
-            await _service.UpdateMangasMetadata();
-            return Ok();
-        }
-        [HttpPut("testing/load/metadata")]
-        public async Task<IActionResult> LoadInitialMangas()
-        {
-            await _service.LoadInitialMangas();
-            return Ok();
-        }
-        
-
     }
 }
