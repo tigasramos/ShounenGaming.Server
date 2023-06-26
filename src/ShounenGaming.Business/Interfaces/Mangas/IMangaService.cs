@@ -122,11 +122,11 @@ namespace ShounenGaming.Business.Interfaces.Mangas
        
 
         /// <summary>
-        /// Fetches all Chapters from a Manga by its Sources
+        /// Adds a Task to the queue to get all Chapters from a Manga by its Sources
         /// </summary>
         /// <param name="mangaId"></param>
         /// <returns></returns>
-        Task FetchChaptersForManga(int mangaId);
+        Task StartMangaChaptersUpdate(int mangaId);
 
         /// <summary>
         /// Delete everything related to that Source (when source is not working anymore)
@@ -145,11 +145,12 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         internal Task<int> UpdateMangasMetadata();
 
         /// <summary>
-        /// Updates all tracked Mangas (fetches new chapters or translations)
+        /// Adds all tracked Mangas to the Queue (fetches new chapters or translations)
         /// </summary>
         /// <returns></returns>
         internal Task UpdateMangasChapters();
         internal Task LoadInitialMangas();
+        internal Task UpdateMangaChapters(int mangaId);
         #endregion
     }
 }

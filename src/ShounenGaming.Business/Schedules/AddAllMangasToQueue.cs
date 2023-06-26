@@ -10,11 +10,11 @@ using System.Threading.Tasks;
 
 namespace ShounenGaming.Business.Schedules
 {
-    public class UpdateMangasInvocable : IInvocable
+    public class AddAllMangasToQueue : IInvocable
     {
         private readonly IMangaService _mangaService;
 
-        public UpdateMangasInvocable(IMangaService mangaService)
+        public AddAllMangasToQueue(IMangaService mangaService)
         {
             _mangaService = mangaService;
         }
@@ -24,12 +24,12 @@ namespace ShounenGaming.Business.Schedules
         {
             try
             {
+                Log.Information($"Started Fetching Mangas Chapters");
                 await _mangaService.UpdateMangasChapters();
-                Log.Information($"UpdateMangasInvocable ran successfully!");
             }
             catch(Exception ex)
             {
-                Log.Error($"Running UpdateMangasInvocable: {ex.Message}");
+                Log.Error($"Error Fetching Mangas Chapters: {ex.Message}");
             }
         }
     }

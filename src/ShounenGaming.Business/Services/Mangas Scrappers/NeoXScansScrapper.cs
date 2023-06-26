@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
 {
@@ -38,7 +39,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
                         var imageUrl = manga.SelectSingleNode("div[@class='item-thumb  c-image-hover']/a/img").GetAttributeValue("src", "") ?? "";
                         mangasList.Add(new MangaSourceDTO
                         {
-                            Name = mangaName.Trim(),
+                            Name = HttpUtility.HtmlDecode(mangaName.Trim()),
                             Url = mangaUrl.Remove(mangaUrl.Length - 1).Split("/").Last(),
                             ImageURL = imageUrl,
                             Source = GetMangaSourceEnumDTO()
@@ -77,7 +78,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
                     var imageUrl = manga.SelectSingleNode("div[@class='item-thumb  c-image-hover']/a/img").GetAttributeValue("src", "") ?? "";
                     mangasList.Add(new MangaSourceDTO
                     {
-                        Name = mangaName.Trim(),
+                        Name = HttpUtility.HtmlDecode(mangaName.Trim()),
                         Url = mangaUrl.Remove(mangaUrl.Length - 1).Split("/").Last(),
                         ImageURL = imageUrl,
                         Source = GetMangaSourceEnumDTO()
@@ -119,7 +120,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
 
             return new ScrappedManga
             {
-                Name = mangaName.Trim(),
+                Name = HttpUtility.HtmlDecode(mangaName.Trim()),
                 Description = mangaDescription,
                 Chapters = chapters,
                 ImageURL = imageUrl,
@@ -191,7 +192,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
                         var imageUrl = manga.SelectSingleNode("div/div[@class='tab-thumb c-image-hover']/a/img").GetAttributeValue("src", "") ?? "";
                         mangasList.Add(new MangaSourceDTO
                         {
-                            Name = mangaName.Trim(),
+                            Name = HttpUtility.HtmlDecode(mangaName.Trim()),
                             Url = mangaUrl.Remove(mangaUrl.Length - 1).Split("/").Last(),
                             ImageURL = imageUrl,
                             Source = GetMangaSourceEnumDTO()

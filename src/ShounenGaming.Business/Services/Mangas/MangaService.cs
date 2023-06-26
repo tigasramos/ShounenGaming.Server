@@ -6,8 +6,6 @@ using ShounenGaming.Business.Helpers;
 using ShounenGaming.Business.Interfaces.Base;
 using ShounenGaming.Business.Interfaces.Mangas;
 using ShounenGaming.Business.Interfaces.Mangas_Scrappers;
-using ShounenGaming.Business.Interfaces.Mangas_Scrappers.Models;
-using ShounenGaming.Core.Entities.Base;
 using ShounenGaming.Core.Entities.Mangas;
 using ShounenGaming.Core.Entities.Mangas.Enums;
 using ShounenGaming.DataAccess.Interfaces.Base;
@@ -17,8 +15,6 @@ using ShounenGaming.DTOs.Models.Mangas;
 using ShounenGaming.DTOs.Models.Mangas.Enums;
 using System.Globalization;
 using System.Net;
-using System.Threading.Channels;
-using static ShounenGaming.Business.Helpers.AniListHelper;
 
 namespace ShounenGaming.Business.Services.Mangas
 {
@@ -41,8 +37,9 @@ namespace ShounenGaming.Business.Services.Mangas
         private readonly IJikan _jikan;
         private readonly IImageService _imageService;
         private readonly IMapper _mapper;
+        private readonly IFetchMangasQueue _queue;
 
-        public MangaService(IMangaRepository mangaRepo, IMangaUserDataRepository mangaUserDataRepo, IMangaWriterRepository mangaWriterRepo, IMangaTagRepository mangaTagRepo, IMapper mapper, IImageService imageService, IJikan jikan, IAddedMangaActionRepository addedMangaRepo, IUserRepository userRepository)
+        public MangaService(IMangaRepository mangaRepo, IMangaUserDataRepository mangaUserDataRepo, IMangaWriterRepository mangaWriterRepo, IMangaTagRepository mangaTagRepo, IMapper mapper, IImageService imageService, IJikan jikan, IAddedMangaActionRepository addedMangaRepo, IUserRepository userRepository, IFetchMangasQueue queue)
         {
             _mangaRepo = mangaRepo;
             _mangaUserDataRepo = mangaUserDataRepo;
@@ -53,6 +50,7 @@ namespace ShounenGaming.Business.Services.Mangas
             _jikan = jikan;
             _addedMangaRepo = addedMangaRepo;
             _userRepository = userRepository;
+            _queue = queue;
         }
 
 
@@ -174,13 +172,14 @@ namespace ShounenGaming.Business.Services.Mangas
                 .Replace("!", "")
                 .Replace("#", "")
                 .Replace("[", "")
-                .Replace("]", "");
+                .Replace("]", "")
+                .Replace("'", " ");
 
             var allMangas = new List<MangaSourceDTO>();
 
             foreach(var scrapper in scrappers)
             {
-                allMangas.AddRange(await scrapper.SearchManga(name));
+                allMangas.AddRange(await scrapper.SearchManga(treatedName));
             }
 
             return allMangas;
@@ -426,13 +425,18 @@ namespace ShounenGaming.Business.Services.Mangas
         }
         #endregion
 
-        // TODO: Start a Job and retrieve Ok if found, or exception if not found
-        public async Task FetchChaptersForManga(int mangaId)
+        public async Task StartMangaChaptersUpdate(int mangaId)
         {
             var manga = await _mangaRepo.GetById(mangaId) ?? throw new EntityNotFoundException("Manga");
             if (!manga.Sources.Any())
                 throw new Exception("Manga has no Sources");
 
+            _queue.AddToQueue(mangaId);
+        }
+
+        public async Task UpdateMangaChapters(int mangaId)
+        {
+            var manga = await _mangaRepo.GetById(mangaId);
             Log.Information($"Scrapping {manga.Name}");
 
             foreach (var source in manga.Sources)
@@ -516,7 +520,7 @@ namespace ShounenGaming.Business.Services.Mangas
                     var mangaMetadata = await AniListHelper.GetMangaById(manga.MangaAniListID.Value);
 
                     //Only if MAL not found you update here
-                    if (!changed)
+                    if (!changed && manga.MangaMyAnimeListID == null)
                     {
                         //Update If needed
                         if (mangaMetadata.Description != manga.Description)
@@ -575,13 +579,8 @@ namespace ShounenGaming.Business.Services.Mangas
 
             foreach (var manga in mangas)
             {
-                Log.Information($"Scrapping {manga.Name}");
-
-                foreach (var source in manga.Sources)
-                {
-                    await UpdateChaptersFromMangaAndSource(manga, source);
-
-                }
+                if (manga.Sources.Any())
+                    _queue.AddToQueue(manga.Id);
             }
 
         }
@@ -697,7 +696,7 @@ namespace ShounenGaming.Business.Services.Mangas
                         }
                         catch (Exception ex)
                         {
-                            Log.Error($"Chapter {nameScrapped} failed to Save");
+                            Log.Error($"Chapter {nameScrapped} failed to save");
                             scrapperFailures++;
                             if (scrapperFailures == 5)
                             {
@@ -709,7 +708,7 @@ namespace ShounenGaming.Business.Services.Mangas
                     }
                     else
                     {
-                        Log.Information($"Chapter {nameScrapped} already exists");
+                        Log.Debug($"Chapter {nameScrapped} already exists");
                     }
                 }
             }

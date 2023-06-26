@@ -221,7 +221,7 @@ namespace ShounenGaming.API.Controllers.Mangas
         [HttpPut("{mangaId}/chapters")]
         public async Task<IActionResult> FetchChaptersForManga(int mangaId)
         {
-            await _service.FetchChaptersForManga(mangaId);
+            await _service.StartMangaChaptersUpdate(mangaId);
             return Ok();
         }
 

@@ -1,4 +1,5 @@
 ﻿using Coravel.Invocable;
+using Coravel.Queuing.Interfaces;
 using Serilog;
 using ShounenGaming.Business.Interfaces.Mangas;
 using System;
