@@ -29,7 +29,6 @@ namespace ShounenGaming.Business.Services.Mangas
 
         private readonly IUserRepository _userRepository;
         private readonly IMangaRepository _mangaRepo;
-        private readonly IMangaUserDataRepository _mangaUserDataRepo;
         private readonly IMangaWriterRepository _mangaWriterRepo;
         private readonly IMangaTagRepository _mangaTagRepo;
         private readonly IAddedMangaActionRepository _addedMangaRepo;
@@ -39,10 +38,9 @@ namespace ShounenGaming.Business.Services.Mangas
         private readonly IMapper _mapper;
         private readonly IFetchMangasQueue _queue;
 
-        public MangaService(IMangaRepository mangaRepo, IMangaUserDataRepository mangaUserDataRepo, IMangaWriterRepository mangaWriterRepo, IMangaTagRepository mangaTagRepo, IMapper mapper, IImageService imageService, IJikan jikan, IAddedMangaActionRepository addedMangaRepo, IUserRepository userRepository, IFetchMangasQueue queue)
+        public MangaService(IMangaRepository mangaRepo, IMangaWriterRepository mangaWriterRepo, IMangaTagRepository mangaTagRepo, IMapper mapper, IImageService imageService, IJikan jikan, IAddedMangaActionRepository addedMangaRepo, IUserRepository userRepository, IFetchMangasQueue queue)
         {
             _mangaRepo = mangaRepo;
-            _mangaUserDataRepo = mangaUserDataRepo;
             _mangaWriterRepo = mangaWriterRepo;
             _mangaTagRepo = mangaTagRepo;
             _mapper = mapper;
@@ -70,8 +68,6 @@ namespace ShounenGaming.Business.Services.Mangas
             var mangaTranslation = manga.Chapters.Where(c => c.Id == chapterId).Select(s => s.Translations.FirstOrDefault(p => p.Language == _mapper.Map<TranslationLanguageEnum>(translation))).FirstOrDefault() ?? throw new EntityNotFoundException("MangaTranslation");
             return MapMangaTranslation(mangaTranslation);
         }
-     
-
         public async Task<PaginatedResponse<MangaInfoDTO>> SearchMangas(SearchMangaQueryDTO query, int page, int? userId = null)
         {
             var mangas = await _mangaRepo.SearchManga(page, query.Name, userId);
@@ -85,9 +81,15 @@ namespace ShounenGaming.Business.Services.Mangas
         }
         public async Task<List<MangaInfoDTO>> GetPopularMangas()
         {
-            var popularMangas = await _mangaRepo.GetPopularMangas() ?? throw new Exception("Error Fetching Popular Mangas");
+            var popularMangas = await _mangaRepo.GetPopularMangas();
 
-            return _mapper.Map<List<MangaInfoDTO>>(popularMangas.Distinct());
+            return _mapper.Map<List<MangaInfoDTO>>(popularMangas);
+        }
+        public async Task<List<MangaInfoDTO>> GetFeaturedMangas()
+        {
+            var featuredMangas = await _mangaRepo.GetFeaturedMangas();
+
+            return _mapper.Map<List<MangaInfoDTO>>(featuredMangas);
         }
         public async Task<List<MangaInfoDTO>> GetRecentlyAddedMangas()
         {
@@ -115,7 +117,14 @@ namespace ShounenGaming.Business.Services.Mangas
             var writer = await _mangaWriterRepo.GetById(id);
             return _mapper.Map<MangaWriterDTO>(writer);
         }
-       
+
+        public async Task<MangaInfoDTO> ChangeMangaFeaturedStatus(int mangaId)
+        {
+            var manga = await _mangaRepo.GetById(mangaId) ?? throw new EntityNotFoundException("Manga");
+            manga.IsFeatured = !manga.IsFeatured;
+            manga = await _mangaRepo.Update(manga);
+            return _mapper.Map<MangaInfoDTO>(manga);
+        }
 
         public async Task<List<MangaMetadataDTO>> SearchMangaMetadata(MangaMetadataSourceEnumDTO source, string name)
         {

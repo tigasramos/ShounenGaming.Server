@@ -86,7 +86,7 @@ namespace ShounenGaming.API.Controllers.Mangas
         }
 
         /// <summary>
-        /// Gets the last Mangas added
+        /// Gets the Last Mangas added
         /// </summary>
         /// <returns></returns>
         [HttpGet("recent")]
@@ -97,7 +97,7 @@ namespace ShounenGaming.API.Controllers.Mangas
         }
 
         /// <summary>
-        /// Gets the last Chapters added
+        /// Gets the Last Chapters added
         /// </summary>
         /// <returns></returns>
         [HttpGet("recent/chapters")]
@@ -105,6 +105,28 @@ namespace ShounenGaming.API.Controllers.Mangas
         {
             var chapters = await _service.GetRecentlyReleasedChapters();
             return Ok(chapters);
+        }
+        
+        /// <summary>
+        /// Gets the Featured Mangas
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("featured")]
+        public async Task<IActionResult> GetFeaturedMangas()
+        {
+            var mangas = await _service.GetFeaturedMangas();
+            return Ok(mangas);
+        }
+
+        /// <summary>
+        /// Change the Feature Status of a Manga
+        /// </summary>
+        /// <returns></returns>
+        [HttpPut("{mangaId}/feature")]
+        public async Task<IActionResult> ChangeFeaturedStatus(int mangaId)
+        {
+            var manga = await _service.ChangeMangaFeaturedStatus(mangaId);
+            return Ok(manga);
         }
 
         #endregion

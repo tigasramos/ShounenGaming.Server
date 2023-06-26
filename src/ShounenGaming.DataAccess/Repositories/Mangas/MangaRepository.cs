@@ -23,7 +23,10 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
         {
             return await dbSet.OrderByDescending(m => ((m.MALPopularity ?? m.ALPopularity) + (m.ALPopularity ?? m.MALPopularity)) / 2).Take(10).ToListAsync();
         }
-
+        public async Task<List<Manga>> GetFeaturedMangas()
+        {
+            return await dbSet.Where(m => m.IsFeatured).ToListAsync();
+        }
 
         public override void DeleteDependencies(Manga entity)
         {

@@ -13,6 +13,7 @@ namespace ShounenGaming.DataAccess.Interfaces.Mangas
         Task<Manga?> GetByMALId(long malId);
         Task<Manga?> GetByALId(long alId);
         Task<List<Manga>> GetPopularMangas();
+        Task<List<Manga>> GetFeaturedMangas();
         Task<List<Manga>> SearchManga(int page, string? name, int? userId);
         Task<int> GetAllCount(string? name, int? userId);
         Task<List<Manga>> GetRecentlyAddedMangas();
