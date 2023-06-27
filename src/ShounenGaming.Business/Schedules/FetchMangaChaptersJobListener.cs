@@ -12,12 +12,12 @@ using System.Threading.Tasks;
 namespace ShounenGaming.Business.Schedules
 {
     
-    public class FetchMangaChapters : IInvocable
+    public class FetchMangaChaptersJobListener : IInvocable
     {
         private readonly IFetchMangasQueue _queue;
         private readonly IMangaService _mangaService;
 
-        public FetchMangaChapters(IMangaService mangaService, IFetchMangasQueue queue)
+        public FetchMangaChaptersJobListener(IMangaService mangaService, IFetchMangasQueue queue)
         {
             _mangaService = mangaService;
             _queue = queue;

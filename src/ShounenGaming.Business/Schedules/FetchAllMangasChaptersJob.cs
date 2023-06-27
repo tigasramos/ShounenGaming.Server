@@ -1,7 +1,7 @@
 ﻿using Coravel.Invocable;
-using Coravel.Queuing.Interfaces;
 using Serilog;
 using ShounenGaming.Business.Interfaces.Mangas;
+using ShounenGaming.DataAccess.Interfaces.Mangas;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,11 +10,11 @@ using System.Threading.Tasks;
 
 namespace ShounenGaming.Business.Schedules
 {
-    public class UpdateMangasMetadata : IInvocable
+    public class FetchAllMangasChaptersJob : IInvocable
     {
         private readonly IMangaService _mangaService;
 
-        public UpdateMangasMetadata(IMangaService mangaService)
+        public FetchAllMangasChaptersJob(IMangaService mangaService)
         {
             _mangaService = mangaService;
         }
@@ -24,13 +24,12 @@ namespace ShounenGaming.Business.Schedules
         {
             try
             {
-                Log.Information($"Started Updating Mangas Metadata");
-                var updatedMangas = await _mangaService.UpdateMangasMetadata();
-                Log.Information($"Finished Updating Mangas Metadata: {updatedMangas} Mangas Updated");
+                Log.Information($"Started Adding Mangas Chapters to Queue");
+                await _mangaService.UpdateMangasChapters();
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
-                Log.Error($"Error Updating Mangas Metadata: {ex.Message}");
+                Log.Error($"Error Adding Mangas Chapters to Queue: {ex.Message}");
             }
         }
     }

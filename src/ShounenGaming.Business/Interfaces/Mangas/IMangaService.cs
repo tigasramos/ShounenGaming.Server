@@ -152,17 +152,22 @@ namespace ShounenGaming.Business.Interfaces.Mangas
 
         #region Jobs
         /// <summary>
-        /// Updates all Mangas Metadata
+        /// Add more Popular Mangas & Updates all existing Mangas Metadata
         /// </summary>
         /// <returns></returns>
-        internal Task<int> UpdateMangasMetadata();
+        internal Task AddOrUpdateAllMangasMetadata();
 
         /// <summary>
         /// Adds all tracked Mangas to the Queue (fetches new chapters or translations)
         /// </summary>
         /// <returns></returns>
         internal Task UpdateMangasChapters();
-        internal Task LoadInitialMangas();
+
+        /// <summary>
+        /// Fetch new Chapters for a Manga
+        /// </summary>
+        /// <param name="mangaId"></param>
+        /// <returns></returns>
         internal Task UpdateMangaChapters(int mangaId);
         #endregion
     }

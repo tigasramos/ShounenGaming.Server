@@ -473,7 +473,76 @@ namespace ShounenGaming.Business.Services.Mangas
         }
 
         #region Jobs
-        public async Task<int> UpdateMangasMetadata()
+        public async Task UpdateMangasChapters()
+        {
+            var mangas = await _mangaRepo.GetAll();
+
+            foreach (var manga in mangas)
+            {
+                if (manga.Sources.Any())
+                    _queue.AddToQueue(manga.Id);
+            }
+
+        }
+        public async Task AddOrUpdateAllMangasMetadata()
+        {
+            Log.Information($"Started Updating Mangas Metadata");
+            // Update Mangas Metadata
+            var updatedMangas = await UpdateMangasMetadata();
+
+            Log.Information($"Updated {updatedMangas} mangas metadata");
+
+            Log.Information("Waiting");
+            await Task.Delay(60000);
+
+            Log.Information("Started Adding Popular Mangas");
+
+            // Get & Update MAL Mangas
+            var allowedTypes = new List<string>() { "Manga", "Manhwa", "Manhua" };
+            Log.Information("MyAnimeList Mangas");
+            for (int i = 1; i < 7; i++)
+            {
+                var topMangasMAL = await _jikan.GetTopMangaAsync(i);
+                foreach (var manga in topMangasMAL.Data)
+                {
+                    if (allowedTypes.Contains(manga.Type)) continue;
+
+                    await AddMALManga(manga.MalId, null);
+                }
+            }
+
+            //AL
+            Log.Information("AniList Mangas");
+            var topMangasAL = await AniListHelper.GetPopularMangas();
+            foreach (var manga in topMangasAL)
+            {
+                await AddALManga(manga.Id, null);
+            }
+
+            Log.Information("Waiting");
+            await Task.Delay(60000);
+
+            Log.Information("AniList Manhwas");
+            var topKRMangasAL = await AniListHelper.GetPopularManhwas();
+            foreach (var manga in topKRMangasAL)
+            {
+                await AddALManga(manga.Id, null);
+            }
+
+            Log.Information("Waiting");
+            await Task.Delay(60000);
+
+            Log.Information("AniList Manhuas");
+            var topCHMangasAL = await AniListHelper.GetPopularManhuas();
+            foreach (var manga in topCHMangasAL)
+            {
+                await AddALManga(manga.Id, null);
+            }
+
+            Log.Information("Finished Adding Popular Mangas");
+
+        }
+        private async Task<int> UpdateMangasMetadata()
         {
             int updatedMangas = 0;
 
@@ -551,7 +620,7 @@ namespace ShounenGaming.Business.Services.Mangas
                             changed = true;
                         }
                     }
-                    
+
 
                     if (manga.ALPopularity != mangaMetadata.Popularity)
                     {
@@ -561,7 +630,7 @@ namespace ShounenGaming.Business.Services.Mangas
 
                     if (mangaMetadata.AverageScore.HasValue)
                     {
-                        if (manga.ALScore != mangaMetadata.AverageScore.Value/(double)10)
+                        if (manga.ALScore != mangaMetadata.AverageScore.Value / (double)10)
                         {
                             manga.ALScore = mangaMetadata.AverageScore.Value / (double)10;
                             changed = true;
@@ -580,67 +649,7 @@ namespace ShounenGaming.Business.Services.Mangas
 
             return updatedMangas;
         }
-        public async Task UpdateMangasChapters()
-        {
-            Log.Information("Starting the Manga Chapters Update");
 
-            var mangas = await _mangaRepo.GetAll();
-
-            foreach (var manga in mangas)
-            {
-                if (manga.Sources.Any())
-                    _queue.AddToQueue(manga.Id);
-            }
-
-        }
-        public async Task LoadInitialMangas()
-        {
-            Log.Information("Started adding Popular Mangas");
-
-            var allowedTypes = new List<string>() { "Manga", "Manhwa", "Manhua" };
-            //MAL
-            Log.Information("MyAnimeList Mangas");
-            for(int i = 1; i < 7; i++)
-            {
-                var topMangasMAL = await _jikan.GetTopMangaAsync(i);
-                foreach (var manga in topMangasMAL.Data)
-                {
-                    if (allowedTypes.Contains(manga.Type))
-                        await AddMALManga(manga.MalId, null);
-                }
-            }
-            
-
-            //AL
-            Log.Information("AniList Mangas");
-            var topMangasAL = await AniListHelper.GetPopularMangas();
-            foreach (var manga in topMangasAL)
-            {
-                await AddALManga(manga.Id, null);
-            }
-
-            Log.Information("Waiting");
-            await Task.Delay(60000);
-
-            Log.Information("AniList Manhwas");
-            var topKRMangasAL = await AniListHelper.GetPopularManhwas();
-            foreach (var manga in topKRMangasAL)
-            {
-                await AddALManga(manga.Id, null);
-            }
-
-            Log.Information("Waiting");
-            await Task.Delay(60000);
-
-            Log.Information("AniList Manhuas");
-            var topCHMangasAL = await AniListHelper.GetPopularManhuas();
-            foreach (var manga in topCHMangasAL)
-            {
-                await AddALManga(manga.Id, null);
-            }
-
-            Log.Information("Finished adding Popular Mangas");
-        }
         #endregion
 
         #region Private

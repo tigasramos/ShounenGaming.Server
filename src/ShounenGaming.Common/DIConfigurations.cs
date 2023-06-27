@@ -68,17 +68,17 @@ namespace ShounenGaming.Common
             //TODO: Check Coravel Cache Service
             app.Services.UseScheduler(scheduler =>
             {
-                // Fetch Manga Metadata Hourly
+                // Fetch Manga Metadata Every 3 Hours
                 scheduler.OnWorker("MangasMetadata");
-                scheduler.Schedule<UpdateMangasMetadata>().Hourly().RunOnceAtStart().PreventOverlapping("MangasMetadata");
+                scheduler.Schedule<AddOrUpdateMangasMetadataJob>().Cron("0 */3 * * *").RunOnceAtStart().PreventOverlapping("MangasMetadata");
 
                 // Background Job that will listen the queue to Fetch New Chapters
                 scheduler.OnWorker("MangasChapters_Listener");
-                scheduler.Schedule<FetchMangaChapters>().Monthly().RunOnceAtStart().PreventOverlapping("MangasChapters_Listener");
+                scheduler.Schedule<FetchMangaChaptersJobListener>().Monthly().RunOnceAtStart().PreventOverlapping("MangasChapters_Listener");
 
                 // Adds All Mangas to fetch new chapters hourly
                 scheduler.OnWorker("MangasChapters");
-                scheduler.Schedule<AddAllMangasToQueue>().Hourly().RunOnceAtStart();
+                scheduler.Schedule<FetchAllMangasChaptersJob>().Hourly().RunOnceAtStart();
 
 
             }).OnError((ex) => Log.Error($"Running some schedule: {ex.Message}")); ;
@@ -222,9 +222,9 @@ namespace ShounenGaming.Common
             services.AddTransient<LobbiesHub>();
 
             //Schedules
-            services.AddTransient<AddAllMangasToQueue>();
-            services.AddTransient<FetchMangaChapters>();
-            services.AddTransient<UpdateMangasMetadata>();
+            services.AddTransient<FetchAllMangasChaptersJob>();
+            services.AddTransient<FetchMangaChaptersJobListener>();
+            services.AddTransient<AddOrUpdateMangasMetadataJob>();
 
             //Services
             services.AddTransient<IAuthService, AuthService>();
