@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace ShounenGaming.DTOs.Models.Mangas
 {
     public class ChapterReleaseDTO
@@ -12,5 +7,6 @@ namespace ShounenGaming.DTOs.Models.Mangas
         public string Name { get; set; }
         public DateTime CreatedAt { get; set; }
         public MangaInfoDTO Manga { get; set; }
+        public List<MangaTranslationInfoDTO> Translations { get; set; }
     }
 }

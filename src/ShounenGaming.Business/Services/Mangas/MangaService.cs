@@ -99,7 +99,6 @@ namespace ShounenGaming.Business.Services.Mangas
         public async Task<List<ChapterReleaseDTO>> GetRecentlyReleasedChapters()
         {
             var chapters = await _mangaRepo.GetRecentlyReleasedChapters();
-            chapters.RemoveAll(c => c == null);
             return _mapper.Map<List<ChapterReleaseDTO>>(chapters);
         }
         public async Task<List<MangaWriterDTO>> GetMangaWriters()

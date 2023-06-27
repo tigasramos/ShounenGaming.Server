@@ -51,7 +51,8 @@ namespace ShounenGaming.Business.Mappers
 
             CreateMap<MangaChapter, MangaChapterDTO>();
             CreateMap<MangaSource, MangaSourceDTO>();
-            CreateMap<MangaChapter, ChapterReleaseDTO>();
+            CreateMap<MangaChapter, ChapterReleaseDTO>()
+                .ForMember(m => m.Translations, (x) => x.MapFrom((a) => a.Translations.OrderByDescending(t => t.CreatedAt)));
             CreateMap<MangaWriter, MangaWriterDTO>();
             CreateMap<MangaTranslation, MangaTranslationInfoDTO>()
                 .ForMember(m => m.Language, (x) => x.MapFrom((a) => a.Language));

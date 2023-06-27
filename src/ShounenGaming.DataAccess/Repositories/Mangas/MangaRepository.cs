@@ -71,8 +71,12 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
 
         public async Task<List<MangaChapter>> GetRecentlyReleasedChapters()
         {
-            return await dbSet.Where(m => m.Chapters.Any()).Select(m => m.Chapters.OrderByDescending(c => c.Name).First()).OrderByDescending(c => c.CreatedAt).ToListAsync();
-           // return await dbSet.OrderByDescending(m => m.Chapters.OrderByDescending(c => c.CreatedAt).FirstOrDefault().CreatedAt).Select(d => d.Chapters.OrderByDescending(c => c.CreatedAt).First()).ToListAsync();
+            var chapters = await dbSet
+                .Where(m => m.Chapters.Any())
+                .Select(m => m.Chapters.OrderByDescending(c => c.Name).First())
+                .OrderByDescending(c => c.CreatedAt)
+                .ToListAsync();
+            return chapters;
         }
 
         public async Task<Manga?> GetByMALId(long MALId)
