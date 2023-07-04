@@ -76,7 +76,11 @@ namespace ShounenGaming.API.Controllers.Mangas
         public async Task<IActionResult> UpdateMangaStatusByUser(int mangaId, [FromQuery]MangaUserStatusEnumDTO? status = null)
         {
             //TODO: Get User Id from JWT Token
-            return Ok(await _mangaUsersService.UpdateMangaStatusByUser(1, mangaId, status));
+            var userData = await _mangaUsersService.UpdateMangaStatusByUser(1, mangaId, status);
+            if (userData != null) 
+                return Ok(userData);
+
+            return Ok();
         }
     }
 }

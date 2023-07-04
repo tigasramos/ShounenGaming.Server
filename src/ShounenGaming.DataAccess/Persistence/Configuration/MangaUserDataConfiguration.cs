@@ -15,6 +15,7 @@ namespace ShounenGaming.DataAccess.Persistence.Configuration
         public void Configure(EntityTypeBuilder<MangaUserData> builder)
         {
             builder.HasMany(b => b.ChaptersRead).WithMany();
+            builder.HasAlternateKey(a => new { a.UserId, a.MangaId });
         }
     }
 }

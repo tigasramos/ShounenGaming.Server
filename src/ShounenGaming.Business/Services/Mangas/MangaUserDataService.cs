@@ -76,7 +76,6 @@ namespace ShounenGaming.Business.Services.Mangas
                     PreviousState = null,
                     NewState = mangaUserInfo.Status
                 });
-                return await MapMangaUserData(userData);
             }
 
             //Chapter Not Seen Yet
