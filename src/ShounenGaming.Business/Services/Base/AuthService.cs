@@ -152,7 +152,7 @@ namespace ShounenGaming.Business.Services.Base
             }
 
             //Handle RefreshToken if less than 3 days to expire
-            if (user.RefreshTokenExpiryDate!.Value.AddDays(3) > DateTime.UtcNow)
+            if (user.RefreshTokenExpiryDate!.Value.AddDays(-3) <= DateTime.UtcNow)
             {
                 user.RefreshToken = await GenerateRefreshToken();
                 user.RefreshTokenExpiryDate = DateTime.UtcNow.AddDays(7);

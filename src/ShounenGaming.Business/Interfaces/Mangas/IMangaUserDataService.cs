@@ -39,7 +39,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// <param name="userId"></param>
         /// <param name="chapterId"></param>
         /// <returns></returns>
-        Task<MangaUserDataDTO> MarkChapterRead(int userId, int chapterId);
+        Task<MangaUserDataDTO> MarkChaptersRead(int userId, List<int> chaptersIds);
 
         /// <summary>
         /// Unmarks a Chapter that was read by a User
@@ -47,7 +47,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// <param name="userId"></param>
         /// <param name="chapterId"></param>
         /// <returns></returns>
-        Task<MangaUserDataDTO?> UnmarkChapterRead(int userId, int chapterId);
+        Task<MangaUserDataDTO?> UnmarkChaptersRead(int userId, List<int> chaptersIds);
         
         /// <summary>
         /// Change Manga Status relative to a User

@@ -17,8 +17,9 @@ namespace ShounenGaming.DataAccess.Interfaces.Mangas
         Task<List<Manga>> SearchManga(int page, string? name, int? userId);
         Task<int> GetAllCount(string? name, int? userId);
         Task<List<Manga>> GetRecentlyAddedMangas();
-        Task<List<MangaChapter>> GetRecentlyReleasedChapters();
+        Task<List<Manga>> GetRecentlyReleasedChapters();
         Task<Manga?> GetByChapter(int chapterId);
+        Task<Manga?> GetByChapters(List<int> chaptersIds);
         Task<Manga?> ClearSources(int mangaId);
         Task<Manga?> ClearTranslations(int mangaId, IEnumerable<MangaTranslation> translations);
     }

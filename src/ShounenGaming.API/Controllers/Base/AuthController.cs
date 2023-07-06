@@ -103,7 +103,7 @@ namespace ShounenGaming.API.Controllers.Base
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorDetails))]
         [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ErrorDetails))]
-        public async Task<IActionResult> RefreshToken([FromQuery] string refreshToken)
+        public async Task<IActionResult> RefreshToken([FromHeader] string refreshToken)
         {
             var response = await _authService.RefreshToken(refreshToken);
             return Ok(response);

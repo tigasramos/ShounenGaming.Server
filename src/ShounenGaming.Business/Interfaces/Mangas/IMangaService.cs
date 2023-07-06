@@ -44,7 +44,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// Gets the new added Chapters
         /// </summary>
         /// <returns></returns>
-        Task<List<ChapterReleaseDTO>> GetRecentlyReleasedChapters();
+        Task<List<LatestReleaseMangaDTO>> GetRecentlyReleasedChapters();
 
         /// <summary>
         /// Gets the Featured Mangas
@@ -140,15 +140,6 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// <param name="mangaId"></param>
         /// <returns></returns>
         Task StartMangaChaptersUpdate(int mangaId);
-
-        /// <summary>
-        /// Delete everything related to that Source (when source is not working anymore)
-        /// </summary>
-        /// <param name="mangaId"></param>
-        /// <param name="oldSource"></param>
-        /// <returns></returns>
-        Task ChangeSourceFromManga(int mangaId, MangaSourceEnumDTO oldSource);
-
 
         #region Jobs
         /// <summary>

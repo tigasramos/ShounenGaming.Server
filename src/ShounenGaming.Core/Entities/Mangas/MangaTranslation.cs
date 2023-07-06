@@ -12,8 +12,7 @@ namespace ShounenGaming.Core.Entities.Mangas
         public TranslationLanguageEnum Language { get; set; }
         public DateTime? ReleasedDate { get; set; }
 
-        public string Provider { get; set; }
-        public virtual List<string> Pages { get; set; }
+        public bool IsWorking { get; set; }
 
         public int MangaChapterId { get; set; }
         public virtual MangaChapter MangaChapter { get; set; }

@@ -93,7 +93,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
         {
             var web = new HtmlWeb();
             var htmlDoc = await web.LoadFromWebAsync($"https://www.brmangas.net/manga/{urlPart}");
-            var mangaName = htmlDoc.DocumentNode.SelectSingleNode("//h1[@class='titulo text-uppercase']")?.InnerText.Replace("Ler", "").Replace("Online", "").Trim() ?? "";
+            var mangaName = htmlDoc.DocumentNode.SelectSingleNode("//h1[@class='titulo text-uppercase']")?.InnerText.Replace("Ler", "").Trim() ?? "";
             var mangaDescription = htmlDoc.DocumentNode.SelectNodes("//div[@class='serie-texto']/div/p")?[1].InnerText ?? "";
             var imageUrl = htmlDoc.DocumentNode.SelectSingleNode("//div[@class='serie-capa']/img")?.GetAttributeValue("src", "") ?? "";
 
@@ -112,7 +112,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
 
             return new ScrappedManga
             {
-                Name = HttpUtility.HtmlDecode(mangaName.Trim()),
+                Name = HttpUtility.HtmlDecode(mangaName.Remove(mangaName.Length - 6).Trim()),
                 Description = mangaDescription,
                 Chapters = chapters,
                 ImageURL = imageUrl,

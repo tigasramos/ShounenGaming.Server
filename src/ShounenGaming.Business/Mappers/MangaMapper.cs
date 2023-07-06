@@ -49,10 +49,9 @@ namespace ShounenGaming.Business.Mappers
                 .ForMember(m => m.ImagesUrls, (x) => x.MapFrom((a) => a.ImagesUrls));
                 //.ForMember(m => m.ImageUrl, (x) => x.MapFrom((a) => "https://localhost:7252/" + GetThumbnailImageName(a.Name)));
 
-            CreateMap<MangaChapter, MangaChapterDTO>();
+            CreateMap<MangaChapter, MangaChapterDTO>()
+                .ForMember(m => m.Translations, (x) => x.MapFrom((a) => a.Translations.Where(t => t.IsWorking).OrderByDescending(t => t.CreatedAt)));
             CreateMap<MangaSource, MangaSourceDTO>();
-            CreateMap<MangaChapter, ChapterReleaseDTO>()
-                .ForMember(m => m.Translations, (x) => x.MapFrom((a) => a.Translations.OrderByDescending(t => t.CreatedAt)));
             CreateMap<MangaWriter, MangaWriterDTO>();
             CreateMap<MangaTranslation, MangaTranslationInfoDTO>()
                 .ForMember(m => m.Language, (x) => x.MapFrom((a) => a.Language));

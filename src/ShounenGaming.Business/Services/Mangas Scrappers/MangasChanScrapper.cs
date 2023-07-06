@@ -141,7 +141,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
             var imageUrl = htmlDoc.DocumentNode.SelectSingleNode("//div[@class='thumb']/img")?.GetAttributeValue("src", "") ?? "";
 
             var chapters = new List<ScrappedChapter>();
-            var scrappedChapters = htmlDoc.DocumentNode.SelectNodes("//ul[@class='clstyle']/li/div/div/a");
+            var scrappedChapters = htmlDoc.DocumentNode.SelectNodes("//ul[@class='clstyle']/li/div/div/a") ?? throw new Exception();
             foreach (var chapter in scrappedChapters)
             {
                 var chapterName = chapter.SelectSingleNode("span[@class='chapternum']").InnerText.Replace("Capítulo", "").Trim() ?? "";

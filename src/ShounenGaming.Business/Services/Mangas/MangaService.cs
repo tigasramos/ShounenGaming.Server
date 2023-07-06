@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
 using JikanDotNet;
+using Microsoft.Extensions.Caching.Memory;
 using Serilog;
 using ShounenGaming.Business.Exceptions;
 using ShounenGaming.Business.Helpers;
 using ShounenGaming.Business.Interfaces.Base;
 using ShounenGaming.Business.Interfaces.Mangas;
 using ShounenGaming.Business.Interfaces.Mangas_Scrappers;
+using ShounenGaming.Business.Interfaces.Mangas_Scrappers.Models;
 using ShounenGaming.Core.Entities.Mangas;
 using ShounenGaming.Core.Entities.Mangas.Enums;
 using ShounenGaming.DataAccess.Interfaces.Base;
@@ -21,11 +23,11 @@ namespace ShounenGaming.Business.Services.Mangas
     public class MangaService : IMangaService
     {
         //Order by Priority (Scans first then remaining)
-        static readonly List<IBaseMangaScrapper> scrappers = new() {
-                new MangasChanScrapper(), new ManganatoScrapper(),
-                new GekkouScansScrapper(), new SilenceScansScrapper(),
-                new HuntersScansScrapper(), new NeoXScansScrapper(),
-                /*new FireMangasScrapper(),*/ new BRMangasScrapper() };
+        static readonly List<IBaseMangaScrapper> scrappers = new() { 
+                    new ManganatoScrapper(), new GekkouScansScrapper(), 
+                    new SilenceScansScrapper(), new HuntersScansScrapper(), 
+                    new NeoXScansScrapper(), new BRMangasScrapper(), 
+                    new MangasChanScrapper(), };
 
         private readonly IUserRepository _userRepository;
         private readonly IMangaRepository _mangaRepo;
@@ -37,8 +39,9 @@ namespace ShounenGaming.Business.Services.Mangas
         private readonly IImageService _imageService;
         private readonly IMapper _mapper;
         private readonly IFetchMangasQueue _queue;
+        private readonly IMemoryCache _cache;
 
-        public MangaService(IMangaRepository mangaRepo, IMangaWriterRepository mangaWriterRepo, IMangaTagRepository mangaTagRepo, IMapper mapper, IImageService imageService, IJikan jikan, IAddedMangaActionRepository addedMangaRepo, IUserRepository userRepository, IFetchMangasQueue queue)
+        public MangaService(IMangaRepository mangaRepo, IMangaWriterRepository mangaWriterRepo, IMangaTagRepository mangaTagRepo, IMapper mapper, IImageService imageService, IJikan jikan, IAddedMangaActionRepository addedMangaRepo, IUserRepository userRepository, IFetchMangasQueue queue, IMemoryCache cache)
         {
             _mangaRepo = mangaRepo;
             _mangaWriterRepo = mangaWriterRepo;
@@ -49,6 +52,7 @@ namespace ShounenGaming.Business.Services.Mangas
             _addedMangaRepo = addedMangaRepo;
             _userRepository = userRepository;
             _queue = queue;
+            _cache = cache;
         }
 
 
@@ -62,11 +66,52 @@ namespace ShounenGaming.Business.Services.Mangas
             var manga = await _mangaRepo.GetById(id);
             return manga != null ? _mapper.Map<List<MangaSourceDTO>>(manga.Sources) : throw new EntityNotFoundException("Manga");
         }
-        public async Task<MangaTranslationDTO> GetMangaTranslation(int mangaId, int chapterId, MangaTranslationEnumDTO translation)
+        public async Task<MangaTranslationDTO?> GetMangaTranslation(int mangaId, int chapterId, MangaTranslationEnumDTO translation)
         {
             var manga = await _mangaRepo.GetById(mangaId) ?? throw new EntityNotFoundException("Manga");
             var mangaTranslation = manga.Chapters.Where(c => c.Id == chapterId).Select(s => s.Translations.FirstOrDefault(p => p.Language == _mapper.Map<TranslationLanguageEnum>(translation))).FirstOrDefault() ?? throw new EntityNotFoundException("MangaTranslation");
-            return MapMangaTranslation(mangaTranslation);
+           
+            var selectedSource = string.Empty;
+            var pages = new List<string>();
+
+            //Fetch pages runtime
+            foreach(var source in manga.Sources)
+            {
+                try
+                {
+                    var scrapperEnum = (MangaSourceEnumDTO)Enum.Parse(typeof(MangaSourceEnumDTO), source.Source);
+                    var scrapper = GetScrapperByEnum(scrapperEnum);
+                    var scrapperTranslation = (TranslationLanguageEnum)Enum.Parse(typeof(TranslationLanguageEnum), scrapper.GetLanguage());
+                    if (scrapperTranslation != mangaTranslation.Language)
+                        continue;
+
+                    var cachedManga = _cache.TryGetValue(source.Url, out ScrappedManga? mangaInfo);
+                    if (!cachedManga)
+                    {
+                        mangaInfo = await scrapper.GetManga(source.Url);
+                        _cache.Set(source.Url, mangaInfo, DateTimeOffset.Now.AddMinutes(30));
+                    }
+
+                    foreach(var c in mangaInfo.Chapters)
+                    {
+                        var treatedName = c.Name.Split(":").First().Split("-").First().Split(" ").First().Trim();
+                        if (string.IsNullOrEmpty(treatedName) || !double.TryParse(treatedName, NumberStyles.Any, NumberFormatInfo.InvariantInfo, out var number))
+                            continue;
+
+                        if (number == mangaTranslation.MangaChapter.Name)
+                        {
+                            selectedSource = source.Source; 
+                            pages = await scrapper.GetChapterImages(c.Link);
+
+                            return MapMangaTranslation(mangaTranslation, selectedSource, pages);
+                        }
+                    }
+                    
+                }
+                catch { }
+            }
+
+            return null;
         }
         public async Task<PaginatedResponse<MangaInfoDTO>> SearchMangas(SearchMangaQueryDTO query, int page, int? userId = null)
         {
@@ -96,10 +141,41 @@ namespace ShounenGaming.Business.Services.Mangas
             var mangas = await _mangaRepo.GetRecentlyAddedMangas();
             return _mapper.Map<List<MangaInfoDTO>>(mangas);
         }
-        public async Task<List<ChapterReleaseDTO>> GetRecentlyReleasedChapters()
+        public async Task<List<LatestReleaseMangaDTO>> GetRecentlyReleasedChapters()
         {
-            var chapters = await _mangaRepo.GetRecentlyReleasedChapters();
-            return _mapper.Map<List<ChapterReleaseDTO>>(chapters);
+            var mangas = await _mangaRepo.GetRecentlyReleasedChapters();
+            var dto = new List<LatestReleaseMangaDTO>();
+            foreach (var manga in mangas)
+            {
+                var dic = new Dictionary<MangaTranslationEnumDTO, ChapterReleaseDTO>();
+                var orderedList = manga.Chapters.OrderByDescending(c => c.Name).ToList();
+                foreach (var chapter in orderedList)
+                {
+                    foreach(var translation in chapter.Translations)
+                    {
+                        var language = _mapper.Map<MangaTranslationEnumDTO>(translation.Language);
+                        if (!dic.ContainsKey(language))
+                        {
+                            dic.Add(language, new ChapterReleaseDTO
+                            {
+                                Id = chapter.Id,
+                                Name = chapter.Name,
+                                Translation = language,
+                                CreatedAt = translation.CreatedAt
+                            });
+                        }
+                    }
+
+                    if (dic.Count == Enum.GetNames(typeof(MangaTranslationEnumDTO)).Length) break;
+                }
+
+                dto.Add(new LatestReleaseMangaDTO
+                {
+                    Manga = _mapper.Map<MangaInfoDTO>(manga),
+                    ReleasedChapters = dic
+                });
+            }
+            return dto;
         }
         public async Task<List<MangaWriterDTO>> GetMangaWriters()
         {
@@ -447,28 +523,20 @@ namespace ShounenGaming.Business.Services.Mangas
             var manga = await _mangaRepo.GetById(mangaId);
             Log.Information($"Scrapping {manga.Name}");
 
+            // Reset IsWorking Status
+            foreach(var chapter in manga.Chapters)
+            {
+                foreach(var translation in chapter.Translations)
+                {
+                    translation.IsWorking = false;
+                }
+            }
+
             foreach (var source in manga.Sources)
             {
                 await UpdateChaptersFromMangaAndSource(manga, source);
             }
-        }
 
-        public async Task ChangeSourceFromManga(int mangaId, MangaSourceEnumDTO oldSource)
-        {
-            var manga = await _mangaRepo.GetById(mangaId) ?? throw new EntityNotFoundException("Manga");
-
-            //Delete from Sources
-            var oldSources = manga.Sources.ToList();
-            manga = await _mangaRepo.ClearSources(mangaId);
-            manga!.Sources.AddRange(oldSources.Where(os => os.Source != oldSource.ToString()));
-
-            //Remove all chapters with that source
-            foreach(var chapter in manga.Chapters)
-            {
-                var translationsToRemove = chapter.Translations.Where(t => t.Provider == oldSource.ToString());
-                if (translationsToRemove.Any())
-                    await _mangaRepo.ClearTranslations(mangaId, translationsToRemove);
-            }
         }
 
         #region Jobs
@@ -658,50 +726,57 @@ namespace ShounenGaming.Business.Services.Mangas
             {
                 Log.Information($"Source: {source.Source}");
 
+                // Get Scrapper
                 var scrapperEnum = (MangaSourceEnumDTO)Enum.Parse(typeof(MangaSourceEnumDTO), source.Source);
                 var scrapper = GetScrapperByEnum(scrapperEnum);
                 var scrapperTranslation = (TranslationLanguageEnum)Enum.Parse(typeof(TranslationLanguageEnum), scrapper.GetLanguage());
 
-                var mangaInfo = await scrapper.GetManga(source.Url);
-
+                // Get (Cached) Manga Info
+                var cachedManga = _cache.TryGetValue(source.Url, out ScrappedManga? mangaInfo);
+                if (!cachedManga)
+                {
+                    mangaInfo = await scrapper.GetManga(source.Url);
+                    _cache.Set(source.Url, mangaInfo, DateTimeOffset.Now.AddMinutes(30));
+                }
+                
                 mangaInfo.Chapters.Reverse();
 
                 int scrapperFailures = 0;
+
+                // Check chapters
                 foreach (var chapter in mangaInfo.Chapters)
                 {
-                    var nameScrapped = chapter.Name.Split(":").First().Split("-").First().Split(" ").First().Trim();
+                    // Check if its a valid name
+                    var nameScrapped = chapter.Name.Split(":").First().Split("-").First().Split(" ").First().Replace(",",".").Trim();
                     if (string.IsNullOrEmpty(nameScrapped) || !double.TryParse(nameScrapped,NumberStyles.Any, NumberFormatInfo.InvariantInfo, out var number))
                         continue;
 
-
+                    // Get Chapter Translation from db if exists (change all Translations to not work)
                     var dbChapter = manga.Chapters.FirstOrDefault(c => c.Name == number);
-
                     dbChapter ??= new MangaChapter
                     {
                         Name = number,
                     };
-
                     dbChapter.Translations ??= new();
+                    var dbTranslation = dbChapter.Translations.FirstOrDefault(t => t.Language == scrapperTranslation);
 
-                    if (!dbChapter.Translations.Any(t => t.Language == scrapperTranslation))
+                    // If doesn't exist create
+                    if (dbTranslation is null)
                     {
                         try
                         {
-                            var chapterPages = await scrapper.GetChapterImages(chapter.Link);
                             dbChapter.Translations.Add(new MangaTranslation
                             {
                                 ReleasedDate = chapter.ReleasedAt is not null ? DateTime.SpecifyKind(chapter.ReleasedAt.Value, DateTimeKind.Utc) : null,
                                 Language = scrapperTranslation,
-                                Provider = scrapperEnum.ToString(),
-                                Pages = chapterPages.ToList()
+                                IsWorking = true,
                             });
 
                             //TODO: Send to Discord Bot to notify new Chapter Release
                             manga.Chapters.Add(dbChapter);
-                            await _mangaRepo.Update(manga);
                             scrapperFailures = 0;
 
-                            Log.Information($"Added Chapter: {dbChapter.Name}");
+                            Log.Information($"Added Chapter: {dbChapter.Name} for {scrapperTranslation}");
 
                             if (manga.ShouldSaveImages)
                             {
@@ -713,20 +788,28 @@ namespace ShounenGaming.Business.Services.Mangas
                         }
                         catch (Exception ex)
                         {
-                            Log.Error($"Chapter {nameScrapped} failed to save");
-                            scrapperFailures++;
-                            if (scrapperFailures == 5)
+                            Log.Error($"Chapter {nameScrapped} Failed Saving");
+
+                            var sourceFailedTooManyTimesInARow = ++scrapperFailures == 5;
+                            if (sourceFailedTooManyTimesInARow)
                             {
                                 Log.Error($"Something might be wrong for the {source.Source} and {source.Name}");
                                 break;
                             }
                         }
-
                     }
+                    // If exists update to work
                     else
                     {
-                        Log.Debug($"Chapter {nameScrapped} already exists");
+                        dbTranslation.IsWorking = true;
+                        if (chapter.ReleasedAt.HasValue && (dbTranslation.ReleasedDate is null || DateTime.SpecifyKind(chapter.ReleasedAt.Value, DateTimeKind.Utc) < dbTranslation.ReleasedDate))
+                            dbTranslation.ReleasedDate = DateTime.SpecifyKind(chapter.ReleasedAt.Value, DateTimeKind.Utc);
+                       
+                        Log.Debug($"Chapter {nameScrapped} Already in DB");
                     }
+
+
+                    await _mangaRepo.Update(manga);
                 }
             }
             catch (SavingImageException sie)
@@ -738,7 +821,7 @@ namespace ShounenGaming.Business.Services.Mangas
                 Log.Error($"Error Updating {manga.Name}: {ex.Message}");
             }
         }
-        private MangaTranslationDTO MapMangaTranslation(MangaTranslation mangaTranslation)
+        private MangaTranslationDTO MapMangaTranslation(MangaTranslation mangaTranslation, string source, List<string> pages)
         {
             var dto = new MangaTranslationDTO
             {
@@ -747,10 +830,9 @@ namespace ShounenGaming.Business.Services.Mangas
                 ChapterId = mangaTranslation.MangaChapter.Id,
                 ChapterNumber = mangaTranslation.MangaChapter.Name,
                 ReleasedDate = mangaTranslation.ReleasedDate,
-                Source = mangaTranslation.Provider,
-                Pages = mangaTranslation.Pages,
-                PageHeaders = GetScrapperByEnum(Enum.Parse<MangaSourceEnumDTO>(mangaTranslation.Provider))?.GetImageHeaders()
-                //Pages = _imageService.GetFilesFromFolder($"mangas/{mangaTranslation.MangaChapter.Manga.Name.NormalizeStringToDirectory()}/chapters/{mangaTranslation.Language.ToString().ToLower()}/{mangaTranslation.MangaChapter.Name.NormalizeStringToDirectory()}/")
+                Source = source,
+                Pages = pages,
+                PageHeaders = GetScrapperByEnum(Enum.Parse<MangaSourceEnumDTO>(source))?.GetImageHeaders()
             };
             var previousChapter = mangaTranslation.MangaChapter.Manga.Chapters.OrderByDescending(o => o.CreatedAt).SkipWhile(s => s.Id != mangaTranslation.MangaChapter.Id).Skip(1).Take(1).FirstOrDefault();
             dto.PreviousChapterId = previousChapter?.Id;

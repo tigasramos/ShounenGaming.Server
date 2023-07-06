@@ -17,12 +17,12 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
 
         public async Task<ChangedChapterStateAction?> GetFirstChapterUserReadFromManga(int userId, int mangaId)
         {
-            return await dbSet.Where(h => h.UserId == userId && h.Chapter.MangaId == mangaId).OrderByDescending(o => o.CreatedAt).FirstOrDefaultAsync();
+            return await dbSet.Where(h => h.UserId == userId && h.Chapter.MangaId == mangaId).OrderBy(o => o.CreatedAt).FirstOrDefaultAsync();
         }
 
         public async Task<ChangedChapterStateAction?> GetLastChapterUserReadFromManga(int userId, int mangaId)
         {
-            return await dbSet.Where(h => h.UserId == userId && h.Chapter.MangaId == mangaId).OrderBy(o => o.CreatedAt).FirstOrDefaultAsync();
+            return await dbSet.Where(h => h.UserId == userId && h.Chapter.MangaId == mangaId).OrderByDescending(o => o.CreatedAt).FirstOrDefaultAsync();
         }
     }
 }

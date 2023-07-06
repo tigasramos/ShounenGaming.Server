@@ -69,12 +69,11 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
             return await dbSet.OrderByDescending(m => m.CreatedAt).ToListAsync();
         }
 
-        public async Task<List<MangaChapter>> GetRecentlyReleasedChapters()
+        public async Task<List<Manga>> GetRecentlyReleasedChapters()
         {
             var chapters = await dbSet
                 .Where(m => m.Chapters.Any())
-                .Select(m => m.Chapters.OrderByDescending(c => c.Name).First())
-                .OrderByDescending(c => c.CreatedAt)
+                .OrderByDescending(c => c.Chapters.OrderByDescending(c => c.Name).First().CreatedAt)
                 .ToListAsync();
             return chapters;
         }
@@ -87,6 +86,11 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
         public async Task<Manga?> GetByChapter(int chapterId)
         {
             return await dbSet.FirstOrDefaultAsync(m => m.Chapters.Any(c => c.Id == chapterId));
+        }
+
+        public async Task<Manga?> GetByChapters(List<int> chaptersIds)
+        {
+            return await dbSet.SingleOrDefaultAsync(m => m.Chapters.Any(c => chaptersIds.Contains(c.Id)));
         }
 
 

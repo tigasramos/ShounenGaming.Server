@@ -6,9 +6,13 @@ using ShounenGaming.Business.Interfaces.Mangas_Scrappers.Models;
 using ShounenGaming.DTOs.Models.Mangas.Enums;
 using ShounenGaming.Business.Helpers;
 using ShounenGaming.DTOs.Models.Mangas;
+using Microsoft.AspNetCore.Authorization;
+using ShounenGaming.Core.Entities.Base;
+using System.Security.Claims;
 
 namespace ShounenGaming.API.Controllers.Mangas
 {
+    [Authorize]
     [Route("api/mangas")]
     [ApiController]
     public class MangasController : ControllerBase
@@ -64,13 +68,14 @@ namespace ShounenGaming.API.Controllers.Mangas
         /// <summary>
         /// Searches a Manga (by Name or by some tags)
         /// </summary>
-        /// <param name="query"></param>
+        /// <param name="name"></param>
         /// <param name="page"></param>
         /// <returns></returns>
         [HttpGet("search")]
-        public async Task<IActionResult> SearchManga([FromBody]SearchMangaQueryDTO query, [FromQuery] int page = 1)
+        public async Task<IActionResult> SearchManga([FromQuery] int page = 1, [FromQuery] string? name = null)
         {
-            var mangas = await _service.SearchMangas(query, page);
+            var userId = User.FindFirstValue("Id");
+            var mangas = await _service.SearchMangas(new SearchMangaQueryDTO { Name = name }, page, userId != null ? Convert.ToInt32(userId) : null);
             return Ok(mangas);
         }
 

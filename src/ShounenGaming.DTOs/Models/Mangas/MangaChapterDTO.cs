@@ -9,7 +9,7 @@ namespace ShounenGaming.DTOs.Models.Mangas
     public class MangaChapterDTO
     {
         public int Id { get; set; }
-        public string Name { get; set; }
+        public double Name { get; set; }
         public List<MangaTranslationInfoDTO> Translations { get; set; }
     }
 }

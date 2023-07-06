@@ -1,10 +1,14 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ShounenGaming.Business.Interfaces.Mangas;
+using ShounenGaming.Core.Entities.Base;
 using ShounenGaming.DTOs.Models.Mangas.Enums;
+using System.Security.Claims;
 
 namespace ShounenGaming.API.Controllers.Mangas
 {
+    [Authorize]
     [Route("api/mangas")]
     [ApiController]
     public class MangaUsersController : ControllerBase
@@ -43,27 +47,27 @@ namespace ShounenGaming.API.Controllers.Mangas
         }
 
         /// <summary>
-        /// Marks a Chapter as read for the current User
+        /// Marks the Chapters as read for the current User
         /// </summary>
-        /// <param name="chapterId"></param>
+        /// <param name="chaptersIds"></param>
         /// <returns></returns>
-        [HttpPut("read/{chapterId}")]
-        public async Task<IActionResult> MarkChapterRead(int chapterId)
+        [HttpPut("read")]
+        public async Task<IActionResult> MarkChapterRead([FromQuery] List<int> chaptersIds)
         {
-            //TODO: Get User Id from JWT Token
-            return Ok(await _mangaUsersService.MarkChapterRead(1, chapterId));
+            var userId = User.FindFirstValue("Id");
+            return Ok(await _mangaUsersService.MarkChaptersRead(Convert.ToInt32(userId), chaptersIds));
         }
 
         /// <summary>
-        /// Unmarks a Chapter as read for the current User
+        /// Unmarks the Chapters as read for the current User
         /// </summary>
-        /// <param name="chapterId"></param>
+        /// <param name="chaptersIds"></param>
         /// <returns></returns>
-        [HttpPut("unread/{chapterId}")]
-        public async Task<IActionResult> UnmarkChapterRead(int chapterId)
+        [HttpPut("unread")]
+        public async Task<IActionResult> UnmarkChapterRead([FromQuery]List<int> chaptersIds)
         {
-            //TODO: Get User Id from JWT Token
-            return Ok(await _mangaUsersService.UnmarkChapterRead(1, chapterId));
+            var userId = User.FindFirstValue("Id");
+            return Ok(await _mangaUsersService.UnmarkChaptersRead(Convert.ToInt32(userId), chaptersIds));
         }
 
         /// <summary>
@@ -75,8 +79,8 @@ namespace ShounenGaming.API.Controllers.Mangas
         [HttpPut("{mangaId}/status")]
         public async Task<IActionResult> UpdateMangaStatusByUser(int mangaId, [FromQuery]MangaUserStatusEnumDTO? status = null)
         {
-            //TODO: Get User Id from JWT Token
-            var userData = await _mangaUsersService.UpdateMangaStatusByUser(1, mangaId, status);
+            var userId = User.FindFirstValue("Id");
+            var userData = await _mangaUsersService.UpdateMangaStatusByUser(Convert.ToInt32(userId), mangaId, status);
             if (userData != null) 
                 return Ok(userData);
 

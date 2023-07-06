@@ -51,11 +51,10 @@ namespace ShounenGaming.Business.Services.Mangas
             return dtoMangas;
         }        
 
-        public async Task<MangaUserDataDTO> MarkChapterRead(int userId, int chapterId)
+        public async Task<MangaUserDataDTO> MarkChaptersRead(int userId, List<int> chaptersIds)
         {
-            var manga = await _mangaRepository.GetByChapter(chapterId) ?? throw new Exception("Chapter not Found");
+            var manga = await _mangaRepository.GetByChapters(chaptersIds) ?? throw new Exception("Manga not Found");
             var mangaUserInfo = await _mangaUserDataRepo.GetByUserAndManga(userId, manga.Id);
-            var chapter = manga.Chapters.First(c => c.Id == chapterId);
 
             //First Chapter Seen
             if (mangaUserInfo is null)
@@ -78,43 +77,51 @@ namespace ShounenGaming.Business.Services.Mangas
                 });
             }
 
-            //Chapter Not Seen Yet
-            if (!mangaUserInfo.ChaptersRead.Any(c => c.Id == chapterId))
+            foreach (var chapterId in chaptersIds)
             {
-                mangaUserInfo.ChaptersRead.Add(chapter);
-                var userData = await _mangaUserDataRepo.Update(mangaUserInfo);
-                await _mangaChangedChapterStateActionRepo.Create(new Core.Entities.Mangas.ChangedChapterStateAction
+                var chapter = manga.Chapters.First(c => c.Id == chapterId);
+
+                //Chapter Not Seen Yet
+                if (!mangaUserInfo.ChaptersRead.Any(c => c.Id == chapterId))
                 {
-                    ChapterId = chapterId,
-                    UserId = userId,
-                    Read = true,
-                });
-                return await MapMangaUserData(userData);
+                    mangaUserInfo.ChaptersRead.Add(chapter);
+                    mangaUserInfo = await _mangaUserDataRepo.Update(mangaUserInfo);
+                    await _mangaChangedChapterStateActionRepo.Create(new Core.Entities.Mangas.ChangedChapterStateAction
+                    {
+                        ChapterId = chapterId,
+                        UserId = userId,
+                        Read = true,
+                    });
+                }
+
             }
 
             return await MapMangaUserData(mangaUserInfo);
         }
 
-        public async Task<MangaUserDataDTO?> UnmarkChapterRead(int userId, int chapterId)
+        public async Task<MangaUserDataDTO?> UnmarkChaptersRead(int userId, List<int> chaptersIds)
         {
-            var manga = await _mangaRepository.GetByChapter(chapterId) ?? throw new Exception("Chapter not Found");
+            var manga = await _mangaRepository.GetByChapters(chaptersIds) ?? throw new Exception("Manga not Found");
             var mangaUserInfo = await _mangaUserDataRepo.GetByUserAndManga(userId, manga.Id);
-            var chapter = manga.Chapters.First(c => c.Id == chapterId);
-
             if (mangaUserInfo is null) return null;
 
-            if (mangaUserInfo.ChaptersRead.Any(c => c.Id == chapterId))
+            foreach (var chapterId in chaptersIds)
             {
-                mangaUserInfo.ChaptersRead.Remove(chapter);
-                var userData = await _mangaUserDataRepo.Update(mangaUserInfo); 
-                await _mangaChangedChapterStateActionRepo.Create(new Core.Entities.Mangas.ChangedChapterStateAction
+                var chapter = manga.Chapters.First(c => c.Id == chapterId);
+
+                if (mangaUserInfo.ChaptersRead.Any(c => c.Id == chapterId))
                 {
-                    ChapterId = chapterId,
-                    UserId = userId,
-                    Read = false,
-                });
-                return await MapMangaUserData(userData);
+                    mangaUserInfo.ChaptersRead.Remove(chapter);
+                    mangaUserInfo = await _mangaUserDataRepo.Update(mangaUserInfo);
+                    await _mangaChangedChapterStateActionRepo.Create(new Core.Entities.Mangas.ChangedChapterStateAction
+                    {
+                        ChapterId = chapterId,
+                        UserId = userId,
+                        Read = false,
+                    });
+                }
             }
+            
             return await MapMangaUserData(mangaUserInfo);
         }
 
