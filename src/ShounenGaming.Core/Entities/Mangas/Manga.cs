@@ -27,7 +27,6 @@ namespace ShounenGaming.Core.Entities.Mangas
         public virtual List<MangaUserData> UsersData { get; set; }
 
         //Configurations
-        public bool ShouldSaveImages { get; set; }
         public bool IsFeatured { get; set; }
 
         public long? MangaMyAnimeListID { get; set; }

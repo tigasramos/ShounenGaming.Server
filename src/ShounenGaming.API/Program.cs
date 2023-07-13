@@ -2,7 +2,7 @@ using Serilog;
 using ShounenGaming.Common;
 using System.Reflection;
 using Microsoft.Extensions.FileProviders;
-
+using System.Net;
 
 try
 {
@@ -15,15 +15,19 @@ try
         .WriteTo.File($"logs/log-.txt", rollingInterval: RollingInterval.Day)
         .CreateLogger();
 
-
+    // To Work without HTTPS
+    ServicePointManager.ServerCertificateValidationCallback += (sender, certificate, chain, errors) => true;
+    
     Log.Information("Starting Shounen Gaming Server");
 
     //Services
     var builder = WebApplication.CreateBuilder(args);
     builder.Host.UseSerilog();
-    builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json",
-        optional: false,
-        reloadOnChange: true);
+    builder.Configuration
+        .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json",
+            optional: false,
+            reloadOnChange: true)
+        .AddEnvironmentVariables();
 
     builder.Services.ConfigureServices(builder.Configuration, builder.Environment, Assembly.GetExecutingAssembly().GetName().Name!);
 

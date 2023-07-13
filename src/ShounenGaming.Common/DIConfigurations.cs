@@ -78,7 +78,7 @@ namespace ShounenGaming.Common
 
                 // Adds All Mangas to fetch new chapters hourly
                 scheduler.OnWorker("MangasChapters");
-                scheduler.Schedule<FetchAllMangasChaptersJob>().Hourly().RunOnceAtStart();
+                scheduler.Schedule<FetchAllMangasChaptersJob>().Hourly();
 
 
             }).OnError((ex) => Log.Error($"Running some schedule: {ex.Message}")); ;
@@ -88,12 +88,12 @@ namespace ShounenGaming.Common
                                  .AllowAnyMethod()
                                  .AllowAnyHeader());
 
+            app.MapHealthChecks("/healthz");
             app.UseSwagger();
             app.UseSwaggerUI();
 
             app.UseMiddleware<ExceptionMiddleware>();
 
-            app.MapHealthChecks("/healthz");
 
             //TODO: Remove when deploying
             //app.UseHttpsRedirection();
@@ -183,6 +183,7 @@ namespace ShounenGaming.Common
                     ValidateLifetime = true,
                     ValidateIssuer = false,
                     ValidateAudience = false,
+                    ClockSkew = TimeSpan.Zero
                 };
 
                 x.Events = new JwtBearerEvents
@@ -211,7 +212,7 @@ namespace ShounenGaming.Common
 
         private static void AddServices(this IServiceCollection services, IWebHostEnvironment env, IConfiguration configuration)
         {
-            var settings = configuration.GetRequiredSection("settings").Get<AppSettings>()!;
+            var settings = configuration.GetRequiredSection("Settings").Get<AppSettings>()!;
             //Others
             services.AddMemoryCache();
             services.AddSingleton(settings);
@@ -254,11 +255,12 @@ namespace ShounenGaming.Common
         }
         private static void AddSQLDatabase(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env)
         {
+            var connectionString = configuration["ConnectionStrings:ShounenGamingDB"];
+            
             services.AddDbContext<DbContext, ShounenGamingContext>(opt =>
             {
                 opt.UseLazyLoadingProxies();
-                //opt.UseInMemoryDatabase("ShounenGamingDB");
-                opt.UseNpgsql("User ID=postgres;Password=postgres;Host=localhost;Port=5432;Database=ShounenGamingDB;", x => x.MigrationsAssembly(Assembly.GetAssembly(typeof(ShounenGamingContext)).ToString()));
+                opt.UseNpgsql(connectionString, x => x.MigrationsAssembly(Assembly.GetAssembly(typeof(ShounenGamingContext)).ToString()));
                 opt.ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning));
             });
         }

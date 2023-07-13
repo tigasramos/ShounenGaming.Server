@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 using ShounenGaming.DataAccess.Persistence;
 using System;
 using System.Collections.Generic;
@@ -26,7 +27,7 @@ namespace ShounenGaming.Common
                 }
                 catch (Exception ex)
                 {
-                    //Log errors or do anything you think it's needed
+                    Log.Fatal(ex.Message);
                     throw;
                 }
             }

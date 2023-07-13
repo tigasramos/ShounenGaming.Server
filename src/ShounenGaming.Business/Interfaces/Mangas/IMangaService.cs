@@ -27,6 +27,11 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// <returns></returns>
         Task<PaginatedResponse<MangaInfoDTO>> SearchMangas(SearchMangaQueryDTO query, int page, int? userId = null);
 
+        /// <summary>
+        /// Gets the Mangas on Planned with no Sources
+        /// </summary>
+        /// <returns></returns>
+        Task<List<MangaInfoDTO>> GetWaitingMangas();
 
         /// <summary>
         /// Gets the most Popular Mangas

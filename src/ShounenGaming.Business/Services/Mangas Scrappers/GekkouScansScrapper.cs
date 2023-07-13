@@ -1,4 +1,5 @@
 ﻿using HtmlAgilityPack;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Newtonsoft.Json;
 using Serilog;
 using ShounenGaming.Business.Interfaces.Mangas_Scrappers.Models;
@@ -144,6 +145,9 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
 
             List<string> imagesUrls = new ();
             var images = htmlDoc.DocumentNode.SelectNodes("//div[@class='page-break ']/img");
+            if (images == null)
+                images = htmlDoc.DocumentNode.SelectNodes("//div[@class='page-break no-gaps']/img"); 
+
             foreach (var image in images)
             {
                 imagesUrls.Add(image.GetAttributeValue("data-src", "").ToString().Trim());

@@ -413,3 +413,6 @@ files/
 
 # End of https://www.toptal.com/developers/gitignore/api/csharp,dotnetcore
 /src/ShounenGaming.API/mangas
+Build&Push.bat
+appsettings.*.json
+/src/ShounenGaming.API/appsettings.Development.json

@@ -80,6 +80,18 @@ namespace ShounenGaming.API.Controllers.Mangas
         }
 
         /// <summary>
+        /// Gets Mangas waiting for Sources
+        /// </summary>
+        /// <returns></returns>
+        [Authorize(policy: "Mod")]
+        [HttpGet("waiting")]
+        public async Task<IActionResult> GetWaitingMangas()
+        {
+            var mangas = await _service.GetWaitingMangas();
+            return Ok(mangas);
+        }
+
+        /// <summary>
         /// Gets the most Popular Mangas at the current time
         /// </summary>
         /// <returns></returns>
