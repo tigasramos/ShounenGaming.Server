@@ -7,11 +7,7 @@ on:
       - master
     #types:
      # - closed
- 
-env:
-  DOCKER_IMAGE_NAME: shounen-gaming-server
-  DOCKER_TAG: dev
-
+     
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -53,7 +49,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
-          tags: tramos/$DOCKER_IMAGE_NAME:$DOCKER_TAG
+          tags: tramos/shounen-gaming-server:dev
 
   deploy:
     needs: publish
