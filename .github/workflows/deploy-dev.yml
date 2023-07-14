@@ -6,6 +6,11 @@ on:
       - master
   workflow_dispatch:
 
+env:
+  DOCKER_REGISTRY: https://docker-registry.shounengaming.xyz
+  DOCKER_IMAGE_NAME: shounen-gaming-server
+  DOCKER_TAG: dev
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -33,12 +38,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
      
-      - name: Publish Docker image and push
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          push: true
-          tags: https://docker-registry.shounengaming.xyz/shounen-gaming-server:dev
+      - name: Install Docker
+        run: |
+          sudo apt-get update
+          sudo apt-get install docker.io -y
+          
+      - name: Publish Docker image
+        run: docker build -t $DOCKER_REGISTRY/$DOCKER_IMAGE_NAME:$DOCKER_TAG .
+        
+      - name: Push Docker image
+        run: docker push $DOCKER_REGISTRY/$DOCKER_IMAGE_NAME:$DOCKER_TAG
 
   deploy:
     needs: publish
