@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,25 +13,6 @@ namespace ShounenGaming.DataAccess.Persistence.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
-                name: "Bots",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    DiscordId = table.Column<string>(type: "text", nullable: false),
-                    PasswordHashed = table.Column<string>(type: "text", nullable: false),
-                    Salt = table.Column<string>(type: "text", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    RefreshToken = table.Column<string>(type: "text", nullable: true),
-                    RefreshTokenExpiryDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Bots", x => x.Id);
-                });
-
             migrationBuilder.CreateTable(
                 name: "MangaTags",
                 columns: table => new
@@ -60,46 +42,22 @@ namespace ShounenGaming.DataAccess.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "TierlistCategories",
+                name: "ServerMembers",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    ImageId = table.Column<int>(type: "integer", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: false),
+                    DiscordId = table.Column<string>(type: "text", nullable: false),
+                    DisplayName = table.Column<string>(type: "text", nullable: false),
+                    Username = table.Column<string>(type: "text", nullable: false),
+                    ImageUrl = table.Column<string>(type: "text", nullable: false),
+                    Role = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TierlistCategories", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Users",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    FirstName = table.Column<string>(type: "text", nullable: false),
-                    LastName = table.Column<string>(type: "text", nullable: false),
-                    DiscordId = table.Column<string>(type: "text", nullable: false),
-                    DiscordVerified = table.Column<bool>(type: "boolean", nullable: false),
-                    DiscordImage = table.Column<string>(type: "text", nullable: true),
-                    Username = table.Column<string>(type: "text", nullable: false),
-                    Email = table.Column<string>(type: "text", nullable: false),
-                    EmailVerified = table.Column<bool>(type: "boolean", nullable: false),
-                    Birthday = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Role = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    RefreshToken = table.Column<string>(type: "text", nullable: true),
-                    RefreshTokenExpiryDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Users", x => x.Id);
+                    table.PrimaryKey("PK_ServerMembers", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -111,12 +69,17 @@ namespace ShounenGaming.DataAccess.Persistence.Migrations
                     Name = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
                     IsReleasing = table.Column<bool>(type: "boolean", nullable: false),
+                    ImagesUrls = table.Column<List<string>>(type: "text[]", nullable: false),
                     WriterId = table.Column<int>(type: "integer", nullable: false),
                     Type = table.Column<int>(type: "integer", nullable: false),
-                    MangaMyAnimeListID = table.Column<long>(type: "bigint", nullable: true),
-                    MangaAniListID = table.Column<long>(type: "bigint", nullable: true),
                     StartedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     FinishedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ShouldSaveImages = table.Column<bool>(type: "boolean", nullable: false),
+                    IsFeatured = table.Column<bool>(type: "boolean", nullable: false),
+                    MangaMyAnimeListID = table.Column<long>(type: "bigint", nullable: true),
+                    MALPopularity = table.Column<int>(type: "integer", nullable: true),
+                    MangaAniListID = table.Column<long>(type: "bigint", nullable: true),
+                    ALPopularity = table.Column<int>(type: "integer", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
@@ -132,34 +95,30 @@ namespace ShounenGaming.DataAccess.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Tierlists",
+                name: "Users",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    ImageId = table.Column<int>(type: "integer", nullable: false),
-                    ImageName = table.Column<string>(type: "text", nullable: false),
-                    UserId = table.Column<int>(type: "integer", nullable: false),
-                    CategoryId = table.Column<int>(type: "integer", nullable: false),
+                    FirstName = table.Column<string>(type: "text", nullable: false),
+                    LastName = table.Column<string>(type: "text", nullable: false),
+                    DiscordVerified = table.Column<bool>(type: "boolean", nullable: false),
+                    Username = table.Column<string>(type: "text", nullable: false),
+                    Birthday = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ServerMemberId = table.Column<int>(type: "integer", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    RefreshToken = table.Column<string>(type: "text", nullable: true),
+                    RefreshTokenExpiryDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Tierlists", x => x.Id);
+                    table.PrimaryKey("PK_Users", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Tierlists_TierlistCategories_CategoryId",
-                        column: x => x.CategoryId,
-                        principalTable: "TierlistCategories",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Tierlists_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        name: "FK_Users_ServerMembers_ServerMemberId",
+                        column: x => x.ServerMemberId,
+                        principalTable: "ServerMembers",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -189,7 +148,7 @@ namespace ShounenGaming.DataAccess.Persistence.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<double>(type: "double precision", nullable: false),
                     MangaId = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
@@ -235,9 +194,10 @@ namespace ShounenGaming.DataAccess.Persistence.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Provider = table.Column<string>(type: "text", nullable: false),
-                    URL = table.Column<string>(type: "text", nullable: false),
-                    BrokenLink = table.Column<bool>(type: "boolean", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Url = table.Column<string>(type: "text", nullable: false),
+                    ImageURL = table.Column<string>(type: "text", nullable: true),
+                    Source = table.Column<string>(type: "text", nullable: false),
                     MangaId = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
@@ -254,23 +214,79 @@ namespace ShounenGaming.DataAccess.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "MangaUsersActions",
+                name: "MangaSynonym",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Action = table.Column<int>(type: "integer", nullable: false),
-                    MangaId = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    MangaId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_MangaUsersActions", x => x.Id);
+                    table.PrimaryKey("PK_MangaSynonym", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_MangaUsersActions_Mangas_MangaId",
+                        name: "FK_MangaSynonym_Mangas_MangaId",
                         column: x => x.MangaId,
                         principalTable: "Mangas",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AddedMangaHistory",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    MangaId = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UserId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AddedMangaHistory", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AddedMangaHistory_Mangas_MangaId",
+                        column: x => x.MangaId,
+                        principalTable: "Mangas",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AddedMangaHistory_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MangaStatusHistory",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    PreviousState = table.Column<int>(type: "integer", nullable: true),
+                    NewState = table.Column<int>(type: "integer", nullable: true),
+                    MangaId = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UserId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MangaStatusHistory", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MangaStatusHistory_Mangas_MangaId",
+                        column: x => x.MangaId,
+                        principalTable: "Mangas",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_MangaStatusHistory_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -284,6 +300,7 @@ namespace ShounenGaming.DataAccess.Persistence.Migrations
                     UserId = table.Column<int>(type: "integer", nullable: false),
                     MangaId = table.Column<int>(type: "integer", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
+                    IsPrivate = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
@@ -305,49 +322,28 @@ namespace ShounenGaming.DataAccess.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Tiers",
+                name: "MangaChaptersHistory",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Order = table.Column<int>(type: "integer", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    ColorHex = table.Column<string>(type: "text", nullable: false),
-                    TierlistId = table.Column<int>(type: "integer", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Tiers", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Tiers_Tierlists_TierlistId",
-                        column: x => x.TierlistId,
-                        principalTable: "Tierlists",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "UserTierlists",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    TierlistId = table.Column<int>(type: "integer", nullable: false),
-                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    ChapterId = table.Column<int>(type: "integer", nullable: false),
+                    Read = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UserId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UserTierlists", x => x.Id);
+                    table.PrimaryKey("PK_MangaChaptersHistory", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_UserTierlists_Tierlists_TierlistId",
-                        column: x => x.TierlistId,
-                        principalTable: "Tierlists",
+                        name: "FK_MangaChaptersHistory_MangaChapters_ChapterId",
+                        column: x => x.ChapterId,
+                        principalTable: "MangaChapters",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_UserTierlists_Users_UserId",
+                        name: "FK_MangaChaptersHistory_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -362,7 +358,9 @@ namespace ShounenGaming.DataAccess.Persistence.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Language = table.Column<int>(type: "integer", nullable: false),
                     ReleasedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    MangaChapterId = table.Column<int>(type: "integer", nullable: true),
+                    Provider = table.Column<string>(type: "text", nullable: false),
+                    Pages = table.Column<List<string>>(type: "text[]", nullable: false),
+                    MangaChapterId = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
@@ -373,7 +371,8 @@ namespace ShounenGaming.DataAccess.Persistence.Migrations
                         name: "FK_MangaTranslations_MangaChapters_MangaChapterId",
                         column: x => x.MangaChapterId,
                         principalTable: "MangaChapters",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -400,59 +399,15 @@ namespace ShounenGaming.DataAccess.Persistence.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "TierChoices",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    TierId = table.Column<int>(type: "integer", nullable: false),
-                    UserTierlistId = table.Column<int>(type: "integer", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_TierChoices", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_TierChoices_Tiers_TierId",
-                        column: x => x.TierId,
-                        principalTable: "Tiers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_TierChoices_UserTierlists_UserTierlistId",
-                        column: x => x.UserTierlistId,
-                        principalTable: "UserTierlists",
-                        principalColumn: "Id");
-                });
+            migrationBuilder.CreateIndex(
+                name: "IX_AddedMangaHistory_MangaId",
+                table: "AddedMangaHistory",
+                column: "MangaId");
 
-            migrationBuilder.CreateTable(
-                name: "TierlistItems",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    TierChoiceId = table.Column<int>(type: "integer", nullable: true),
-                    TierlistId = table.Column<int>(type: "integer", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_TierlistItems", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_TierlistItems_TierChoices_TierChoiceId",
-                        column: x => x.TierChoiceId,
-                        principalTable: "TierChoices",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_TierlistItems_Tierlists_TierlistId",
-                        column: x => x.TierlistId,
-                        principalTable: "Tierlists",
-                        principalColumn: "Id");
-                });
+            migrationBuilder.CreateIndex(
+                name: "IX_AddedMangaHistory_UserId",
+                table: "AddedMangaHistory",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MangaAlternativeNames_MangaId",
@@ -468,6 +423,16 @@ namespace ShounenGaming.DataAccess.Persistence.Migrations
                 name: "IX_MangaChapters_MangaId",
                 table: "MangaChapters",
                 column: "MangaId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MangaChaptersHistory_ChapterId",
+                table: "MangaChaptersHistory",
+                column: "ChapterId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MangaChaptersHistory_UserId",
+                table: "MangaChaptersHistory",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MangaMangaTag_TagsId",
@@ -497,14 +462,24 @@ namespace ShounenGaming.DataAccess.Persistence.Migrations
                 column: "MangaId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_MangaStatusHistory_MangaId",
+                table: "MangaStatusHistory",
+                column: "MangaId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MangaStatusHistory_UserId",
+                table: "MangaStatusHistory",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MangaSynonym_MangaId",
+                table: "MangaSynonym",
+                column: "MangaId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_MangaTranslations_MangaChapterId",
                 table: "MangaTranslations",
                 column: "MangaChapterId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_MangaUsersActions_MangaId",
-                table: "MangaUsersActions",
-                column: "MangaId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MangaUsersData_MangaId",
@@ -517,50 +492,21 @@ namespace ShounenGaming.DataAccess.Persistence.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TierChoices_TierId",
-                table: "TierChoices",
-                column: "TierId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_TierChoices_UserTierlistId",
-                table: "TierChoices",
-                column: "UserTierlistId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_TierlistItems_TierChoiceId",
-                table: "TierlistItems",
-                column: "TierChoiceId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_TierlistItems_TierlistId",
-                table: "TierlistItems",
-                column: "TierlistId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Tierlists_CategoryId",
-                table: "Tierlists",
-                column: "CategoryId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Tierlists_UserId",
-                table: "Tierlists",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Tiers_TierlistId",
-                table: "Tiers",
-                column: "TierlistId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Users_DiscordId",
-                table: "Users",
+                name: "IX_ServerMembers_DiscordId",
+                table: "ServerMembers",
                 column: "DiscordId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Users_Email",
+                name: "IX_ServerMembers_Username",
+                table: "ServerMembers",
+                column: "Username",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_ServerMemberId",
                 table: "Users",
-                column: "Email",
+                column: "ServerMemberId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -568,23 +514,13 @@ namespace ShounenGaming.DataAccess.Persistence.Migrations
                 table: "Users",
                 column: "Username",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_UserTierlists_TierlistId",
-                table: "UserTierlists",
-                column: "TierlistId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_UserTierlists_UserId",
-                table: "UserTierlists",
-                column: "UserId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Bots");
+                name: "AddedMangaHistory");
 
             migrationBuilder.DropTable(
                 name: "MangaAlternativeNames");
@@ -593,19 +529,22 @@ namespace ShounenGaming.DataAccess.Persistence.Migrations
                 name: "MangaChapterMangaUserData");
 
             migrationBuilder.DropTable(
+                name: "MangaChaptersHistory");
+
+            migrationBuilder.DropTable(
                 name: "MangaMangaTag");
 
             migrationBuilder.DropTable(
                 name: "MangaSources");
 
             migrationBuilder.DropTable(
+                name: "MangaStatusHistory");
+
+            migrationBuilder.DropTable(
+                name: "MangaSynonym");
+
+            migrationBuilder.DropTable(
                 name: "MangaTranslations");
-
-            migrationBuilder.DropTable(
-                name: "MangaUsersActions");
-
-            migrationBuilder.DropTable(
-                name: "TierlistItems");
 
             migrationBuilder.DropTable(
                 name: "MangaUsersData");
@@ -617,28 +556,16 @@ namespace ShounenGaming.DataAccess.Persistence.Migrations
                 name: "MangaChapters");
 
             migrationBuilder.DropTable(
-                name: "TierChoices");
+                name: "Users");
 
             migrationBuilder.DropTable(
                 name: "Mangas");
 
             migrationBuilder.DropTable(
-                name: "Tiers");
-
-            migrationBuilder.DropTable(
-                name: "UserTierlists");
+                name: "ServerMembers");
 
             migrationBuilder.DropTable(
                 name: "MangaWriters");
-
-            migrationBuilder.DropTable(
-                name: "Tierlists");
-
-            migrationBuilder.DropTable(
-                name: "TierlistCategories");
-
-            migrationBuilder.DropTable(
-                name: "Users");
         }
     }
 }

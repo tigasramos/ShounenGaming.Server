@@ -25,7 +25,7 @@ try
     builder.Host.UseSerilog();
     builder.Configuration
         .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json",
-            optional: false,
+            optional: true,
             reloadOnChange: true)
         .AddEnvironmentVariables();
 

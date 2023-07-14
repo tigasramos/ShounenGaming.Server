@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ShounenGaming.DataAccess.Persistence;
@@ -12,9 +13,11 @@ using ShounenGaming.DataAccess.Persistence;
 namespace ShounenGaming.DataAccess.Persistence.Migrations
 {
     [DbContext(typeof(ShounenGamingContext))]
-    partial class ShounenGamingContextModelSnapshot : ModelSnapshot
+    [Migration("20230704105423_RemovingPagesFromTranslation")]
+    partial class RemovingPagesFromTranslation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -298,6 +301,9 @@ namespace ShounenGaming.DataAccess.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<bool>("ShouldSaveImages")
+                        .HasColumnType("boolean");
+
                     b.Property<DateTime?>("StartedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -464,9 +470,6 @@ namespace ShounenGaming.DataAccess.Persistence.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("Downloaded")
-                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsWorking")
                         .HasColumnType("boolean");
