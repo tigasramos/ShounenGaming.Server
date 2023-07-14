@@ -6,6 +6,9 @@ on:
       - master
   workflow_dispatch:
 
+env:
+  WORKFLOW_VARIABLE: WORKFLOW
+
 jobs:
   build:
     runs-on: ubuntu-latest
