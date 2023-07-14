@@ -49,6 +49,7 @@ namespace ShounenGaming.Common
                     break;
                 default:
                     message = "Internal Server Error from the custom middleware.";
+                    message = exception.Message + "\n" + exception.StackTrace;
                     context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
                     break;
             }
