@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  DOCKER_REGISTRY: https://docker-registry.shounengaming.xyz
+  DOCKER_REGISTRY: docker-registry.shounengaming.xyz
   DOCKER_IMAGE_NAME: shounen-gaming-server
   DOCKER_TAG: dev
 
