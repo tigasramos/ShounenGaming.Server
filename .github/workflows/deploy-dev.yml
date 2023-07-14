@@ -6,9 +6,6 @@ on:
       - master
   workflow_dispatch:
 
-env:
-  WORKFLOW_VARIABLE: WORKFLOW
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -31,25 +28,17 @@ jobs:
   publish:
     needs: build
     runs-on: ubuntu-latest
-    env:
-      JOB_VARIABLE: JOB
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        
-      - name: Echo
-        env:
-          STEP_VARIABLE: STEP
-        run: |
-          echo "Hello World"
-          echo "This is the $DOCKER_IMAGES_SERVER environment variable"
-
+     
       - name: Publish Docker image and push
         uses: docker/build-push-action@v2
         with:
           context: .
           push: true
-          tags: ${{ env.DOCKER_IMAGES_SERVER }}/shounen-gaming-server:dev
+          tags: https://docker-registry.shounengaming.xyz/shounen-gaming-server:dev
 
   deploy:
     needs: publish
@@ -57,9 +46,9 @@ jobs:
 
     steps:
       - name: Redeploy Stack
-        uses:  wirgen/portainer-stack-redeploy-action@v1.1
+        uses: wirgen/portainer-stack-redeploy-action@v1.1
         with:
-          portainerUrl: ${{ env.PORTAINER_URL }}
+          portainerUrl: https://portainer.shounengaming.xyz
           accessToken: ${{ secrets.PORTAINER_TOKEN }}
           stackId: 236
           endpointId: 3
