@@ -31,10 +31,18 @@ jobs:
   publish:
     needs: build
     runs-on: ubuntu-latest
-
+    env:
+      JOB_VARIABLE: JOB
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        
+      - name: Echo
+        env:
+          STEP_VARIABLE: STEP
+        run: |
+          echo "Hello World"
+          echo "This is the $DOCKER_IMAGES_SERVER environment variable"
 
       - name: Publish Docker image and push
         uses: docker/build-push-action@v2
