@@ -1,13 +1,8 @@
-name: Deploy to Dev
+name: Deploy to Prod
 
 on:
   workflow_dispatch:
-  pull_request:
-    branches:
-      - master
-    #types:
-     # - closed
-     
+ 
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -49,7 +44,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
-          tags: ghcr.io/tigasramos/shounen-gaming-server:dev
+          tags: ghcr.io/tigasramos/shounen-gaming-server:prod
 
   deploy:
     needs: publish
@@ -61,5 +56,5 @@ jobs:
         with:
           portainerUrl: https://portainer.shounengaming.xyz
           accessToken: ${{ secrets.PORTAINER_TOKEN }}
-          stackId: 241
+          stackId: 236 # Update this
           endpointId: 2
