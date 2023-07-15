@@ -52,7 +52,7 @@ namespace ShounenGaming.API.Controllers.Mangas
         /// <param name="chaptersIds"></param>
         /// <returns></returns>
         [HttpPut("read")]
-        public async Task<IActionResult> MarkChapterRead([FromQuery] List<int> chaptersIds)
+        public async Task<IActionResult> MarkChapterRead([FromBody] List<int> chaptersIds)
         {
             var userId = User.FindFirstValue("Id");
             return Ok(await _mangaUsersService.MarkChaptersRead(Convert.ToInt32(userId), chaptersIds));
@@ -64,7 +64,7 @@ namespace ShounenGaming.API.Controllers.Mangas
         /// <param name="chaptersIds"></param>
         /// <returns></returns>
         [HttpPut("unread")]
-        public async Task<IActionResult> UnmarkChapterRead([FromQuery]List<int> chaptersIds)
+        public async Task<IActionResult> UnmarkChapterRead([FromBody] List<int> chaptersIds)
         {
             var userId = User.FindFirstValue("Id");
             return Ok(await _mangaUsersService.UnmarkChaptersRead(Convert.ToInt32(userId), chaptersIds));

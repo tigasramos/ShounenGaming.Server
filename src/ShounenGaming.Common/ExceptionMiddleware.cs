@@ -49,7 +49,6 @@ namespace ShounenGaming.Common
                     break;
                 default:
                     message = "Internal Server Error from the custom middleware.";
-                    message = exception.Message + "\n" + exception.StackTrace;
                     context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
                     break;
             }
@@ -62,7 +61,7 @@ namespace ShounenGaming.Common
 
             //TODO: Is this Log needed?
             var code = context.Response.StatusCode;
-            _ = Task.Delay(100).ContinueWith(_ => { Log.Error($"{code} : {message}"); });
+            _ = Task.Delay(100).ContinueWith(_ => { Log.Error($"{code} : {exception.Message + "\n" + exception.StackTrace}"); });
 
         }
 
