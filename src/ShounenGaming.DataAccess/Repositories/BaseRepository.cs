@@ -23,6 +23,12 @@ namespace ShounenGaming.DataAccess.Repositories
             return addedEntity;
         }
 
+        public async Task CreateBulk(IList<TEntity> entities)
+        {   
+            await dbSet.AddRangeAsync(entities);
+            await context.SaveChangesAsync();
+        }
+
         public async Task<bool> Delete(int id)
         {
             var entityToRemove = await dbSet.FirstOrDefaultAsync(x => x.Id == id);

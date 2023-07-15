@@ -77,7 +77,8 @@ namespace ShounenGaming.Business.Services.Mangas
                 });
             }
 
-            foreach (var chapterId in chaptersIds)
+            var actions = new List<Core.Entities.Mangas.ChangedChapterStateAction>();
+            foreach (var chapterId in chaptersIds.Distinct())
             {
                 var chapter = manga.Chapters.First(c => c.Id == chapterId);
 
@@ -85,8 +86,7 @@ namespace ShounenGaming.Business.Services.Mangas
                 if (!mangaUserInfo.ChaptersRead.Any(c => c.Id == chapterId))
                 {
                     mangaUserInfo.ChaptersRead.Add(chapter);
-                    mangaUserInfo = await _mangaUserDataRepo.Update(mangaUserInfo);
-                    await _mangaChangedChapterStateActionRepo.Create(new Core.Entities.Mangas.ChangedChapterStateAction
+                    actions.Add(new Core.Entities.Mangas.ChangedChapterStateAction
                     {
                         ChapterId = chapterId,
                         UserId = userId,
@@ -95,6 +95,9 @@ namespace ShounenGaming.Business.Services.Mangas
                 }
 
             }
+
+            mangaUserInfo = await _mangaUserDataRepo.Update(mangaUserInfo);
+            await _mangaChangedChapterStateActionRepo.CreateBulk(actions);
 
             return await MapMangaUserData(mangaUserInfo);
         }
@@ -105,6 +108,7 @@ namespace ShounenGaming.Business.Services.Mangas
             var mangaUserInfo = await _mangaUserDataRepo.GetByUserAndManga(userId, manga.Id);
             if (mangaUserInfo is null) return null;
 
+            var actions = new List<Core.Entities.Mangas.ChangedChapterStateAction>();
             foreach (var chapterId in chaptersIds)
             {
                 var chapter = manga.Chapters.First(c => c.Id == chapterId);
@@ -112,8 +116,7 @@ namespace ShounenGaming.Business.Services.Mangas
                 if (mangaUserInfo.ChaptersRead.Any(c => c.Id == chapterId))
                 {
                     mangaUserInfo.ChaptersRead.Remove(chapter);
-                    mangaUserInfo = await _mangaUserDataRepo.Update(mangaUserInfo);
-                    await _mangaChangedChapterStateActionRepo.Create(new Core.Entities.Mangas.ChangedChapterStateAction
+                    actions.Add(new Core.Entities.Mangas.ChangedChapterStateAction
                     {
                         ChapterId = chapterId,
                         UserId = userId,
@@ -121,7 +124,10 @@ namespace ShounenGaming.Business.Services.Mangas
                     });
                 }
             }
-            
+
+            mangaUserInfo = await _mangaUserDataRepo.Update(mangaUserInfo);
+            await _mangaChangedChapterStateActionRepo.CreateBulk(actions);
+
             return await MapMangaUserData(mangaUserInfo);
         }
 
