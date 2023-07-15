@@ -35,17 +35,17 @@ try
     var app = builder.Build();
 
     //https://learn.microsoft.com/en-us/aspnet/core/fundamentals/static-files?view=aspnetcore-7.0
-    app.UseStaticFiles(new StaticFileOptions
-    {
-        FileProvider = new PhysicalFileProvider(
-           Path.Combine(builder.Environment.ContentRootPath, "mangas")),
-        RequestPath = "/mangas",
-        OnPrepareResponse = ctx =>
-        {
-            ctx.Context.Response.Headers.Append(
-                 "Cache-Control", $"public, max-age={60 * 60 * 24 * 7}");
-        }
-    });
+    //app.UseStaticFiles(new StaticFileOptions
+    //{
+    //    FileProvider = new PhysicalFileProvider(
+    //       Path.Combine(builder.Environment.ContentRootPath, "mangas")),
+    //    RequestPath = "/mangas",
+    //    OnPrepareResponse = ctx =>
+    //    {
+    //        ctx.Context.Response.Headers.Append(
+    //             "Cache-Control", $"public, max-age={60 * 60 * 24 * 7}");
+    //    }
+    //});
 
     app.ConfigureApp();
 
