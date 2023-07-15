@@ -10,6 +10,8 @@ namespace ShounenGaming.DataAccess.Interfaces.Mangas
 {
     public interface IMangaRepository : IBaseRepository<Manga>
     {
+        Task<bool> MangaExistsByMAL(long malId);
+        Task<bool> MangaExistsByAL(long alId);
         Task<Manga?> GetByMALId(long malId);
         Task<Manga?> GetByALId(long alId);
         Task<List<Manga>> GetWaitingMangas();

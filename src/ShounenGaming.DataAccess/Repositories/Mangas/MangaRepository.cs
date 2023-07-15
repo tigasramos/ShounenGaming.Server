@@ -120,5 +120,14 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
             return await dbSet.FirstOrDefaultAsync(m => m.Id == mangaId);
         }
 
+        public async Task<bool> MangaExistsByMAL(long malId)
+        {
+            return await dbSet.AnyAsync(m => m.MangaMyAnimeListID == malId);
+        }
+
+        public async Task<bool> MangaExistsByAL(long alId)
+        {
+            return await dbSet.AnyAsync(m => m.MangaAniListID == alId);
+        }
     }
 }

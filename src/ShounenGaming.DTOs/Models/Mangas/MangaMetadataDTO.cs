@@ -12,6 +12,8 @@ namespace ShounenGaming.DTOs.Models.Mangas
         public long Id { get; set; }
         public MangaMetadataSourceEnumDTO  Source { get; set; }
 
+        public bool AlreadyExists { get; set; }
+
         public List<string> Titles { get; set; }
         public string ImageUrl { get; set; }
         public string Type { get; set; }

@@ -119,7 +119,7 @@ namespace ShounenGaming.API.Controllers.Mangas
         /// <returns></returns>
         [HttpGet("recent/chapters")]
         public async Task<IActionResult> GetRecentlyReleasedChapters()
-        {
+        {            
             var chapters = await _service.GetRecentlyReleasedChapters();
             return Ok(chapters);
         }
@@ -196,9 +196,9 @@ namespace ShounenGaming.API.Controllers.Mangas
         [HttpPost("{source}/{mangaId}")]
         public async Task<IActionResult> AddManga(MangaMetadataSourceEnumDTO source, long mangaId)
         {
-            //TODO: Put UserId
-            var metadata = await _service.AddManga(source, mangaId, 1);
-            return Ok(metadata);
+            var userId = User.FindFirstValue("Id");
+            var manga = await _service.AddManga(source, mangaId, Convert.ToInt32(userId));
+            return Ok(manga);
         }
 
         /// <summary>

@@ -217,43 +217,64 @@ namespace ShounenGaming.Business.Services.Mangas
             {
                 case MangaMetadataSourceEnumDTO.ANILIST:
                     var aniMangas = await AniListHelper.SearchMangaByName(name);
-                    return aniMangas.Select(m => new MangaMetadataDTO
+                    var alDtos = new List<MangaMetadataDTO>();
+                    foreach(var m in aniMangas)
                     {
-                        Id = m.Id,
-                        Titles = new List<string>
+                        var titles = new List<string>();
+                        if (m.Title.UserPreferred != null)
+                            titles.Add(m.Title.UserPreferred);
+
+                        if (m.Title.English != null)
+                            titles.Add(m.Title.English);
+
+                        if (m.Title.Native != null)
+                            titles.Add(m.Title.Native);
+
+                        if (m.Title.Romaji != null)
+                            titles.Add(m.Title.Romaji);
+
+
+                        alDtos.Add(new MangaMetadataDTO
                         {
-                            m.Title.UserPreferred,
-                            m.Title.Native,
-                            m.Title.Romaji,
-                            m.Title.English,
-                        },
-                        Description = m.Description,
-                        Tags = m.Genres.ToList(),
-                        Status = m.Status?.ToString(),
-                        Score = m.AverageScore,
-                        FinishedAt = m.EndDate.Year != null ? new DateTime(m.EndDate.Year.Value, m.EndDate.Month ?? 1, m.EndDate.Day ?? 1) : null,
-                        ImageUrl = m.CoverImage.Large,
-                        StartedAt = m.StartDate.Year != null ? new DateTime(m.StartDate.Year.Value, m.StartDate.Month ?? 1, m.StartDate.Day ?? 1) : null,
-                        Type = m.Source?.ToString(),
-                        Source = MangaMetadataSourceEnumDTO.ANILIST
-                    }).ToList();
+                            Id = m.Id,
+                            Titles = titles,
+                            AlreadyExists = await _mangaRepo.MangaExistsByAL(m.Id),
+                            Description = m.Description,
+                            Tags = m.Genres.ToList(),
+                            Status = m.Status?.ToString(),
+                            Score = m.AverageScore,
+                            FinishedAt = m.EndDate.Year != null ? new DateTime(m.EndDate.Year.Value, m.EndDate.Month ?? 1, m.EndDate.Day ?? 1) : null,
+                            ImageUrl = m.CoverImage.Large,
+                            StartedAt = m.StartDate.Year != null ? new DateTime(m.StartDate.Year.Value, m.StartDate.Month ?? 1, m.StartDate.Day ?? 1) : null,
+                            Type = m.Source?.ToString(),
+                            Source = MangaMetadataSourceEnumDTO.ANILIST
+                        });
+                    }
+                    return alDtos;
 
                 case MangaMetadataSourceEnumDTO.MYANIMELIST:
                     var malMangas = (await _jikan.SearchMangaAsync(name)).Data;
-                    return malMangas.Select(m => new MangaMetadataDTO
+                    var malDtos = new List<MangaMetadataDTO>();
+                    foreach(var m in malMangas)
                     {
-                        Id = m.MalId,
-                        Titles = m.Titles.Select(t => t.Title).ToList(),
-                        Description = m.Synopsis,
-                        FinishedAt = m.Published.To,
-                        Type = m.Type,
-                        Status = m.Status,
-                        StartedAt = m.Published.From,
-                        ImageUrl = m.Images.JPG.ImageUrl,
-                        Score = m.Score,
-                        Tags = m.Genres.Select(g => g.Name).ToList(),
-                        Source = MangaMetadataSourceEnumDTO.MYANIMELIST
-                    }).ToList();
+                        malDtos.Add(new MangaMetadataDTO
+                        {
+                            Id = m.MalId,
+                            Titles = m.Titles.Select(t => t.Title).ToList(),
+                            Description = m.Synopsis,
+                            FinishedAt = m.Published.To,
+                            AlreadyExists = await _mangaRepo.MangaExistsByMAL(m.MalId),
+                            Type = m.Type,
+                            Status = m.Status,
+                            StartedAt = m.Published.From,
+                            ImageUrl = m.Images.JPG.ImageUrl,
+                            Score = m.Score,
+                            Tags = m.Genres.Select(g => g.Name).ToList(),
+                            Source = MangaMetadataSourceEnumDTO.MYANIMELIST
+                        });
+                    }
+                    return malDtos;
+                   
                 default:
                     return new List<MangaMetadataDTO>();
             }
