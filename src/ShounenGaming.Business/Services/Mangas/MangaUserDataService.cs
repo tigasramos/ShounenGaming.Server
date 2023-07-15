@@ -54,7 +54,6 @@ namespace ShounenGaming.Business.Services.Mangas
 
         public async Task<MangaUserDataDTO> MarkChaptersRead(int userId, List<int> chaptersIds)
         {
-            Log.Information("Started Reading");
             var manga = await _mangaRepository.GetByChapters(chaptersIds) ?? throw new Exception("Manga not Found");
             var mangaUserInfo = await _mangaUserDataRepo.GetByUserAndManga(userId, manga.Id);
 
@@ -98,11 +97,8 @@ namespace ShounenGaming.Business.Services.Mangas
 
             }
 
-            Log.Information("Started Updating");
             mangaUserInfo = await _mangaUserDataRepo.Update(mangaUserInfo);
-            Log.Information("Done Updating");
             await _mangaChangedChapterStateActionRepo.CreateBulk(actions);
-            Log.Information("Done Bulking");
 
             return await MapMangaUserData(mangaUserInfo);
         }

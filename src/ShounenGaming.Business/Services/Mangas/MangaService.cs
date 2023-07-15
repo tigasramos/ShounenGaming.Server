@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using JikanDotNet;
 using Microsoft.Extensions.Caching.Memory;
+using MingweiSamuel.Camille.LolStatusV3;
 using MingweiSamuel.Camille.MatchV5;
 using Serilog;
 using ShounenGaming.Business.Exceptions;
@@ -70,8 +71,12 @@ namespace ShounenGaming.Business.Services.Mangas
         public async Task<MangaTranslationDTO?> GetMangaTranslation(int mangaId, int chapterId, MangaTranslationEnumDTO translation)
         {
             var manga = await _mangaRepo.GetById(mangaId) ?? throw new EntityNotFoundException("Manga");
-            var mangaTranslation = manga.Chapters.Where(c => c.Id == chapterId).Select(s => s.Translations.FirstOrDefault(p => p.Language == _mapper.Map<TranslationLanguageEnum>(translation))).FirstOrDefault() ?? throw new EntityNotFoundException("MangaTranslation");
-           
+            var mangaChapter = manga.Chapters.FirstOrDefault(c => c.Id == chapterId) ?? 
+                throw new EntityNotFoundException("MangaChapter");
+
+            var mangaTranslation = mangaChapter.Translations.FirstOrDefault(t => t.Language == _mapper.Map<TranslationLanguageEnum>(translation) && t.IsWorking);
+            mangaTranslation ??= mangaChapter.Translations.FirstOrDefault(t => t.IsWorking) ?? throw new EntityNotFoundException("MangaTranslation");
+
             var selectedSource = string.Empty;
             var pages = new List<string>();
 
@@ -93,7 +98,7 @@ namespace ShounenGaming.Business.Services.Mangas
                         _cache.Set(source.Url, mangaInfo, DateTimeOffset.Now.AddMinutes(30));
                     }
 
-                    foreach(var c in mangaInfo.Chapters)
+                    foreach(var c in mangaInfo!.Chapters)
                     {
                         var treatedName = c.Name.Split(":").First().Split("-").First().Split(" ").First().Trim();
                         if (string.IsNullOrEmpty(treatedName) || !double.TryParse(treatedName, NumberStyles.Any, NumberFormatInfo.InvariantInfo, out var number))
@@ -104,7 +109,7 @@ namespace ShounenGaming.Business.Services.Mangas
                             selectedSource = source.Source; 
                             pages = await scrapper.GetChapterImages(c.Link);
 
-                            return MapMangaTranslation(mangaTranslation, selectedSource, pages);
+                            return MapMangaTranslation(mangaTranslation, selectedSource, pages, translation);
                         }
                     }
                     
@@ -156,7 +161,7 @@ namespace ShounenGaming.Business.Services.Mangas
                 var orderedList = manga.Chapters.OrderByDescending(c => c.Name).ToList();
                 foreach (var chapter in orderedList)
                 {
-                    foreach(var translation in chapter.Translations)
+                    foreach(var translation in chapter.Translations.Where(t => t.IsWorking))
                     {
                         var language = _mapper.Map<MangaTranslationEnumDTO>(translation.Language);
                         if (!dic.ContainsKey(language))
@@ -843,14 +848,15 @@ namespace ShounenGaming.Business.Services.Mangas
 
                             Log.Information($"Added Chapter: {dbChapter.Name} for {scrapperTranslation}");
                             await Task.Delay(1500);
-
+                            // TODO : Remove Later
+#if DEBUG
                             if (scrapperTranslation == TranslationLanguageEnum.PT)
                             {
                                 await SaveImage(scrapper, scrapperTranslation, manga.Name, dbChapter.Name.ToString(), chapter.Link);
                                 translation.Downloaded = true;
                                 await Task.Delay(2000);
                             }
-
+#endif
 
                         }
                         catch(SavingImageException sie)
@@ -892,7 +898,7 @@ namespace ShounenGaming.Business.Services.Mangas
                 Log.Error($"Error Updating {manga.Name}: {ex.Message}");
             }
         }
-        private MangaTranslationDTO MapMangaTranslation(MangaTranslation mangaTranslation, string source, List<string> pages)
+        private MangaTranslationDTO MapMangaTranslation(MangaTranslation mangaTranslation, string source, List<string> pages, MangaTranslationEnumDTO translation)
         {
             var dto = new MangaTranslationDTO
             {
@@ -900,19 +906,23 @@ namespace ShounenGaming.Business.Services.Mangas
                 Language = _mapper.Map<MangaTranslationEnumDTO>(mangaTranslation.Language),
                 ChapterId = mangaTranslation.MangaChapter.Id,
                 ChapterNumber = mangaTranslation.MangaChapter.Name,
-                ReleasedDate = mangaTranslation.ReleasedDate,
+                ReleasedAt = mangaTranslation.ReleasedDate,
                 Source = source,
                 Pages = pages,
-                PageHeaders = GetScrapperByEnum(Enum.Parse<MangaSourceEnumDTO>(source))?.GetImageHeaders()
+                PageHeaders = GetScrapperByEnum(Enum.Parse<MangaSourceEnumDTO>(source))?.GetImageHeaders(),
+                DefaultLanguage = translation,
+                CreatedAt = mangaTranslation.CreatedAt,
             };
-            var previousChapter = mangaTranslation.MangaChapter.Manga.Chapters.OrderByDescending(o => o.CreatedAt).SkipWhile(s => s.Id != mangaTranslation.MangaChapter.Id).Skip(1).Take(1).FirstOrDefault();
+            var previousChapter = mangaTranslation.MangaChapter.Manga.Chapters.OrderByDescending(o => o.Name).SkipWhile(s => s.Id != mangaTranslation.MangaChapter.Id).Skip(1).Take(1).FirstOrDefault();
             dto.PreviousChapterId = previousChapter?.Id;
-            var nextChapter = mangaTranslation.MangaChapter.Manga.Chapters.OrderBy(o => o.CreatedAt).SkipWhile(s => s.Id != mangaTranslation.MangaChapter.Id).Skip(1).Take(1).FirstOrDefault();
+
+            var nextChapter = mangaTranslation.MangaChapter.Manga.Chapters.OrderBy(o => o.Name).SkipWhile(s => s.Id != mangaTranslation.MangaChapter.Id).Skip(1).Take(1).FirstOrDefault();
             dto.NextChapterId = nextChapter?.Id;
             return dto;
         }
         private async Task SaveImage(IBaseMangaScrapper scrapper, TranslationLanguageEnum scrapperTranslation, string mangaName, string chapterName, string chapterLink)
         {
+            // TODO : Verify folder before adding
             try
             {
                 var chapterPages = await scrapper.GetChapterImages(chapterLink);
