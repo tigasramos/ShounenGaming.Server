@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -65,10 +66,12 @@ namespace ShounenGaming.Common
         {
             app.UseSerilogRequestLogging();
 
+            Log.Information($"Environment: {app.Environment.EnvironmentName}");
+
             //TODO: Check Coravel Cache Service
             app.Services.UseScheduler(scheduler =>
             {
-                if (app.Environment.EnvironmentName == "PRODUCTION" || app.Environment.EnvironmentName == "LOCAL")
+                if (app.Environment.IsProduction() || app.Environment.EnvironmentName == "Local")
                 {
                     // Fetch Manga Metadata Every 3 Hours
                     scheduler.OnWorker("MangasMetadata");
