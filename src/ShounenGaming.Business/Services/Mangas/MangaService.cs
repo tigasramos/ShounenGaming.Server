@@ -665,6 +665,9 @@ namespace ShounenGaming.Business.Services.Mangas
                 }
             }
 
+            Log.Information("Waiting");
+            await Task.Delay(60000);
+
             //AL
             Log.Information("AniList Mangas");
             var topMangasAL = await AniListHelper.GetPopularMangas();

@@ -65,7 +65,7 @@ namespace ShounenGaming.Business.Services.Base
                 serverMember.User.FirstName = createUser.FirstName;
                 serverMember.User.LastName = createUser.LastName;
                 serverMember.User.DiscordVerified = false;
-                serverMember.User.Username = createUser.Username ?? "";
+                serverMember.User.Username = string.IsNullOrEmpty(createUser.Username) ? serverMember.Username : createUser.Username;
                 serverMember.User.Birthday = new DateTime(createUser.Birthday.Year, createUser.Birthday.Month, createUser.Birthday.Day, 0, 0, 0, DateTimeKind.Utc);
                 await _userRepo.Update(serverMember.User);
             } 
