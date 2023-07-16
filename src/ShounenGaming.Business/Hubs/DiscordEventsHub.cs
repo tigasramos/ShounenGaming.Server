@@ -14,7 +14,7 @@ namespace ShounenGaming.Business.Hubs
 {
     public interface IDiscordEventsHubClient
     {
-        Task SendVerifyAccount(string discordId, string fullName);
+        Task SendVerifyAccount(string discordId, string fullName, DateTime birthday);
         Task SendToken(string discordId, string token, DateTime expireDate);
     }
 
@@ -28,11 +28,23 @@ namespace ShounenGaming.Business.Hubs
             _authService = authService;
         }
 
-        public async Task<bool> VerifyAccount(string discordId)
+        public async Task<bool> AcceptAccountVerification(string discordId)
         {
             try
             {
-                await _authService.VerifyDiscordAccount(discordId);
+                await _authService.AcceptAccountVerification(discordId);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+        public async Task<bool> RejectAccountVerification(string discordId)
+        {
+            try
+            {
+                await _authService.RejectAccountVerification(discordId);
                 return true;
             }
             catch (Exception)

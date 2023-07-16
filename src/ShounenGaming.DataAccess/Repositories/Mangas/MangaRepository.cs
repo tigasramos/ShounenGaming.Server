@@ -78,6 +78,7 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
             var chapters = await dbSet
                 .Where(m => m.Chapters.Any())
                 .OrderByDescending(c => c.Chapters.OrderByDescending(c => c.Name).First().CreatedAt)
+                .Take(10)
                 .ToListAsync();
             return chapters;
         }

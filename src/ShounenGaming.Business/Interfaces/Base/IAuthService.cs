@@ -17,7 +17,8 @@ namespace ShounenGaming.Business.Interfaces.Base
         Task<AuthResponse> LoginUser(string username, string token);
         AuthResponse LoginBot(string discordId, string password);
         Task<AuthResponse> RefreshToken(string refreshToken);
-        Task VerifyDiscordAccount(string discordId);
+        Task AcceptAccountVerification(string discordId);
+        Task RejectAccountVerification(string discordId);
 
         Task UpdateServerMember(string discordId, string discordImageUrl, string displayName, string username, RolesEnum? role);
 

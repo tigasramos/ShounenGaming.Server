@@ -56,24 +56,34 @@ namespace ShounenGaming.Business.Services.Base
             //Validate DiscordId
             var serverMember = await _memberRepo.GetMemberByDiscordId(createUser.DiscordId) ?? throw new EntityNotFoundException("ServerMember");
 
-            if (serverMember.User is not null)
-                throw new InvalidOperationException("Discord User already registered");
-
             //Validate Date
             if (createUser.Birthday.Year > DateTime.UtcNow.Year - 5 || createUser.Birthday.Year < DateTime.UtcNow.Year - 100)
                 throw new InvalidParameterException("Birthday", $"Needs to be between {DateTime.UtcNow.Year - 100} and {DateTime.UtcNow.Year - 5}");
 
-            await _userRepo.Create(new User
+            if (serverMember.User is not null)
             {
-                FirstName = createUser.FirstName,
-                LastName = createUser.LastName,
-                Username = string.IsNullOrEmpty(createUser.Username) ? serverMember.Username : createUser.Username,
-                Birthday = new DateTime(createUser.Birthday.Year, createUser.Birthday.Month, createUser.Birthday.Day,0,0,0, DateTimeKind.Utc),
-                DiscordVerified = false,
-                ServerMember = serverMember,
-            });
+                serverMember.User.FirstName = createUser.FirstName;
+                serverMember.User.LastName = createUser.LastName;
+                serverMember.User.DiscordVerified = false;
+                serverMember.User.Username = createUser.Username ?? "";
+                serverMember.User.Birthday = new DateTime(createUser.Birthday.Year, createUser.Birthday.Month, createUser.Birthday.Day, 0, 0, 0, DateTimeKind.Utc);
+                await _userRepo.Update(serverMember.User);
+            } 
+            else
+            {
+                await _userRepo.Create(new User
+                {
+                    FirstName = createUser.FirstName,
+                    LastName = createUser.LastName,
+                    Username = string.IsNullOrEmpty(createUser.Username) ? serverMember.Username : createUser.Username,
+                    Birthday = new DateTime(createUser.Birthday.Year, createUser.Birthday.Month, createUser.Birthday.Day, 0, 0, 0, DateTimeKind.Utc),
+                    DiscordVerified = false,
+                    ServerMember = serverMember,
+                });
 
-            await _authHub.Clients.All.SendVerifyAccount(createUser.DiscordId, createUser.FirstName + " " + createUser.LastName);
+            }
+
+            await _authHub.Clients.All.SendVerifyAccount(createUser.DiscordId, createUser.FirstName + " " + createUser.LastName, createUser.Birthday);
         }
 
         public async Task RequestEntryToken(string username)
@@ -162,15 +172,16 @@ namespace ShounenGaming.Business.Services.Base
             return GetAuthResponseForUser(updatedUser);
         }
        
-        public async Task VerifyDiscordAccount(string discordId)
+        public async Task AcceptAccountVerification(string discordId)
+        {
+            var user = await _userRepo.GetUserByDiscordId(discordId) ?? throw new EntityNotFoundException("User");           
+            user.DiscordVerified = true;
+            await _userRepo.Update(user);
+        }
+        public async Task RejectAccountVerification(string discordId)
         {
             var user = await _userRepo.GetUserByDiscordId(discordId) ?? throw new EntityNotFoundException("User");
-
-            var serverMember = await _memberRepo.GetMemberByDiscordId(discordId) ?? throw new EntityNotFoundException("ServerMember");                
-
-            user.DiscordVerified = true;
-            user.ServerMember = serverMember;
-            await _userRepo.Update(user);
+            await _userRepo.Delete(user.Id);
         }
 
         #region Private
