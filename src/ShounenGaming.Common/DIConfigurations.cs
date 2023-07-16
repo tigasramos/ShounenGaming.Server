@@ -68,17 +68,32 @@ namespace ShounenGaming.Common
             //TODO: Check Coravel Cache Service
             app.Services.UseScheduler(scheduler =>
             {
-                // Fetch Manga Metadata Every 3 Hours
-                scheduler.OnWorker("MangasMetadata");
-                scheduler.Schedule<AddOrUpdateMangasMetadataJob>().Cron("0 */3 * * *").RunOnceAtStart().PreventOverlapping("MangasMetadata");
+                if (app.Environment.EnvironmentName == "PRODUCTION" || app.Environment.EnvironmentName == "LOCAL")
+                {
+                    // Fetch Manga Metadata Every 3 Hours
+                    scheduler.OnWorker("MangasMetadata");
+                    scheduler.Schedule<AddOrUpdateMangasMetadataJob>().Cron("0 */3 * * *").RunOnceAtStart().PreventOverlapping("MangasMetadata");
 
-                // Background Job that will listen the queue to Fetch New Chapters
-                scheduler.OnWorker("MangasChapters_Listener");
-                scheduler.Schedule<FetchMangaChaptersJobListener>().Monthly().RunOnceAtStart().PreventOverlapping("MangasChapters_Listener");
+                    // Background Job that will listen the queue to Fetch New Chapters
+                    scheduler.OnWorker("MangasChapters_Listener");
+                    scheduler.Schedule<FetchMangaChaptersJobListener>().Monthly().RunOnceAtStart().PreventOverlapping("MangasChapters_Listener");
 
-                // Adds All Mangas to fetch new chapters hourly
-                scheduler.OnWorker("MangasChapters");
-                scheduler.Schedule<FetchAllMangasChaptersJob>().Hourly();
+                    // Adds All Mangas to fetch new chapters hourly
+                    scheduler.OnWorker("MangasChapters");
+                    scheduler.Schedule<FetchAllMangasChaptersJob>().Hourly();
+                } 
+                else
+                { 
+                    // Fetch Manga Metadata
+                    scheduler.OnWorker("MangasMetadata");
+                    scheduler.Schedule<AddOrUpdateMangasMetadataJob>().DailyAt(1, 30).PreventOverlapping("MangasMetadata");
+
+                    // Background Job that will listen the queue to Fetch New Chapters
+                    scheduler.OnWorker("MangasChapters_Listener");
+                    scheduler.Schedule<FetchMangaChaptersJobListener>().Monthly().RunOnceAtStart().PreventOverlapping("MangasChapters_Listener");
+
+                }
+                
 
 
             }).OnError((ex) => Log.Error($"Running some schedule: {ex.Message}")); ;
@@ -190,12 +205,6 @@ namespace ShounenGaming.Common
                 {
                     OnMessageReceived = context =>
                     {
-                        //var accessToken = context.Request.Query["access_token"];
-                        //if (context.Request.Query.ContainsKey("access_token"))
-                        //{
-                        //    context.Token = context.Request.Query["access_token"];
-                        //}
-
                         //Get Token from Header
                         var accessToken = context.Request.Headers["Authorization"];
                         if (accessToken.Count > 0)
