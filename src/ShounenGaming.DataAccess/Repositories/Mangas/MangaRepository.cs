@@ -1,15 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ShounenGaming.Core.Entities.Mangas;
 using ShounenGaming.Core.Entities.Mangas.Enums;
-using ShounenGaming.Core.Entities.Tierlists;
 using ShounenGaming.DataAccess.Interfaces.Mangas;
-using ShounenGaming.DataAccess.Interfaces.Tierlists;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace ShounenGaming.DataAccess.Repositories.Mangas
 {
@@ -61,9 +53,10 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
                 query = query.Where(m => !m.UsersData.Any(ud => ud.UserId == userId && ud.Status == MangaUserStatusEnum.IGNORED));
 
 
+            name = name?.ToLowerInvariant();
             if (!string.IsNullOrEmpty(name))
                 query = query.Where(m => m.Name.ToLower().Contains(name) || m.AlternativeNames.Any(d => d.Name.ToLower().Contains(name)) || m.Synonyms.Any(s => s.Name.ToLower().Contains(name)));
-
+          
 
             return query;
         }
