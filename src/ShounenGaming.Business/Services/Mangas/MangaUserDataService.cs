@@ -68,7 +68,7 @@ namespace ShounenGaming.Business.Services.Mangas
                     IsPrivate = false
                 };
 
-                var userData = await _mangaUserDataRepo.Create(mangaUserInfo);
+                mangaUserInfo = await _mangaUserDataRepo.Create(mangaUserInfo);
                 await _mangaChangedStatusActionRepo.Create(new Core.Entities.Mangas.ChangedMangaStatusAction
                 {
                     UserId = userId,
