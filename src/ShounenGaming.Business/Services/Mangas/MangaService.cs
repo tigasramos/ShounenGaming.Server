@@ -758,12 +758,6 @@ namespace ShounenGaming.Business.Services.Mangas
                     //Only if MAL not found you update here
                     if (!changed && manga.MangaMyAnimeListID == null)
                     {
-                        //Update title when is KR or CN
-                        if (manga.Type != MangaTypeEnum.MANGA && !string.IsNullOrEmpty(mangaMetadata.Title.English) && manga.Name != mangaMetadata.Title.English)
-                        {
-                            manga.Name = mangaMetadata.Title.English;
-                            changed = true;
-                        }
 
                         //Update If needed
                         if (mangaMetadata.Description != manga.Description)
@@ -786,6 +780,12 @@ namespace ShounenGaming.Business.Services.Mangas
                         }
                     }
 
+                    //Update title when is KR or CN
+                    if (manga.Type != MangaTypeEnum.MANGA && !string.IsNullOrEmpty(mangaMetadata.Title.English) && manga.Name != mangaMetadata.Title.English)
+                    {
+                        manga.Name = mangaMetadata.Title.English;
+                        changed = true;
+                    }
 
                     if (manga.ALPopularity != mangaMetadata.Popularity)
                     {
