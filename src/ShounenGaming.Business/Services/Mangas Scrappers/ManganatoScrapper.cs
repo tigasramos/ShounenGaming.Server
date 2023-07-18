@@ -83,7 +83,7 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
                 Source = GetMangaSourceEnumDTO()
             };
         }
-        //NOTE: Needs Header Referer:https://chapmanganato.com/ to work
+
         public async Task<List<string>> GetChapterImages(string urlPart)
         {
             var web = new HtmlWeb();
@@ -124,18 +124,6 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
                 var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//div[@class='search-story-item']");
                 if (mangasFetched == null || !mangasFetched.Any()) return mangasList;
 
-                // Note: Only 1 Page
-                //if (currentPage == 2)
-                //{
-                //    var pages = htmlDoc.DocumentNode.SelectNodes("//div[@class='group-page']/a");
-                //    if (pages.Any())
-                //    {
-                //        var lastPage = pages.Last();
-                //        if (Convert.ToInt32(lastPage.InnerText.Replace("LAST(", "").Replace(")", "")) < currentPage) break;
-                //    }
-                //}
-
-
                 foreach (var manga in mangasFetched)
                 {
                     var mangaName = manga.SelectSingleNode("div/h3/a")?.InnerText ?? "";
@@ -149,7 +137,6 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
                         Source = GetMangaSourceEnumDTO()
                     });
                 }
-                //currentPage++;
             }
             catch (Exception ex)
             {
