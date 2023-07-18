@@ -787,6 +787,27 @@ namespace ShounenGaming.Business.Services.Mangas
                         changed = true;
                     }
 
+                    //Get Tags if MAL doesn't have
+                    if (manga.Tags == null || !manga.Tags.Any())
+                    {
+                        // Get Tags
+                        var tags = new List<MangaTag>();
+                        var mangaGenres = mangaMetadata.Genres;
+                        foreach (var genre in mangaGenres)
+                        {
+                            var tag = await _mangaTagRepo.GetTagByName(genre);
+                            tag ??= new MangaTag
+                            {
+                                Name = genre,
+                            };
+
+                            tags.Add(tag);
+                        }
+
+                        manga.Tags = tags;
+                        changed = true;
+                    }
+
                     if (manga.ALPopularity != mangaMetadata.Popularity)
                     {
                         manga.ALPopularity = mangaMetadata.Popularity;
