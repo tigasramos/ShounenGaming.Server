@@ -291,14 +291,20 @@ namespace ShounenGaming.Business.Services.Mangas
                 .Replace("]", "")
                 .Replace("'", " ");
 
-            var allMangas = new List<MangaSourceDTO>();
+            List<Task<List<MangaSourceDTO>>> allMangasTasks = new();
 
             foreach(var scrapper in scrappers)
             {
-                allMangas.AddRange(await scrapper.SearchManga(treatedName));
+                allMangasTasks.Add(scrapper.SearchManga(treatedName));
             }
+            var result = await Task.WhenAll(allMangasTasks.ToArray());
 
-            return allMangas;
+            var listResults = new List<MangaSourceDTO>();
+            foreach (var item in result)
+            {
+                listResults.AddRange(item);
+            }
+            return listResults;
         }
         public async Task<List<MangaSourceDTO>> GetAllMangasFromSourceByPage(MangaSourceEnumDTO source, int page = 1)
         {
