@@ -504,15 +504,16 @@ namespace ShounenGaming.Business.Services.Mangas
                     Name = manga.Title.Romaji
                 });
 
+            var type = ConvertMALMangaType(manga.CountryOfOrigin);
             return await SaveMangaInDb(new Core.Entities.Mangas.Manga
             {
                 MangaAniListID = manga.Id,
                 MangaMyAnimeListID = manga.IdMal,
-                Name = manga.Title.UserPreferred,
+                Name = type != MangaTypeEnum.MANGA && !string.IsNullOrEmpty(manga.Title.English) ? manga.Title.English : manga.Title.UserPreferred,
                 AlternativeNames = alternativeNames,
                 Synonyms = manga.Synonyms.Select(d => new MangaSynonym { Name = d }).ToList(),
                 IsReleasing = manga.Status == "RELEASING",
-                Type = ConvertMALMangaType(manga.CountryOfOrigin),
+                Type = type,
                 Description = manga.Description,
                 Writer = writer,
                 Tags = tags,
@@ -757,6 +758,13 @@ namespace ShounenGaming.Business.Services.Mangas
                     //Only if MAL not found you update here
                     if (!changed && manga.MangaMyAnimeListID == null)
                     {
+                        //Update title when is KR or CN
+                        if (manga.Type != MangaTypeEnum.MANGA && !string.IsNullOrEmpty(mangaMetadata.Title.English) && manga.Name != mangaMetadata.Title.English)
+                        {
+                            manga.Name = mangaMetadata.Title.English;
+                            changed = true;
+                        }
+
                         //Update If needed
                         if (mangaMetadata.Description != manga.Description)
                         {
