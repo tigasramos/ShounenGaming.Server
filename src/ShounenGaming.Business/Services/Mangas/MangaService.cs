@@ -6,8 +6,8 @@ using ShounenGaming.Business.Exceptions;
 using ShounenGaming.Business.Helpers;
 using ShounenGaming.Business.Interfaces.Base;
 using ShounenGaming.Business.Interfaces.Mangas;
-using ShounenGaming.Business.Interfaces.Mangas_Scrappers;
-using ShounenGaming.Business.Interfaces.Mangas_Scrappers.Models;
+using ShounenGaming.Business.Services.Mangas_Scrappers;
+using ShounenGaming.Business.Services.Mangas_Scrappers.Models;
 using ShounenGaming.Core.Entities.Mangas;
 using ShounenGaming.Core.Entities.Mangas.Enums;
 using ShounenGaming.DataAccess.Interfaces.Base;
@@ -22,12 +22,11 @@ namespace ShounenGaming.Business.Services.Mangas
 {
     public class MangaService : IMangaService
     {
-        //Order by Priority (Scans first then remaining)
         static readonly List<IBaseMangaScrapper> scrappers = new() { 
                     new ManganatoScrapper(), new GekkouScansScrapper(), 
                     new SilenceScansScrapper(), new HuntersScansScrapper(), 
                     new NeoXScansScrapper(), new BRMangasScrapper(), 
-                    new MangasChanScrapper(), };
+                    new DiskusScanScrapper(), };
 
         private readonly IUserRepository _userRepository;
         private readonly IMangaRepository _mangaRepo;
@@ -85,7 +84,7 @@ namespace ShounenGaming.Business.Services.Mangas
                 {
                     var scrapperEnum = (MangaSourceEnumDTO)Enum.Parse(typeof(MangaSourceEnumDTO), source.Source);
                     var scrapper = GetScrapperByEnum(scrapperEnum);
-                    var scrapperTranslation = (TranslationLanguageEnum)Enum.Parse(typeof(TranslationLanguageEnum), scrapper.GetLanguage());
+                    var scrapperTranslation = _mapper.Map<TranslationLanguageEnum>(scrapper?.GetLanguage());
                     if (scrapperTranslation != mangaTranslation.Language)
                         continue;
 
@@ -849,7 +848,7 @@ namespace ShounenGaming.Business.Services.Mangas
                 // Get Scrapper
                 var scrapperEnum = (MangaSourceEnumDTO)Enum.Parse(typeof(MangaSourceEnumDTO), source.Source);
                 var scrapper = GetScrapperByEnum(scrapperEnum);
-                var scrapperTranslation = (TranslationLanguageEnum)Enum.Parse(typeof(TranslationLanguageEnum), scrapper.GetLanguage());
+                var scrapperTranslation = _mapper.Map<TranslationLanguageEnum>(scrapper?.GetLanguage());
 
                 // Get (Cached) Manga Info
                 var cachedManga = _cache.TryGetValue(source.Url, out ScrappedManga? mangaInfo);

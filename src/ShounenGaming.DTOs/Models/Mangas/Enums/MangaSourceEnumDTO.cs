@@ -14,7 +14,8 @@ namespace ShounenGaming.DTOs.Models.Mangas.Enums
         SILENCE_SCANS = 3,
         HUNTERS_SCANS = 4,
         BR_MANGAS = 5,
-        MANGAS_CHAN = 6
+        MANGAS_CHAN = 6,
+        DISKUS_SCAN = 7
     }
 
 }

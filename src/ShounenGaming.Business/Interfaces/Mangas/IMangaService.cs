@@ -1,5 +1,4 @@
-﻿using ShounenGaming.Business.Interfaces.Mangas_Scrappers.Models;
-using ShounenGaming.DTOs.Models.Base;
+﻿using ShounenGaming.DTOs.Models.Base;
 using ShounenGaming.DTOs.Models.Mangas;
 using ShounenGaming.DTOs.Models.Mangas.Enums;
 

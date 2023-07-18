@@ -1,60 +1,16 @@
 ﻿using HtmlAgilityPack;
 using Newtonsoft.Json;
 using Serilog;
-using ShounenGaming.Business.Interfaces.Mangas_Scrappers.Models;
+using ShounenGaming.Business.Services.Mangas_Scrappers.Models;
 using ShounenGaming.DTOs.Models.Mangas;
 using ShounenGaming.DTOs.Models.Mangas.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Web;
 
-namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
+namespace ShounenGaming.Business.Services.Mangas_Scrappers
 {
     internal class BRMangasScrapper : IBaseMangaScrapper
     {
-        //BRMangas PT
-        //1:42 seg -> 5557
-        public async  Task<List<MangaSourceDTO>> GetAllMangas()
-        {
-            var web = new HtmlWeb();
-            var mangasList = new List<MangaSourceDTO>();
-            var currentPage = 1;
-            try
-            {
-                while (true)
-                {
-                    var htmlDoc = await web.LoadFromWebAsync($"https://www.brmangas.net/lista-de-manga/page/{currentPage}");
-                    var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//div[@class='listagem row']/div/div/a");
-                    if (mangasFetched == null || !mangasFetched.Any()) break;
-
-                    foreach (var manga in mangasFetched)
-                    {
-                        var mangaName = manga.SelectSingleNode("h2").InnerText ?? "";
-                        var mangaURL = manga.GetAttributeValue("href", "") ?? "";
-                        var imageURL = manga.SelectSingleNode("div/img").GetAttributeValue("src", "") ?? "";
-                        mangasList.Add(new MangaSourceDTO
-                        {
-                            Name = HttpUtility.HtmlDecode(mangaName.Trim()),
-                            Url = mangaURL.Remove(mangaURL.Length - 1).Split("/").Last(),
-                            ImageURL = imageURL,
-                            Source = GetMangaSourceEnumDTO()
-                        });
-                    }
-                    currentPage++;
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"BRMangas - GetAllMangas: {ex.Message}");
-            }
-           
-
-            return mangasList;
-        }
-
         public async Task<List<MangaSourceDTO>> GetAllMangasByPage(int page)
         {
             var web = new HtmlWeb();
@@ -142,9 +98,9 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
         {
             public List<string> Images { get; set; }
         }
-        public string GetLanguage()
+        public MangaTranslationEnumDTO GetLanguage()
         {
-            return "PT";
+            return MangaTranslationEnumDTO.PT;
         }
 
         public string GetBaseURLForManga()
