@@ -10,7 +10,7 @@ using System.Web;
 
 namespace ShounenGaming.Business.Services.Mangas_Scrappers
 {
-    public class UnionMangasScrapper : IBaseMangaScrapper
+    internal class UnionMangasScrapper : IBaseMangaScrapper
     {
         public async Task<List<MangaSourceDTO>> GetAllMangasByPage(int page)
         {
