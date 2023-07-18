@@ -8,27 +8,27 @@ namespace ShounenGaming.Business.Helpers
     public static class AniListHelper
     {
         private static readonly string BaseAddress = "https://graphql.anilist.co";
-        private static readonly string MediaBody = @"{id idMal status format type source averageScore title { romaji english native userPreferred } synonyms description startDate {year month day} endDate {year month  day} countryOfOrigin coverImage { large } genres averageScore meanScore popularity staff { edges { role node { id } } nodes { id  name { first  middle last  full  native userPreferred } image { large } } } }";
+        private static readonly string MediaBody = @"{id idMal status format type source chapters averageScore title { romaji english native userPreferred } synonyms description startDate {year month day} endDate {year month  day} countryOfOrigin coverImage { large } genres averageScore meanScore popularity staff { edges { role node { id } } nodes { id  name { first  middle last  full  native userPreferred } image { large } } } }";
 
 
         public static async Task<List<ALManga>> SearchMangaByName(string name)
         {
-            var query = "query{Page{media(type:MANGA, search: \"" + name + "\")" + MediaBody + "}}";
+            var query = "query{Page{media(type:MANGA, format: MANGA, search: \"" + name + "\")" + MediaBody + "}}";
             return (await SendRequest<ALResponse<ALSearchResponse>>(query)).Data.Page.Media;
         }
         public static async Task<List<ALManga>> GetPopularMangas()
         {
-            var query = "query{Page{media(type:MANGA,countryOfOrigin: \"JP\", sort:POPULARITY_DESC)" + MediaBody + "}}";
+            var query = "query{Page{media(type:MANGA, format: MANGA, countryOfOrigin: \"JP\", sort:POPULARITY_DESC)" + MediaBody + "}}";
             return (await SendRequest<ALResponse<ALSearchResponse>>(query)).Data.Page.Media;
         }
         public static async Task<List<ALManga>> GetPopularManhwas()
         {
-            var query = "query{Page{media(type:MANGA,countryOfOrigin: \"KR\", sort:POPULARITY_DESC)" + MediaBody + "}}";
+            var query = "query{Page{media(type:MANGA, format: MANGA, countryOfOrigin: \"KR\", sort:POPULARITY_DESC)" + MediaBody + "}}";
             return (await SendRequest<ALResponse<ALSearchResponse>>(query)).Data.Page.Media;
         }
         public static async Task<List<ALManga>> GetPopularManhuas()
         {
-            var query = "query{Page{media(type:MANGA,countryOfOrigin: \"CN\", sort:POPULARITY_DESC)" + MediaBody + "}}";
+            var query = "query{Page{media(type:MANGA, format: MANGA, countryOfOrigin: \"CN\", sort:POPULARITY_DESC)" + MediaBody + "}}";
             return (await SendRequest<ALResponse<ALSearchResponse>>(query)).Data.Page.Media;
         }
         public static async Task<ALManga> GetMangaById(long alId)
@@ -77,6 +77,8 @@ namespace ShounenGaming.Business.Helpers
             public long? IdMal { get; set; }
             public string Status { get; set; }
             public string Format { get; set; }
+            public int? Volumes { get; set; }
+            public int? Chapters { get; set; }
             public string Source { get; set; }
             public string Type { get; set; }
             public ALTitle Title { get; set; }

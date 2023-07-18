@@ -71,7 +71,7 @@ namespace ShounenGaming.Common
             //TODO: Check Coravel Cache Service
             app.Services.UseScheduler(scheduler =>
             {
-                if (app.Environment.IsProduction() || app.Environment.EnvironmentName == "Local")
+                if (app.Environment.IsProduction())
                 {
                     // Fetch Manga Metadata Every 3 Hours
                     scheduler.OnWorker("MangasMetadata");

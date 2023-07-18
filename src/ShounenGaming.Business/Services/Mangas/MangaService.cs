@@ -1,8 +1,6 @@
 ﻿using AutoMapper;
 using JikanDotNet;
 using Microsoft.Extensions.Caching.Memory;
-using MingweiSamuel.Camille.LolStatusV3;
-using MingweiSamuel.Camille.MatchV5;
 using Serilog;
 using ShounenGaming.Business.Exceptions;
 using ShounenGaming.Business.Helpers;
@@ -241,12 +239,12 @@ namespace ShounenGaming.Business.Services.Mangas
                             AlreadyExists = await _mangaRepo.MangaExistsByAL(m.Id),
                             Description = m.Description,
                             Tags = m.Genres.ToList(),
-                            Status = m.Status?.ToString(),
+                            Status = m.Status,
                             Score = m.AverageScore,
                             FinishedAt = m.EndDate.Year != null ? new DateTime(m.EndDate.Year.Value, m.EndDate.Month ?? 1, m.EndDate.Day ?? 1) : null,
                             ImageUrl = m.CoverImage.Large,
                             StartedAt = m.StartDate.Year != null ? new DateTime(m.StartDate.Year.Value, m.StartDate.Month ?? 1, m.StartDate.Day ?? 1) : null,
-                            Type = m.Source?.ToString(),
+                            Type = Enum.GetName(typeof(MangaTypeEnum), ConvertMALMangaType(m.CountryOfOrigin)) ?? "",
                             Source = MangaMetadataSourceEnumDTO.ANILIST
                         });
                     }
@@ -254,6 +252,10 @@ namespace ShounenGaming.Business.Services.Mangas
 
                 case MangaMetadataSourceEnumDTO.MYANIMELIST:
                     var malMangas = (await _jikan.SearchMangaAsync(name)).Data;
+
+                    // Filter only allowed types
+                    malMangas = malMangas.FilterCorrectTypes();
+
                     var malDtos = new List<MangaMetadataDTO>();
                     foreach(var m in malMangas)
                     {
@@ -652,15 +654,13 @@ namespace ShounenGaming.Business.Services.Mangas
             Log.Information("Started Adding Popular Mangas");
 
             // Get & Update MAL Mangas
-            var allowedTypes = new List<string>() { "Manga", "Manhwa", "Manhua" };
             Log.Information("MyAnimeList Mangas");
             for (int i = 1; i < 7; i++)
             {
                 var topMangasMAL = await _jikan.GetTopMangaAsync(i);
-                foreach (var manga in topMangasMAL.Data)
+                var malList = topMangasMAL.Data.FilterCorrectTypes();
+                foreach (var manga in malList)
                 {
-                    if (allowedTypes.Contains(manga.Type)) continue;
-
                     await AddMALManga(manga, null);
                 }
             }
