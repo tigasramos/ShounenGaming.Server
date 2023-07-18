@@ -1,13 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using ShounenGaming.DataAccess.Interfaces.Mangas;
 using ShounenGaming.Business.Interfaces.Mangas;
-using ShounenGaming.Business.Interfaces.Mangas_Scrappers.Models;
 using ShounenGaming.DTOs.Models.Mangas.Enums;
-using ShounenGaming.Business.Helpers;
 using ShounenGaming.DTOs.Models.Mangas;
 using Microsoft.AspNetCore.Authorization;
-using ShounenGaming.Core.Entities.Base;
 using System.Security.Claims;
 
 namespace ShounenGaming.API.Controllers.Mangas
