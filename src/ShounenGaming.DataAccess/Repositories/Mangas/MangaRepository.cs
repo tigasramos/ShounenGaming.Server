@@ -15,13 +15,27 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
         {
             return await dbSet.Where(m => m.UsersData.Any(ud => ud.Status == MangaUserStatusEnum.PLANNED) && !m.Sources.Any()).OrderBy(m => m.UsersData.OrderBy(us => us.UpdatedAt).First().UpdatedAt).ToListAsync();
         }
-        public async Task<List<Manga>> GetPopularMangas()
+        public async Task<List<Manga>> GetPopularMangas(bool includeNSFW = true)
         {
-            return await dbSet.OrderByDescending(m => ((m.MALPopularity ?? m.ALPopularity) + (m.ALPopularity ?? m.MALPopularity)) / 2).Take(10).ToListAsync();
+            var query = dbSet.AsQueryable();
+
+            if (!includeNSFW)
+            {
+                query = query.Where(m => !m.IsNSFW);
+            }
+
+            return await query.OrderByDescending(m => ((m.MALPopularity ?? m.ALPopularity) + (m.ALPopularity ?? m.MALPopularity)) / 2).Take(10).ToListAsync();
         }
-        public async Task<List<Manga>> GetFeaturedMangas()
+        public async Task<List<Manga>> GetFeaturedMangas(bool includeNSFW = true)
         {
-            return await dbSet.Where(m => m.IsFeatured).ToListAsync();
+            var query = dbSet.AsQueryable();
+
+            if (!includeNSFW)
+            {
+                query = query.Where(m => !m.IsNSFW);
+            }
+
+            return await query.Where(m => m.IsFeatured).ToListAsync();
         }
 
         public override void DeleteDependencies(Manga entity)
@@ -35,23 +49,25 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
             context.RemoveRange(entity.Chapters);
         }
 
-        public async Task<List<Manga>> SearchManga(int page, string? name = null, int? userId = null)
+        public async Task<List<Manga>> SearchManga(int page, bool includeNSFW = true, string? name = null, int? userId = null)
         {
-            return await SearchQuery(name, userId).OrderBy(c => c.Name).Skip(25 * (page - 1)).Take(25).ToListAsync();
+            return await SearchQuery(includeNSFW, name, userId).OrderBy(c => c.Name).Skip(25 * (page - 1)).Take(25).ToListAsync();
         }
 
-        public async Task<int> GetAllCount(string? name = null, int? userId = null)
+        public async Task<int> GetAllCount(bool includeNSFW = true, string? name = null, int? userId = null)
         {
-            return await SearchQuery(name, userId).CountAsync();
+            return await SearchQuery(includeNSFW, name, userId).CountAsync();
         }
 
-        private IQueryable<Manga> SearchQuery(string? name = null, int? userId = null)
+        private IQueryable<Manga> SearchQuery(bool includeNSFW = true, string? name = null, int? userId = null)
         {
             IQueryable<Manga> query = dbSet;
 
             if (userId is not null)
                 query = query.Where(m => !m.UsersData.Any(ud => ud.UserId == userId && ud.Status == MangaUserStatusEnum.IGNORED));
 
+            if (!includeNSFW)
+                query = query.Where(m => !m.IsNSFW);
 
             name = name?.ToLowerInvariant();
             if (!string.IsNullOrEmpty(name))
@@ -66,10 +82,15 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
             return await dbSet.OrderByDescending(m => m.CreatedAt).ToListAsync();
         }
 
-        public async Task<List<Manga>> GetRecentlyReleasedChapters()
+        public async Task<List<Manga>> GetRecentlyReleasedChapters(bool includeNSFW = true)
         {
-            var chapters = await dbSet
-                .Where(m => m.Chapters.Any())
+            var query =  dbSet
+                .Where(m => m.Chapters.Any());
+
+            if (!includeNSFW)
+                query = query.Where(c => !c.IsNSFW);
+
+            var chapters = await query
                 .OrderByDescending(c => c.Chapters.OrderByDescending(c => c.Name).First().CreatedAt)
                 .Take(10)
                 .ToListAsync();

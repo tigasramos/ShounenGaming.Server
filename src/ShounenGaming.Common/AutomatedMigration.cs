@@ -3,11 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using ShounenGaming.DataAccess.Persistence;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ShounenGaming.Common
 {
@@ -22,7 +17,9 @@ namespace ShounenGaming.Common
                 {
                     if (appContext.Database.IsNpgsql())
                     {
+                        Log.Information("Applying Migrations");
                         appContext.Database.Migrate();
+                        Log.Information("Done with Migrations");
                     }
                 }
                 catch (Exception ex)

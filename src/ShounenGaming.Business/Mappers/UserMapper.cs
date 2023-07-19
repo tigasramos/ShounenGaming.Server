@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using ShounenGaming.Core.Entities.Base;
 using ShounenGaming.Core.Entities.Base.Enums;
+using ShounenGaming.Core.Entities.Mangas.Enums;
 using ShounenGaming.DTOs.Models.Base;
 using ShounenGaming.DTOs.Models.Base.Enums;
+using ShounenGaming.DTOs.Models.Mangas.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,6 +48,13 @@ namespace ShounenGaming.Business.Mappers
                     opt.PreCondition(u => u.IsInServer);
                     opt.MapFrom(s => s.ServerMember.ImageUrl);
                 });
+
+
+            CreateMap<ReadingModeTypeEnum, ReadingModeTypeEnumDTO>();
+            CreateMap<ReadingModeTypeEnumDTO, ReadingModeTypeEnum>();
+            CreateMap<NSFWBehaviourEnum, NSFWBehaviourEnumDTO>();
+            CreateMap<NSFWBehaviourEnumDTO, NSFWBehaviourEnum>();
+            CreateMap<UserMangasConfigurations, UserMangasConfigsDTO>();
         }
     }
 }

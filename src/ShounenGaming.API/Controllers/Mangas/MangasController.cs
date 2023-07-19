@@ -115,7 +115,11 @@ namespace ShounenGaming.API.Controllers.Mangas
         [HttpGet("recent/chapters")]
         public async Task<IActionResult> GetRecentlyReleasedChapters()
         {            
-            var chapters = await _service.GetRecentlyReleasedChapters();
+            int? userId = null;
+            var claim = User.FindFirst(c => c.Type == "Id");
+            if (claim != null)
+                userId = int.Parse(claim.Value);
+            var chapters = await _service.GetRecentlyReleasedChapters(userId);
             return Ok(chapters);
         }
         

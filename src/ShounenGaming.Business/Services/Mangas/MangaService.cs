@@ -120,13 +120,20 @@ namespace ShounenGaming.Business.Services.Mangas
         }
         public async Task<PaginatedResponse<MangaInfoDTO>> SearchMangas(SearchMangaQueryDTO query, int page, int? userId = null)
         {
-            var mangas = await _mangaRepo.SearchManga(page, query.Name, userId);
+            var includeNSFW = true;
+            if (userId != null)
+            {
+                var user = await _userRepository.GetById(userId.Value) ?? throw new EntityNotFoundException("User");
+                includeNSFW = user.MangasConfigurations.NSFWBehaviour != NSFWBehaviourEnum.HIDE_ALL;
+            }
+
+            var mangas = await _mangaRepo.SearchManga(page, includeNSFW, query.Name, userId);
 
             return new PaginatedResponse<MangaInfoDTO>
             {
                 CurrentPage = page,
                 Data = _mapper.Map<List<MangaInfoDTO>>(mangas),
-                MaxCount = await _mangaRepo.GetAllCount(query.Name, userId)
+                MaxCount = await _mangaRepo.GetAllCount(includeNSFW, query.Name, userId)
             };
         }
         public async Task<List<MangaInfoDTO>> GetWaitingMangas()
@@ -134,15 +141,28 @@ namespace ShounenGaming.Business.Services.Mangas
             var waitingMangas = await _mangaRepo.GetWaitingMangas();
             return _mapper.Map<List<MangaInfoDTO>>(waitingMangas);
         }
-        public async Task<List<MangaInfoDTO>> GetPopularMangas()
+        public async Task<List<MangaInfoDTO>> GetPopularMangas(int? userId = null)
         {
-            var popularMangas = await _mangaRepo.GetPopularMangas();
+            var includesNSFW = true;
+            if (userId != null)
+            {
+                var user = await _userRepository.GetById(userId.Value) ?? throw new EntityNotFoundException("User");
+                includesNSFW = user.MangasConfigurations.NSFWBehaviour != NSFWBehaviourEnum.HIDE_ALL;
+            }
+
+            var popularMangas = await _mangaRepo.GetPopularMangas(includesNSFW);
             return _mapper.Map<List<MangaInfoDTO>>(popularMangas);
         }
-        public async Task<List<MangaInfoDTO>> GetFeaturedMangas()
+        public async Task<List<MangaInfoDTO>> GetFeaturedMangas(int? userId = null)
         {
-            var featuredMangas = await _mangaRepo.GetFeaturedMangas();
+            var includesNSFW = true;
+            if (userId != null)
+            {
+                var user = await _userRepository.GetById(userId.Value) ?? throw new EntityNotFoundException("User");
+                includesNSFW = user.MangasConfigurations.NSFWBehaviour != NSFWBehaviourEnum.HIDE_ALL;
+            }
 
+            var featuredMangas = await _mangaRepo.GetFeaturedMangas(includesNSFW);
             return _mapper.Map<List<MangaInfoDTO>>(featuredMangas);
         }
         public async Task<List<MangaInfoDTO>> GetRecentlyAddedMangas()
@@ -150,9 +170,16 @@ namespace ShounenGaming.Business.Services.Mangas
             var mangas = await _mangaRepo.GetRecentlyAddedMangas();
             return _mapper.Map<List<MangaInfoDTO>>(mangas);
         }
-        public async Task<List<LatestReleaseMangaDTO>> GetRecentlyReleasedChapters()
+        public async Task<List<LatestReleaseMangaDTO>> GetRecentlyReleasedChapters(int? userId = null)
         {
-            var mangas = await _mangaRepo.GetRecentlyReleasedChapters();
+            var includeNSFW = true;
+            if (userId != null)
+            {
+                var user = await _userRepository.GetById(userId.Value) ?? throw new EntityNotFoundException("User");
+                includeNSFW = user.MangasConfigurations.NSFWBehaviour != NSFWBehaviourEnum.HIDE_ALL;
+            }
+
+            var mangas = await _mangaRepo.GetRecentlyReleasedChapters(includeNSFW);
             var dto = new List<LatestReleaseMangaDTO>();
             foreach (var manga in mangas)
             {
@@ -426,6 +453,7 @@ namespace ShounenGaming.Business.Services.Mangas
                 Writer = writer,
                 Tags = tags,
                 ImagesUrls = images,
+                IsNSFW = MangasHelper.IsMangaNSFW(tags.Select(t => t.Name)),
                 MALPopularity = manga.Members,
                 MALScore = manga.Score.HasValue ? decimal.ToDouble(manga.Score.Value) : null,
                 ALPopularity = anilistPopularity,
@@ -524,6 +552,7 @@ namespace ShounenGaming.Business.Services.Mangas
                 Description = manga.Description,
                 Writer = writer,
                 Tags = tags,
+                IsNSFW = MangasHelper.IsMangaNSFW(tags.Select(t => t.Name)),
                 ALPopularity = manga.Popularity,
                 ALScore = manga.AverageScore / (double)10,
                 ImagesUrls = new List<string> { manga.CoverImage.Large },
@@ -755,6 +784,13 @@ namespace ShounenGaming.Business.Services.Mangas
                             changed = true;
                         }
                     }
+
+                    var isNSFW = MangasHelper.IsMangaNSFW(manga.Tags.Select(t => t.Name));
+                    if (isNSFW != manga.IsNSFW)
+                    {
+                        manga.IsNSFW = isNSFW;
+                        changed = true;
+                    }
                 }
 
                 // Get AL second
@@ -812,6 +848,13 @@ namespace ShounenGaming.Business.Services.Mangas
                         }
 
                         manga.Tags = tags;
+                        changed = true;
+                    }
+
+                    var isNSFW = MangasHelper.IsMangaNSFW(manga.Tags.Select(t => t.Name)); 
+                    if (isNSFW != manga.IsNSFW)
+                    {
+                        manga.IsNSFW = isNSFW;
                         changed = true;
                     }
 

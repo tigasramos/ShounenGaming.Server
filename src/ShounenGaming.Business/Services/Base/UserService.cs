@@ -19,10 +19,14 @@ namespace ShounenGaming.Business.Services.Base
 
         public async Task<UserDTO> GetUserById(int id)
         {
-            var user = await _userRepo.GetById(id);
-            if (user == null)
-                throw new EntityNotFoundException("User");
+            var user = await _userRepo.GetById(id) ?? throw new EntityNotFoundException("User");
             return _mapper.Map<UserDTO>(user);
+        }
+
+        public async Task<UserMangasConfigsDTO> GetUserConfigsForMangas(int userId)
+        {
+            var user = await _userRepo.GetById(userId) ?? throw new EntityNotFoundException("User");
+            return _mapper.Map<UserMangasConfigsDTO>(user.MangasConfigurations);
         }
 
         public async Task<List<UserDTO>> GetUsers()

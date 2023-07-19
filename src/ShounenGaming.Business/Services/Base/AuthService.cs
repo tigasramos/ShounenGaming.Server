@@ -79,6 +79,7 @@ namespace ShounenGaming.Business.Services.Base
                     Birthday = new DateTime(createUser.Birthday.Year, createUser.Birthday.Month, createUser.Birthday.Day, 0, 0, 0, DateTimeKind.Utc),
                     DiscordVerified = false,
                     ServerMember = serverMember,
+                    MangasConfigurations = new UserMangasConfigurations()
                 });
 
             }

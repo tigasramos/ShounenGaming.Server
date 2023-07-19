@@ -7,6 +7,7 @@ namespace ShounenGaming.DTOs.Models.Mangas
         public int Id { get; set; }
         public string Name { get; set; }
         public bool IsReleasing { get; set; }
+        public bool IsNSFW { get; set; }
         public MangaTypeEnumDTO Type { get; set; }
         public List<string> Tags { get; set; }
         public int ChaptersCount { get; set; }

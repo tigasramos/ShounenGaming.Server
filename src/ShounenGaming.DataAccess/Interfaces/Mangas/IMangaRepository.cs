@@ -15,12 +15,12 @@ namespace ShounenGaming.DataAccess.Interfaces.Mangas
         Task<Manga?> GetByMALId(long malId);
         Task<Manga?> GetByALId(long alId);
         Task<List<Manga>> GetWaitingMangas();
-        Task<List<Manga>> GetPopularMangas();
-        Task<List<Manga>> GetFeaturedMangas();
-        Task<List<Manga>> SearchManga(int page, string? name, int? userId);
-        Task<int> GetAllCount(string? name, int? userId);
+        Task<List<Manga>> GetPopularMangas(bool includeNSFW = true);
+        Task<List<Manga>> GetFeaturedMangas(bool includeNSFW = true);
+        Task<List<Manga>> SearchManga(int page, bool includeNSFW, string? name, int? userId);
+        Task<int> GetAllCount(bool includeNSFW, string? name, int? userId);
         Task<List<Manga>> GetRecentlyAddedMangas();
-        Task<List<Manga>> GetRecentlyReleasedChapters();
+        Task<List<Manga>> GetRecentlyReleasedChapters(bool includeNSFW = true);
         Task<Manga?> GetByChapter(int chapterId);
         Task<Manga?> GetByChapters(List<int> chaptersIds);
         Task<Manga?> ClearSources(int mangaId);

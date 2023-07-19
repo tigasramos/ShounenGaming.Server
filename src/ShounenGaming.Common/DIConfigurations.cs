@@ -112,10 +112,6 @@ namespace ShounenGaming.Common
 
             app.UseMiddleware<ExceptionMiddleware>();
 
-
-            //TODO: Remove when deploying
-            //app.UseHttpsRedirection();
-
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapSignalRHubs();

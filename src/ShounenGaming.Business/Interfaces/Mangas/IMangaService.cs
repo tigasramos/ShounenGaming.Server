@@ -36,7 +36,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// Gets the most Popular Mangas
         /// </summary>
         /// <returns></returns>
-        Task<List<MangaInfoDTO>> GetPopularMangas();
+        Task<List<MangaInfoDTO>> GetPopularMangas(int? userId = null);
 
         /// <summary>
         /// Gets the new added Mangas
@@ -48,13 +48,13 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// Gets the new added Chapters
         /// </summary>
         /// <returns></returns>
-        Task<List<LatestReleaseMangaDTO>> GetRecentlyReleasedChapters();
+        Task<List<LatestReleaseMangaDTO>> GetRecentlyReleasedChapters(int? userId = null);
 
         /// <summary>
         /// Gets the Featured Mangas
         /// </summary>
         /// <returns></returns>
-        Task<List<MangaInfoDTO>> GetFeaturedMangas();
+        Task<List<MangaInfoDTO>> GetFeaturedMangas(int? userId = null);
 
         /// <summary>
         /// Change Featured Status

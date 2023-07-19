@@ -16,6 +16,7 @@ namespace ShounenGaming.DTOs.Models.Mangas
         public List<string> Synonyms { get; set; }
         public string Description { get; set; }
         public bool IsReleasing { get; set; }
+        public bool IsNSFW { get; set; }
         public MangaWriterDTO Writer { get; set; }
         public MangaTypeEnumDTO Type { get; set; }
         public List<string> Tags { get; set; }
