@@ -27,7 +27,8 @@ namespace ShounenGaming.Business.Services.Mangas
                     new ManganatoScrapper(), new GekkouScansScrapper(), 
                     new SilenceScansScrapper(), new HuntersScansScrapper(), 
                     new NeoXScansScrapper(), new BRMangasScrapper(), 
-                    new DiskusScanScrapper(), new YesMangasScrapper() };
+                    new DiskusScanScrapper(), new YesMangasScrapper(),
+                    new MangaDexPTScrapper(), new MangaDexENScrapper()};
 
         private readonly IUserRepository _userRepository;
         private readonly IMangaRepository _mangaRepo;
