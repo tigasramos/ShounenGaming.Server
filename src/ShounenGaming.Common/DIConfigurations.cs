@@ -73,7 +73,7 @@ namespace ShounenGaming.Common
             {
                 if (app.Environment.IsProduction())
                 {
-                    // Fetch Manga Metadata Every 3 Hours
+                    // Fetch Manga Metadata every 3h
                     scheduler.OnWorker("MangasMetadata");
                     scheduler.Schedule<AddOrUpdateMangasMetadataJob>().Cron("0 */3 * * *").RunOnceAtStart().PreventOverlapping("MangasMetadata");
 
@@ -81,9 +81,9 @@ namespace ShounenGaming.Common
                     scheduler.OnWorker("MangasChapters_Listener");
                     scheduler.Schedule<FetchMangaChaptersJobListener>().Monthly().RunOnceAtStart().PreventOverlapping("MangasChapters_Listener");
 
-                    // Adds All Mangas to fetch new chapters hourly
+                    // Adds All Mangas to fetch new chapters every 2h
                     scheduler.OnWorker("MangasChapters");
-                    scheduler.Schedule<FetchAllMangasChaptersJob>().Hourly();
+                    scheduler.Schedule<FetchAllMangasChaptersJob>().Cron("0 */2 * * *");
                 } 
                 else
                 { 
