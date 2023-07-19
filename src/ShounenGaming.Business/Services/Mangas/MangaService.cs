@@ -571,7 +571,7 @@ namespace ShounenGaming.Business.Services.Mangas
             if (!manga.Sources.Any())
                 throw new Exception("Manga has no Sources");
 
-            _queue.AddToQueue(mangaId);
+            _queue.AddToPriorityQueue(mangaId);
         }
 
         public async Task UpdateMangaChapters(int mangaId)
@@ -934,6 +934,11 @@ namespace ShounenGaming.Business.Services.Mangas
                                 break;
                             }
                         }
+                    }
+                    else if (dbTranslation.IsWorking)
+                    {
+                        //Avoid rewriting a chapter already working
+                        continue;
                     }
                     // If exists update to work
                     else
