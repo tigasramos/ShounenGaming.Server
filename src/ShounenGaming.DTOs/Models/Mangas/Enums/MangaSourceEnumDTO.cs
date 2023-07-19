@@ -17,6 +17,7 @@ namespace ShounenGaming.DTOs.Models.Mangas.Enums
         MANGAS_CHAN = 6,
         DISKUS_SCAN = 7,
         UNION_MANGAS = 8,
+        YES_MANGAS = 9
     }
 
 }

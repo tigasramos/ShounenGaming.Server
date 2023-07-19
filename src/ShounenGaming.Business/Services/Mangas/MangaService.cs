@@ -22,11 +22,12 @@ namespace ShounenGaming.Business.Services.Mangas
 {
     public class MangaService : IMangaService
     {
+        // TODO: UnionMangas ?
         static readonly List<IBaseMangaScrapper> scrappers = new() { 
                     new ManganatoScrapper(), new GekkouScansScrapper(), 
                     new SilenceScansScrapper(), new HuntersScansScrapper(), 
                     new NeoXScansScrapper(), new BRMangasScrapper(), 
-                    new DiskusScanScrapper(), };
+                    new DiskusScanScrapper(), new YesMangasScrapper() };
 
         private readonly IUserRepository _userRepository;
         private readonly IMangaRepository _mangaRepo;
