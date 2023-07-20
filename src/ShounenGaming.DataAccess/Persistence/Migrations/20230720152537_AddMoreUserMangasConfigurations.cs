@@ -15,14 +15,14 @@ namespace ShounenGaming.DataAccess.Persistence.Migrations
                 table: "UserMangasConfigurations",
                 type: "boolean",
                 nullable: false,
-                defaultValue: false);
+                defaultValue: true);
 
             migrationBuilder.AddColumn<bool>(
                 name: "SkipChapterToAnotherTranslation",
                 table: "UserMangasConfigurations",
                 type: "boolean",
                 nullable: false,
-                defaultValue: false);
+                defaultValue: true);
         }
 
         /// <inheritdoc />
