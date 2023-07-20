@@ -12,6 +12,7 @@ namespace ShounenGaming.Core.Entities.Mangas.Enums
         PLANNED = 1,
         DROPPED = 2,
         IGNORED = 3,
-        COMPLETED = 4
+        COMPLETED = 4,
+        ON_HOLD = 5
     }
 }

@@ -13,5 +13,6 @@ namespace ShounenGaming.DTOs.Models.Mangas.Enums
         DROPPED = 2,
         IGNORED = 3,
         COMPLETED = 4,
+        ON_HOLD = 5
     }
 }
