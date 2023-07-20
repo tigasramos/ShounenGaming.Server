@@ -649,6 +649,7 @@ namespace ShounenGaming.Business.Services.Mangas
                 await UpdateChaptersFromMangaAndSource(manga, source);
             }
 
+            await _mangaRepo.Update(manga);
         }
         public async Task DownloadImages()
         {
@@ -777,6 +778,13 @@ namespace ShounenGaming.Business.Services.Mangas
                 {
                     var mangaMetadata = (await _jikan.GetMangaAsync(manga.MangaMyAnimeListID.Value)).Data;
 
+                    if (!MangasHelper.IsMALMangaCorrectType(mangaMetadata))
+                    {
+                        Log.Information($"Deleting {manga.Name} because type is: {mangaMetadata.Type}");
+                        await _mangaRepo.Delete(manga.Id);
+                        continue;
+                    }
+
                     //Update If needed
                     if (mangaMetadata.Synopsis != manga.Description)
                     {
@@ -824,6 +832,13 @@ namespace ShounenGaming.Business.Services.Mangas
                 if (manga.MangaAniListID != null)
                 {
                     var mangaMetadata = await AniListHelper.GetMangaById(manga.MangaAniListID.Value);
+
+                    if (mangaMetadata.Format.ToLowerInvariant() != "manga")
+                    {
+                        Log.Information($"Deleting {manga.Name} because format is: {mangaMetadata.Format}");
+                        await _mangaRepo.Delete(manga.Id);
+                        continue;
+                    }
 
                     //Only if MAL not found you update here
                     if (!changed && manga.MangaMyAnimeListID == null)
@@ -1020,12 +1035,7 @@ namespace ShounenGaming.Business.Services.Mangas
                     }
 
 
-                    await _mangaRepo.Update(manga);
                 }
-            }
-            catch (SavingImageException sie)
-            {
-                Log.Error($"Saving Images Failed: {sie.Message}");
             }
             catch (Exception ex)
             {

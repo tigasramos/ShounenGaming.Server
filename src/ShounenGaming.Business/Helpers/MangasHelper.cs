@@ -21,9 +21,14 @@ namespace ShounenGaming.Business.Helpers
 
         public static List<JikanDotNet.Manga> FilterCorrectTypes(this ICollection<JikanDotNet.Manga> list)
         {
-            return list.Where(m => m.Type.ToLowerInvariant() != "Light Novel".ToLowerInvariant() &&
-                                   m.Type.ToLowerInvariant() != "Novel".ToLowerInvariant() &&
-                                   m.Type.ToLowerInvariant() != "One-shot".ToLowerInvariant()).ToList();
+            return list.Where(IsMALMangaCorrectType).ToList();
+        }
+
+        public static bool IsMALMangaCorrectType(JikanDotNet.Manga m)
+        {
+            return m.Type.ToLowerInvariant() != "Light Novel".ToLowerInvariant() &&
+                   m.Type.ToLowerInvariant() != "Novel".ToLowerInvariant() &&
+                   m.Type.ToLowerInvariant() != "One-shot".ToLowerInvariant();
         }
     }
 }

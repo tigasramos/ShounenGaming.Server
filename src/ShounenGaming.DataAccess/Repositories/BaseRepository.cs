@@ -42,7 +42,10 @@ namespace ShounenGaming.DataAccess.Repositories
             return true;
         }
 
-        public virtual void DeleteDependencies(TEntity entity) { }
+        public virtual void DeleteDependencies(TEntity entity)
+        {
+            return;
+        }
 
         public async Task<IList<TEntity>> GetAll()
         {

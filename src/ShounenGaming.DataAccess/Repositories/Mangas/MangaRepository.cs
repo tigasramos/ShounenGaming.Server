@@ -40,8 +40,25 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
 
         public override void DeleteDependencies(Manga entity)
         {
+            // Delete UserData
+            context.RemoveRange(entity.UsersData);
+
+            // Delete Sources
+            context.Set<MangaSource>().RemoveRange(entity.Sources);
+
+            // Delete Synonyms Names
+            context.RemoveRange(entity.Synonyms);
+
+            // Delete Alternative Names
             context.RemoveRange(entity.AlternativeNames);
 
+            // Delete Writer
+            if (entity.Writer.Mangas.Count == 1)
+            {
+                context.Remove(entity.Writer);
+            }
+
+            // Delete Chapters
             foreach (var chapter in entity.Chapters)
             {
                 context.RemoveRange(chapter.Translations);
