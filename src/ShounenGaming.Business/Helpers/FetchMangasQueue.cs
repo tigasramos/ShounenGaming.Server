@@ -16,39 +16,46 @@ namespace ShounenGaming.Business.Helpers
     }
     public class FetchMangasQueue : IFetchMangasQueue
     {
-        private readonly BlockingCollection<int> _mangasQueue;
-        private readonly BlockingCollection<int> _priorityMangasQueue;
+        private readonly Queue<int> _mangasQueue;
+        private readonly BlockingCollection<int> _mainQueue;
 
         public FetchMangasQueue()
         {
-            _mangasQueue = new BlockingCollection<int>();
-            _priorityMangasQueue = new BlockingCollection<int>();
+            _mangasQueue = new Queue<int>();
+            _mainQueue = new BlockingCollection<int>();
         }
 
         public void AddToQueue(int mangaId)
         {
             if (_mangasQueue.Contains(mangaId)) return;
 
-            _mangasQueue.Add(mangaId);
+            _mangasQueue.Enqueue(mangaId);
+
+            CalculateMainQueue();
         }
+
         public void AddToPriorityQueue(int mangaId)
         {
-            if (_priorityMangasQueue.Contains(mangaId)) return;
+            if (_mainQueue.Contains(mangaId)) return;
 
-            _priorityMangasQueue.Add(mangaId);
+            _mainQueue.Add(mangaId);
+        }
+
+        private void CalculateMainQueue()
+        {
+            if (!_mainQueue.Any() && _mangasQueue.Any())
+                _mainQueue.Add(_mangasQueue.Dequeue());
         }
 
         public int Dequeue()
         {
-            if (_priorityMangasQueue.Any()) 
-                return _priorityMangasQueue.Take();
-
-            return _mangasQueue.Take();
+            CalculateMainQueue();
+            return _mainQueue.Take();
         }
 
         public List<int> GetNextInQueue()
         {
-            var next = _priorityMangasQueue.ToList();
+            var next = _mainQueue.ToList();
             next.AddRange(_mangasQueue.ToList());
             return next;
         }
