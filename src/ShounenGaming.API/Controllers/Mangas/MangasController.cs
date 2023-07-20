@@ -55,7 +55,8 @@ namespace ShounenGaming.API.Controllers.Mangas
         [HttpGet("{mangaId}/chapters/{chapterId}/translations/{translation}")]
         public async Task<IActionResult> GetMangaTranslation(int mangaId, int chapterId, MangaTranslationEnumDTO translation)
         {
-            var mangaTranslation = await _service.GetMangaTranslation(mangaId, chapterId, translation);
+            var userId = int.Parse(User.FindFirst(c => c.Type == "Id")!.Value);
+            var mangaTranslation = await _service.GetMangaTranslation(userId, mangaId, chapterId, translation);
             return Ok(mangaTranslation);
         }
 

@@ -18,7 +18,6 @@ namespace ShounenGaming.DTOs.Models.Mangas
         public DateTime? ReleasedAt { get; set; }
         public DateTime CreatedAt { get; set; }
 
-        public MangaTranslationEnumDTO DefaultLanguage { get; set; }
         public required string MangaName { get; set; }
 
         public int? PreviousChapterId { get; set; }

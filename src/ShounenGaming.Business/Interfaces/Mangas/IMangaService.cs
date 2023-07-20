@@ -87,7 +87,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task<MangaTranslationDTO> GetMangaTranslation(int mangaId, int chapterId, MangaTranslationEnumDTO translation);
+        Task<MangaTranslationDTO?> GetMangaTranslation(int userId, int mangaId, int chapterId, MangaTranslationEnumDTO translation);
 
         /// <summary>
         /// Adds a Manga from a Metadata Source with that Id

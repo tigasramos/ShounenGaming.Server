@@ -207,12 +207,17 @@ namespace ShounenGaming.Business.Services.Mangas
             var lastStatusUpdate = await _mangaChangedStatusActionRepo.GetLastMangaUserStatusUpdate(mangaUserData.UserId, mangaUserData.MangaId);
             var lastChapterReadUpdate = await _mangaChangedChapterStateActionRepo.GetLastChapterUserReadFromManga(mangaUserData.UserId, mangaUserData.MangaId);
             var firstChapterReadUpdate = await _mangaChangedChapterStateActionRepo.GetFirstChapterUserReadFromManga(mangaUserData.UserId, mangaUserData.MangaId);
+            var manga = mangaUserData.Manga;
+
+            if (!mangaUserData.User.MangasConfigurations.ShowProgressForChaptersWithDecimals)
+                manga.Chapters = manga.Chapters.Where(c => (c.Name % 1) == 0).ToList();
+
             return new MangaUserDataDTO
             {
                 AddedToStatusDate = lastStatusUpdate?.CreatedAt,
                 ChaptersRead = mangaUserData.ChaptersRead is not null ? mangaUserData.ChaptersRead.Select(c => c.Id).ToList() : new List<int>(),
                 FinishedReadingDate = lastChapterReadUpdate?.CreatedAt,
-                Manga = _mapper.Map<MangaInfoDTO>(mangaUserData.Manga),
+                Manga = _mapper.Map<MangaInfoDTO>(manga),
                 StartedReadingDate = firstChapterReadUpdate?.CreatedAt,
                 Status = _mapper.Map<MangaUserStatusEnumDTO>(mangaUserData.Status),
                 UserId = mangaUserData.UserId

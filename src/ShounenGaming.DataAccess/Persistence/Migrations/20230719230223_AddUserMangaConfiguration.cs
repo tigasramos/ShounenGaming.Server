@@ -45,6 +45,10 @@ namespace ShounenGaming.DataAccess.Persistence.Migrations
                 table: "UserMangasConfigurations",
                 column: "UserId",
                 unique: true);
+
+            // This Script will Create Manga Configurations for already existing Users
+            migrationBuilder.Sql("INSERT INTO public.\"UserMangasConfigurations\" (\"ReadingMode\", \"NSFWBehaviour\", \"TranslationLanguage\", \"UserId\") SELECT 3 AS \"ReadingMode\", 0 AS \"NSFWBehaviour\", 0 AS \"TranslationLanguage\", u.\"Id\" AS \"UserId\" FROM public.\"Users\" u;");
+
         }
 
         /// <inheritdoc />
