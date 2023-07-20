@@ -77,6 +77,13 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         Task<List<MangaWriterDTO>> GetMangaWriters();
 
         /// <summary>
+        /// Gets Mangas from Tags
+        /// </summary>
+        /// <param name="tag"></param>
+        /// <returns></returns>
+        Task<List<MangaInfoDTO>> GetMangasFromTag(string tag, int? userId = null);
+
+        /// <summary>
         /// Gets all Manga Tags
         /// </summary>
         /// <returns></returns>

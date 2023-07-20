@@ -246,6 +246,26 @@ namespace ShounenGaming.Business.Services.Mangas
             var writers = await _mangaWriterRepo.GetAll();
             return _mapper.Map<List<MangaWriterDTO>>(writers);
         }
+        
+        public async Task<List<MangaInfoDTO>> GetMangasFromTag(string tag, int? userId = null)
+        {
+            var includesNSFW = true;
+            var showProgressAll = true;
+
+            if (userId != null)
+            {
+                var user = await _userRepository.GetById(userId.Value) ?? throw new EntityNotFoundException("User");
+                includesNSFW = user.MangasConfigurations.NSFWBehaviour != NSFWBehaviourEnum.HIDE_ALL;
+                showProgressAll = user.MangasConfigurations.ShowProgressForChaptersWithDecimals;
+            }
+
+            var mangas = await _mangaRepo.GetMangasByTag(tag , includesNSFW);
+
+            if (!showProgressAll)
+                mangas.ForEach(m => m.Chapters = m.Chapters.Where(c => (c.Name % 1) == 0).ToList());
+
+            return _mapper.Map<List<MangaInfoDTO>>(mangas);
+        }
         public async Task<List<string>> GetMangaTags()
         {
             var tags = await _mangaTagRepo.GetAll();

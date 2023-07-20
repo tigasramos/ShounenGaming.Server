@@ -116,7 +116,7 @@ namespace ShounenGaming.API.Controllers.Mangas
         [HttpGet("recent/chapters")]
         public async Task<IActionResult> GetRecentlyReleasedChapters()
         {            
-            int? userId = null;
+            var userId = int.Parse(User.FindFirst(c => c.Type == "Id")!.Value);
             var claim = User.FindFirst(c => c.Type == "Id");
             if (claim != null)
                 userId = int.Parse(claim.Value);
@@ -159,6 +159,18 @@ namespace ShounenGaming.API.Controllers.Mangas
         {
             var tags = await _service.GetMangaTags();
             return Ok(tags);
+        }
+
+        /// <summary>
+        /// Gets the Mangas from Tag
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("mangas/tags/{tag}")]
+        public async Task<IActionResult> GetMangasFromTag(string tag)
+        {
+            var userId = int.Parse(User.FindFirst(c => c.Type == "Id")!.Value);
+            var mangas = await _service.GetMangasFromTag(tag, userId);
+            return Ok(mangas);
         }
 
         /// <summary>

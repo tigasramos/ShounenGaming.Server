@@ -161,5 +161,17 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
         {
             return await dbSet.AnyAsync(m => m.MangaAniListID == alId);
         }
+
+        public async Task<List<Manga>> GetMangasByTag(string tag, bool includeNSFW = true)
+        {
+            var query = dbSet
+                .Where(m => m.Tags.Any(t => t.Name == tag));
+
+            if (!includeNSFW)
+                query = query.Where(c => !c.IsNSFW);
+
+            var mangas = await query.ToListAsync();
+            return mangas;
+        }
     }
 }

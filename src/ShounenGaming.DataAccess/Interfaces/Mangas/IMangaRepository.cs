@@ -1,10 +1,4 @@
 ﻿using ShounenGaming.Core.Entities.Mangas;
-using ShounenGaming.Core.Entities.Tierlists;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ShounenGaming.DataAccess.Interfaces.Mangas
 {
@@ -15,6 +9,7 @@ namespace ShounenGaming.DataAccess.Interfaces.Mangas
         Task<Manga?> GetByMALId(long malId);
         Task<Manga?> GetByALId(long alId);
         Task<List<Manga>> GetWaitingMangas();
+        Task<List<Manga>> GetMangasByTag(string tag, bool includeNSFW = true);
         Task<List<Manga>> GetPopularMangas(bool includeNSFW = true);
         Task<List<Manga>> GetFeaturedMangas(bool includeNSFW = true);
         Task<List<Manga>> SearchManga(int page, bool includeNSFW, string? name, int? userId);
