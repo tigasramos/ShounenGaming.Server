@@ -68,7 +68,8 @@ namespace ShounenGaming.Business.Services.Mangas
                     UserId = userId,
                     User = user,
                     Status = MangaUserStatusEnum.READING,
-                    IsPrivate = false
+                    IsPrivate = false,
+                    ChaptersRead = new List<Core.Entities.Mangas.MangaChapter>(),
                 };
 
                 mangaUserInfo = await _mangaUserDataRepo.Create(mangaUserInfo);

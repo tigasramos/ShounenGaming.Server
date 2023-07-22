@@ -111,37 +111,39 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
         {
             return MangaSourceEnumDTO.YES_MANGAS;
         }
-
+        public virtual Dictionary<string, string> GetImageHeaders()
+        {
+            return new Dictionary<string, string>
+            {
+                {"Host","img-yes.filestatic3.xyz" },
+                {"User-Agent","Mozilla Firefox 5.0" }
+            };
+        }
         public async Task<List<MangaSourceDTO>> SearchManga(string name)
         {
             var web = new HtmlWeb();
             var mangasList = new List<MangaSourceDTO>();
-            int currentPage = 1;
 
             try
             {
-                while (true)
+                var htmlDoc = await web.LoadFromWebAsync($"https://yesmangas1.com/search?q={name.Replace(" ", "+")}");
+                var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//tbody[@id='leituras']/tr");
+                if (mangasFetched == null || !mangasFetched.Any()) return mangasList;
+
+                foreach (var manga in mangasFetched)
                 {
-                    var htmlDoc = await web.LoadFromWebAsync($"https://yesmangas1.com/search?q={name.Replace(" ", "+")}");
-                    var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//tbody[@id='leituras']/tr");
-                    if (mangasFetched == null || !mangasFetched.Any()) break;
+                    var mangaName = manga.SelectSingleNode("td/div/a/h4")?.InnerText ?? "";
+                    if (mangaName.Contains("(Novel)")) continue;
 
-                    foreach (var manga in mangasFetched)
+                    var mangaUrl = manga.SelectSingleNode("td/a")?.GetAttributeValue("href", "") ?? "";
+                    var imageUrl = manga.SelectSingleNode("td/a/img").GetAttributeValue("data-path", "") ?? "";
+                    mangasList.Add(new MangaSourceDTO
                     {
-                        var mangaName = manga.SelectSingleNode("td/div/a/h4")?.InnerText ?? "";
-                        if (mangaName.Contains("(Novel)")) continue;
-
-                        var mangaUrl = manga.SelectSingleNode("td/a")?.GetAttributeValue("href", "") ?? "";
-                        var imageUrl = manga.SelectSingleNode("td/a/img").GetAttributeValue("data-path", "") ?? "";
-                        mangasList.Add(new MangaSourceDTO
-                        {
-                            Name = HttpUtility.HtmlDecode(mangaName.Trim()),
-                            Url = mangaUrl.Replace("https://yesmangas1.com/manga/", ""),
-                            ImageURL = imageUrl,
-                            Source = GetMangaSourceEnumDTO()
-                        });
-                    }
-                    currentPage++;
+                        Name = HttpUtility.HtmlDecode(mangaName.Trim()),
+                        Url = mangaUrl.Replace("https://yesmangas1.com/manga/", ""),
+                        ImageURL = imageUrl,
+                        Source = GetMangaSourceEnumDTO()
+                    });
                 }
             }
             catch (Exception ex)

@@ -165,7 +165,7 @@ namespace ShounenGaming.API.Controllers.Mangas
         /// Gets the Mangas from Tag
         /// </summary>
         /// <returns></returns>
-        [HttpGet("mangas/tags/{tag}")]
+        [HttpGet("tags/{tag}")]
         public async Task<IActionResult> GetMangasFromTag(string tag)
         {
             var userId = int.Parse(User.FindFirst(c => c.Type == "Id")!.Value);

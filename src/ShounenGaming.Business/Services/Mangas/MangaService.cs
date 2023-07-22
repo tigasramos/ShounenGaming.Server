@@ -1067,6 +1067,7 @@ namespace ShounenGaming.Business.Services.Mangas
             var dto = new MangaTranslationDTO
             {
                 MangaName = mangaTranslation.MangaChapter.Manga.Name,
+                MangaType = _mapper.Map<MangaTypeEnumDTO>(mangaTranslation.MangaChapter.Manga.Type),
                 Language = _mapper.Map<MangaTranslationEnumDTO>(mangaTranslation.Language),
                 ChapterId = mangaTranslation.MangaChapter.Id,
                 ChapterNumber = mangaTranslation.MangaChapter.Name,
@@ -1076,11 +1077,11 @@ namespace ShounenGaming.Business.Services.Mangas
                 PageHeaders = GetScrapperByEnum(Enum.Parse<MangaSourceEnumDTO>(source))?.GetImageHeaders(),
                 CreatedAt = mangaTranslation.CreatedAt,
             };
-            var previousChapter = mangaTranslation.MangaChapter.Manga.Chapters.Where(c => changeTranslation || c.Translations.Any(t => t.Language == mangaTranslation.Language)).OrderByDescending(o => o.Name).SkipWhile(s => s.Id != mangaTranslation.MangaChapter.Id).Skip(1).Take(1).FirstOrDefault();
-            dto.PreviousChapterId = previousChapter?.Id;
+            var previousChapter = mangaTranslation.MangaChapter.Manga.Chapters.OrderByDescending(o => o.Name).SkipWhile(s => s.Id != mangaTranslation.MangaChapter.Id).Skip(1).Take(1).FirstOrDefault();
+            dto.PreviousChapterId = (changeTranslation || (previousChapter?.Translations.Any(t => t.Language == mangaTranslation.Language) ?? false)) ? previousChapter?.Id : null;
 
-            var nextChapter = mangaTranslation.MangaChapter.Manga.Chapters.Where(c => changeTranslation || c.Translations.Any(t => t.Language == mangaTranslation.Language)).OrderBy(o => o.Name).SkipWhile(s => s.Id != mangaTranslation.MangaChapter.Id).Skip(1).Take(1).FirstOrDefault();
-            dto.NextChapterId = nextChapter?.Id;
+            var nextChapter = mangaTranslation.MangaChapter.Manga.Chapters.OrderBy(o => o.Name).SkipWhile(s => s.Id != mangaTranslation.MangaChapter.Id).Skip(1).Take(1).FirstOrDefault();
+            dto.NextChapterId = (changeTranslation || (nextChapter?.Translations.Any(t => t.Language == mangaTranslation.Language) ?? false)) ? nextChapter?.Id : null;
             return dto;
         }
         private async Task SaveImage(IBaseMangaScrapper scrapper, TranslationLanguageEnum scrapperTranslation, string mangaName, string chapterName, string chapterLink)
