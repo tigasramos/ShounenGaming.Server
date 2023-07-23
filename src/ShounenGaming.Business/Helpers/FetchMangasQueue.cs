@@ -7,38 +7,44 @@ using System.Threading.Tasks;
 
 namespace ShounenGaming.Business.Helpers
 {
+    public class QueuedManga
+    {
+        public int MangaId { get; set; }
+        public int? QueuedByUser { get; set; }
+        public DateTime QueuedAt { get; set; }
+    }
     public interface IFetchMangasQueue
     {
-        void AddToPriorityQueue(int mangaId);
-        void AddToQueue(int mangaId);
-        int Dequeue();
-        List<int> GetNextInQueue();
+        void AddToPriorityQueue(QueuedManga mangaId);
+        void AddToQueue(QueuedManga mangaId);
+        QueuedManga Dequeue();
+        List<QueuedManga> GetNextInQueue();
     }
     public class FetchMangasQueue : IFetchMangasQueue
     {
-        private readonly Queue<int> _mangasQueue;
-        private readonly BlockingCollection<int> _mainQueue;
+        private readonly Queue<QueuedManga> _mangasQueue;
+        private readonly BlockingCollection<QueuedManga> _mainQueue;
 
         public FetchMangasQueue()
         {
-            _mangasQueue = new Queue<int>();
-            _mainQueue = new BlockingCollection<int>();
+            _mangasQueue = new Queue<QueuedManga>();
+            _mainQueue = new BlockingCollection<QueuedManga>();
         }
 
-        public void AddToQueue(int mangaId)
+        public void AddToQueue(QueuedManga manga)
         {
-            if (_mangasQueue.Contains(mangaId)) return;
+            if (_mangasQueue.Any(m => m.MangaId == manga.MangaId)) return;
 
-            _mangasQueue.Enqueue(mangaId);
+            _mangasQueue.Enqueue(manga);
 
             CalculateMainQueue();
         }
 
-        public void AddToPriorityQueue(int mangaId)
+        public void AddToPriorityQueue(QueuedManga manga)
         {
-            if (_mainQueue.Contains(mangaId)) return;
+            if (_mainQueue.Any(m => m.MangaId == manga.MangaId)) return;
 
-            _mainQueue.Add(mangaId);
+            _mainQueue.Add(manga);
         }
 
         private void CalculateMainQueue()
@@ -47,17 +53,18 @@ namespace ShounenGaming.Business.Helpers
                 _mainQueue.Add(_mangasQueue.Dequeue());
         }
 
-        public int Dequeue()
+        public QueuedManga Dequeue()
         {
             CalculateMainQueue();
             return _mainQueue.Take();
         }
 
-        public List<int> GetNextInQueue()
+        public List<QueuedManga> GetNextInQueue()
         {
-            var next = _mainQueue.ToList();
-            next.AddRange(_mangasQueue.ToList());
-            return next;
+            var queued = new List<QueuedManga>();
+            queued.AddRange(_mainQueue.ToList());
+            queued.AddRange(_mangasQueue.ToList());
+            return queued;
         }
     }
 }

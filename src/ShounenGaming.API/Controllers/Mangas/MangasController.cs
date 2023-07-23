@@ -272,8 +272,20 @@ namespace ShounenGaming.API.Controllers.Mangas
         [HttpPut("{mangaId}/chapters")]
         public async Task<IActionResult> FetchChaptersForManga(int mangaId)
         {
-            await _service.StartMangaChaptersUpdate(mangaId);
+            var userId = int.Parse(User.FindFirst(c => c.Type == "Id")!.Value);
+            await _service.StartMangaChaptersUpdate(mangaId, userId);
             return Ok();
+        }
+
+        /// <summary>
+        /// Gets the Fetched Mangas Chapters Queue
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("queue")]
+        public IActionResult GetQueueStatus()
+        {
+            var queue = _service.GetQueueStatus();
+            return Ok(queue);
         }
 
         #endregion

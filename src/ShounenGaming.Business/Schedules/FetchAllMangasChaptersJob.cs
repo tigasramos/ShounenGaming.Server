@@ -1,22 +1,17 @@
 ﻿using Coravel.Invocable;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using ShounenGaming.Business.Interfaces.Mangas;
-using ShounenGaming.DataAccess.Interfaces.Mangas;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ShounenGaming.Business.Schedules
 {
     public class FetchAllMangasChaptersJob : IInvocable
     {
-        private readonly IMangaService _mangaService;
+        private readonly IServiceProvider services;
 
-        public FetchAllMangasChaptersJob(IMangaService mangaService)
+        public FetchAllMangasChaptersJob(IServiceProvider services)
         {
-            _mangaService = mangaService;
+            this.services = services;
         }
 
 
@@ -25,7 +20,10 @@ namespace ShounenGaming.Business.Schedules
             try
             {
                 Log.Information($"Started Adding Mangas Chapters to Queue");
-                await _mangaService.UpdateMangasChapters();
+
+                using var scope = services.CreateScope();
+                var mangaService = scope.ServiceProvider.GetRequiredService<IMangaService>();
+                await mangaService.UpdateMangasChapters();
             }
             catch(Exception ex)
             {

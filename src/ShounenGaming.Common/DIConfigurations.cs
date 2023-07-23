@@ -204,13 +204,24 @@ namespace ShounenGaming.Common
                 {
                     OnMessageReceived = context =>
                     {
-                        //Get Token from Header
-                        var accessToken = context.Request.Headers["Authorization"];
-                        if (accessToken.Count > 0)
+                        var accessToken = string.Empty;
+
+                        // Get Token from Headers
+                        var authHeader = context.Request.Headers["Authorization"];
+                        if (authHeader.Count > 0)
                         {
-                            //Remove the Bearer part
-                            context.Token = accessToken[0]!.Split(" ")[1];
-                        } 
+                            accessToken = authHeader[0]!.Split(" ")[1];
+                        }
+
+                        // Get Token from Query (SignalR)
+                        if (string.IsNullOrEmpty(accessToken))
+                        {
+                            accessToken = context.Request.Query["access_token"].ToString();
+                        }
+
+                        if (!string.IsNullOrEmpty(accessToken))
+                            context.Token = accessToken;
+
                         return Task.CompletedTask;
                     }
                 };

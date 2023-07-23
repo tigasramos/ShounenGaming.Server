@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using JikanDotNet;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Caching.Memory;
 using Serilog;
 using ShounenGaming.Business.Exceptions;
 using ShounenGaming.Business.Helpers;
+using ShounenGaming.Business.Hubs;
 using ShounenGaming.Business.Interfaces.Base;
 using ShounenGaming.Business.Interfaces.Mangas;
 using ShounenGaming.Business.Services.Mangas_Scrappers;
@@ -22,6 +24,8 @@ namespace ShounenGaming.Business.Services.Mangas
 {
     public class MangaService : IMangaService
     {
+        private static readonly string QUEUE_CACHE_KEY = "mangasQueue";
+
         // TODO: UnionMangas ?
         static readonly List<IBaseMangaScrapper> scrappers = new() { 
                     new ManganatoScrapper(), new GekkouScansScrapper(), 
@@ -40,9 +44,10 @@ namespace ShounenGaming.Business.Services.Mangas
         private readonly IImageService _imageService;
         private readonly IMapper _mapper;
         private readonly IFetchMangasQueue _queue;
+        private readonly IHubContext<MangasHub, IMangasHubClient> _mangasHub;
         private readonly IMemoryCache _cache;
 
-        public MangaService(IMangaRepository mangaRepo, IMangaWriterRepository mangaWriterRepo, IMangaTagRepository mangaTagRepo, IMapper mapper, IImageService imageService, IJikan jikan, IAddedMangaActionRepository addedMangaRepo, IUserRepository userRepository, IFetchMangasQueue queue, IMemoryCache cache)
+        public MangaService(IMangaRepository mangaRepo, IMangaWriterRepository mangaWriterRepo, IMangaTagRepository mangaTagRepo, IMapper mapper, IImageService imageService, IJikan jikan, IAddedMangaActionRepository addedMangaRepo, IUserRepository userRepository, IFetchMangasQueue queue, IMemoryCache cache, IHubContext<MangasHub, IMangasHubClient> mangasHub)
         {
             _mangaRepo = mangaRepo;
             _mangaWriterRepo = mangaWriterRepo;
@@ -54,6 +59,7 @@ namespace ShounenGaming.Business.Services.Mangas
             _userRepository = userRepository;
             _queue = queue;
             _cache = cache;
+            _mangasHub = mangasHub;
         }
 
 
@@ -642,17 +648,19 @@ namespace ShounenGaming.Business.Services.Mangas
         }
         #endregion
 
-        public async Task StartMangaChaptersUpdate(int mangaId)
+        public async Task StartMangaChaptersUpdate(int mangaId, int userId)
         {
+            var user = await _userRepository.GetById(userId) ?? throw new EntityNotFoundException("User");
             var manga = await _mangaRepo.GetById(mangaId) ?? throw new EntityNotFoundException("Manga");
             if (!manga.Sources.Any())
                 throw new Exception("Manga has no Sources");
 
-            _queue.AddToPriorityQueue(mangaId);
+            _queue.AddToPriorityQueue(new QueuedManga { MangaId = manga.Id, QueuedAt = DateTime.UtcNow, QueuedByUser = userId});
         }
-        public async Task UpdateMangaChapters(int mangaId)
+
+        public async Task UpdateMangaChapters(QueuedManga queuedManga)
         {
-            var manga = await _mangaRepo.GetById(mangaId);
+            var manga = await _mangaRepo.GetById(queuedManga.MangaId);
             Log.Information($"Scrapping {manga.Name}");
 
             // Reset IsWorking Status
@@ -660,17 +668,83 @@ namespace ShounenGaming.Business.Services.Mangas
             {
                 foreach(var translation in chapter.Translations)
                 {
-                    translation.IsWorking = false;
+                    if (!translation.Downloaded)
+                        translation.IsWorking = false;
                 }
             }
 
+            // Put in Cache
+            var dtosQueue = new List<QueuedMangaDTO>();
+            var user = queuedManga.QueuedByUser != null ? await _userRepository.GetById(queuedManga.QueuedByUser.Value) : null;
+            dtosQueue.Add(new QueuedMangaDTO
+            {
+                Manga = _mapper.Map<MangaInfoDTO>(manga), 
+                Progress = new QueueProgressDTO(),
+                QueuedAt = queuedManga.QueuedAt,
+                QueuedByUser = user != null ? _mapper.Map<SimpleUserDTO>(user) : null
+            });
+            _cache.Set(QUEUE_CACHE_KEY, dtosQueue);
+            _cache.Set(QUEUE_CACHE_KEY, await RecalculateMangasQueue());
+
             foreach (var source in manga.Sources)
             {
-                await UpdateChaptersFromMangaAndSource(manga, source);
+                await UpdateChaptersFromMangaAndSource(manga, source, manga.Sources.Count);
             }
 
+            // With this here only adds all the chapters at the same time
             await _mangaRepo.Update(manga);
+
+
+            // Notify it ended
+            var cachedQueue = _cache.Get<List<QueuedMangaDTO>>(QUEUE_CACHE_KEY);
+            cachedQueue?.RemoveAt(0);
+            _cache.Set(QUEUE_CACHE_KEY, cachedQueue);
+            cachedQueue = _cache.Set(QUEUE_CACHE_KEY, await RecalculateMangasQueue());
+            await _mangasHub.Clients.All.SendMangasQueue(cachedQueue);
         }
+
+        private async Task<List<QueuedMangaDTO>> RecalculateMangasQueue()
+        {
+            List<QueuedMangaDTO> cachedQueue = _cache.Get<List<QueuedMangaDTO>>(QUEUE_CACHE_KEY)!;
+            var updatedQueue = _queue.GetNextInQueue().Take(20);
+
+            // Get New Ones
+            var newQueue = new List<QueuedMangaDTO>();
+            if (cachedQueue!.Any())
+                newQueue.Add(cachedQueue[0]);
+            foreach(var manga in updatedQueue)
+            {
+                var queuedManga = cachedQueue.FirstOrDefault(cm => cm.Manga.Id == manga.MangaId && cm.QueuedByUser?.Id == manga.QueuedByUser && cm.QueuedAt == manga.QueuedAt);
+                if (queuedManga is null)
+                {
+                    var repeatedManga = cachedQueue.Select(cm => cm.Manga).FirstOrDefault(cm => cm.Id == manga.MangaId);
+                    repeatedManga ??= _mapper.Map<MangaInfoDTO>(await _mangaRepo.GetById(manga.MangaId));
+
+                    var repeatedUser = manga.QueuedByUser is null ?  null : cachedQueue.Select(cm => cm.QueuedByUser).FirstOrDefault(cm => cm?.Id == manga.QueuedByUser);
+                    repeatedUser ??= manga.QueuedByUser is null ? null : _mapper.Map<SimpleUserDTO>(await _userRepository.GetById(manga.QueuedByUser.Value));
+
+                    queuedManga = new QueuedMangaDTO
+                    {
+                        QueuedAt = manga.QueuedAt,
+                        QueuedByUser = repeatedUser,
+                        Manga = repeatedManga
+                    };
+                }
+                newQueue.Add(queuedManga!);
+            }
+
+            return newQueue;
+
+        }
+
+        public List<QueuedMangaDTO> GetQueueStatus()
+        {
+            var takeQueue = _cache.TryGetValue(QUEUE_CACHE_KEY, out List<QueuedMangaDTO>? queue);
+            return takeQueue ? queue! : new List<QueuedMangaDTO>();
+        }
+
+
+
         public async Task DownloadImages()
         {
             var mangas = await _mangaRepo.GetAll();
@@ -713,6 +787,7 @@ namespace ShounenGaming.Business.Services.Mangas
             }
         }
 
+
         #region Jobs
         public async Task UpdateMangasChapters()
         {
@@ -721,7 +796,7 @@ namespace ShounenGaming.Business.Services.Mangas
             foreach (var manga in mangas)
             {
                 if (manga.Sources.Any())
-                    _queue.AddToQueue(manga.Id);
+                    _queue.AddToQueue(new QueuedManga { MangaId  = manga.Id, QueuedAt = DateTime.UtcNow});
             }
 
         }
@@ -951,7 +1026,7 @@ namespace ShounenGaming.Business.Services.Mangas
         #endregion
 
         #region Private
-        private async Task UpdateChaptersFromMangaAndSource(Core.Entities.Mangas.Manga manga, MangaSource source)
+        private async Task UpdateChaptersFromMangaAndSource(Core.Entities.Mangas.Manga manga, MangaSource source, int maxSources)
         {
             try
             {
@@ -974,9 +1049,25 @@ namespace ShounenGaming.Business.Services.Mangas
 
                 int scrapperFailures = 0;
 
-                // Check chapters
-                foreach (var chapter in mangaInfo.Chapters)
+                for (int i = 0; i < mangaInfo.Chapters.Count; i++)
                 {
+                    var chapter = mangaInfo.Chapters[i];
+
+                    // Send to Queue Hub
+                    var cachedQueue = _cache.Get<List<QueuedMangaDTO>>(QUEUE_CACHE_KEY);
+                    if (cachedQueue is not null)
+                    {
+                        cachedQueue![0].Progress!.TotalChapters = mangaInfo.Chapters.Count;
+                        cachedQueue![0].Progress!.CurrentSource = scrapperEnum;
+                        cachedQueue![0].Progress!.CurrentChapter = i + 1;
+                        cachedQueue![0].Progress!.Percentage += ((100 / (double)maxSources) / mangaInfo.Chapters.Count);
+                        _cache.Set(QUEUE_CACHE_KEY, cachedQueue);
+
+                        var updatedQueue = _cache.Set(QUEUE_CACHE_KEY, await RecalculateMangasQueue());
+                        await _mangasHub.Clients.All.SendMangasQueue(updatedQueue);
+                    }
+
+
                     // Check if its a valid name
                     var nameScrapped = chapter.Name.Split(":").First().Split("-").First().Split(" ").First().Replace(",",".").Trim();
                     if (string.IsNullOrEmpty(nameScrapped) || !double.TryParse(nameScrapped,NumberStyles.Any, NumberFormatInfo.InvariantInfo, out var number))

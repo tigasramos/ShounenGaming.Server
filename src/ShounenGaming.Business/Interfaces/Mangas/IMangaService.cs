@@ -1,4 +1,5 @@
-﻿using ShounenGaming.DTOs.Models.Base;
+﻿using ShounenGaming.Business.Helpers;
+using ShounenGaming.DTOs.Models.Base;
 using ShounenGaming.DTOs.Models.Mangas;
 using ShounenGaming.DTOs.Models.Mangas.Enums;
 
@@ -150,7 +151,13 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// </summary>
         /// <param name="mangaId"></param>
         /// <returns></returns>
-        Task StartMangaChaptersUpdate(int mangaId);
+        Task StartMangaChaptersUpdate(int mangaId, int userId);
+
+        /// <summary>
+        /// Gets the Status of the Queue that's fetching chapters
+        /// </summary>
+        /// <returns></returns>
+        List<QueuedMangaDTO> GetQueueStatus();
 
         #region Jobs
         /// <summary>
@@ -170,7 +177,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// </summary>
         /// <param name="mangaId"></param>
         /// <returns></returns>
-        internal Task UpdateMangaChapters(int mangaId);
+        internal Task UpdateMangaChapters(QueuedManga queuedManga);
         #endregion
     }
 }
