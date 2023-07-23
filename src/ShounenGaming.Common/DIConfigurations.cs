@@ -83,7 +83,7 @@ namespace ShounenGaming.Common
 
                     // Adds All Mangas to fetch new chapters every 2h
                     scheduler.OnWorker("MangasChapters");
-                    scheduler.Schedule<FetchAllMangasChaptersJob>().Cron("0 */2 * * *");
+                    scheduler.Schedule<FetchAllMangasChaptersJob>().Cron("0 */2 * * *").RunOnceAtStart();
                 } 
                 else
                 { 
@@ -94,7 +94,10 @@ namespace ShounenGaming.Common
                     // Background Job that will listen the queue to Fetch New Chapters
                     scheduler.OnWorker("MangasChapters_Listener");
                     scheduler.Schedule<FetchMangaChaptersJobListener>().Monthly().RunOnceAtStart().PreventOverlapping("MangasChapters_Listener");
-
+                    
+                    // Adds All Mangas to fetch new chapters
+                    scheduler.OnWorker("MangasChapters");
+                    scheduler.Schedule<FetchAllMangasChaptersJob>().Monthly().RunOnceAtStart();
                 }
                 
 
