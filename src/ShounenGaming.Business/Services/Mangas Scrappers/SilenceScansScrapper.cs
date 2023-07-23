@@ -1,61 +1,15 @@
 ﻿using HtmlAgilityPack;
-using Newtonsoft.Json;
 using Serilog;
-using ShounenGaming.Business.Interfaces.Mangas_Scrappers.Models;
+using ShounenGaming.Business.Services.Mangas_Scrappers.Models;
 using ShounenGaming.DTOs.Models.Mangas;
 using ShounenGaming.DTOs.Models.Mangas.Enums;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
+namespace ShounenGaming.Business.Services.Mangas_Scrappers
 {
     internal class SilenceScansScrapper : IBaseMangaScrapper
     {
-        //SilenceScan PT
-        //2 seg -> 71
-        public async Task<List<MangaSourceDTO>> GetAllMangas()
-        {
-            var web = new HtmlWeb();
-            var mangasList = new List<MangaSourceDTO>();
-            var currentPage = 1;
-
-            try
-            {
-                while (true)
-                {
-                    var htmlDoc = await web.LoadFromWebAsync($"https://silencescan.com.br/manga/?page={currentPage}");
-                    var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//div[@class='listupd']/div/div/a");
-                    if (mangasFetched == null || !mangasFetched.Any()) break;
-
-                    foreach (var manga in mangasFetched)
-                    {
-                        var mangaName = manga.GetAttributeValue("title", "") ?? "";
-                        var mangaURL = manga.GetAttributeValue("href", "") ?? "";
-                        var imageURL = manga.SelectSingleNode("div[@class='limit']/img").GetAttributeValue("src", "") ?? "";
-                        mangasList.Add(new MangaSourceDTO
-                        {
-                            Name = mangaName.Trim(),
-                            Url = mangaURL.Remove(mangaURL.Length - 1).Split("/").Last(),
-                            Source = GetMangaSourceEnumDTO()
-                        });
-                    }
-                    currentPage++;
-
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"SilenceScans - GetAllMangas: {ex.Message}");
-            }
-            
-
-            return mangasList;
-        }
-
         public async Task<List<MangaSourceDTO>> GetAllMangasByPage(int page)
         {
             var web = new HtmlWeb();
@@ -138,9 +92,9 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
             return imagesUrls;
         }
 
-        public string GetLanguage()
+        public MangaTranslationEnumDTO GetLanguage()
         {
-            return "PT";
+            return MangaTranslationEnumDTO.PT;
         }
 
         public string GetBaseURLForManga()

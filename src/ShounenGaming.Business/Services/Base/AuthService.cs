@@ -4,13 +4,8 @@ using Serilog;
 using ShounenGaming.Business.Exceptions;
 using ShounenGaming.Business.Interfaces.Base;
 using ShounenGaming.DataAccess.Interfaces.Base;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
-using System.IdentityModel.Tokens;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -23,7 +18,6 @@ using AutoMapper;
 
 namespace ShounenGaming.Business.Services.Base
 {
-    // TODO: Rethink the creation, since I can create and not verify on a other person's account (maybe change or save in cache)
     public class AuthService : IAuthService
     {
         private readonly AppSettings _appSettings;
@@ -79,6 +73,7 @@ namespace ShounenGaming.Business.Services.Base
                     Birthday = new DateTime(createUser.Birthday.Year, createUser.Birthday.Month, createUser.Birthday.Day, 0, 0, 0, DateTimeKind.Utc),
                     DiscordVerified = false,
                     ServerMember = serverMember,
+                    MangasConfigurations = new UserMangasConfigurations()
                 });
 
             }
@@ -103,19 +98,19 @@ namespace ShounenGaming.Business.Services.Base
             };
 
             _cache.Set(username, dataHolder, dataHolder.ExpiresAt);
-            await _authHub.Clients.All.SendToken(user.ServerMember.DiscordId, dataHolder.Token, dataHolder.ExpiresAt);
+            await _authHub.Clients.All.SendToken(user.ServerMember!.DiscordId, dataHolder.Token, dataHolder.ExpiresAt);
 
             Log.Information($"User {user.FirstName} {user.LastName} created token {dataHolder.Token}");
         }
 
         public async Task<AuthResponse> LoginUser(string username, string token)
         {
-            var existsEntry = _cache.TryGetValue(username, out CacheHolder dataHolder);
+            var existsEntry = _cache.TryGetValue(username, out CacheHolder? dataHolder);
 
             if (!existsEntry)
                 throw new EntityNotFoundException("Token");
 
-            if (token != dataHolder.Token)
+            if (token != dataHolder?.Token)
                 throw new WrongCredentialsException("Token");
 
 
@@ -123,13 +118,18 @@ namespace ShounenGaming.Business.Services.Base
 
             _cache.Remove(username);
 
-            user.RefreshToken = await GenerateRefreshToken();
-            user.RefreshTokenExpiryDate = DateTime.UtcNow.AddDays(7);
+            //Expires in 3 Days
+            if (user.RefreshTokenExpiryDate.HasValue && user.RefreshTokenExpiryDate.Value.AddDays(-3) <= DateTime.UtcNow)
+            {
+                user.RefreshToken = await GenerateRefreshToken();
+                user.RefreshTokenExpiryDate = DateTime.UtcNow.AddDays(30);
+                user = await _userRepo.Update(user);
+            }
+            
 
-            var updatedUser = await _userRepo.Update(user);
-            Log.Information($"User {updatedUser.FirstName} {updatedUser.LastName} logged in");
+            Log.Information($"User {user.FirstName} {user.LastName} logged in");
 
-            return GetAuthResponseForUser(updatedUser);
+            return GetAuthResponseForUser(user);
         }
 
         public AuthResponse LoginBot(string discordId, string password)
@@ -161,11 +161,12 @@ namespace ShounenGaming.Business.Services.Base
                 throw new InvalidOperationException("RefreshToken expired");
             }
 
-            //Handle RefreshToken if less than 3 days to expire
-            if (user.RefreshTokenExpiryDate!.Value.AddDays(-3) <= DateTime.UtcNow)
+            //Expires in 3 Days
+            if (user.RefreshTokenExpiryDate.HasValue && user.RefreshTokenExpiryDate.Value.AddDays(-3) <= DateTime.UtcNow)
             {
                 user.RefreshToken = await GenerateRefreshToken();
                 user.RefreshTokenExpiryDate = DateTime.UtcNow.AddDays(7);
+                user = await _userRepo.Update(user);
             }
 
             var updatedUser = await _userRepo.Update(user);
@@ -303,7 +304,7 @@ namespace ShounenGaming.Business.Services.Base
 
         private class CacheHolder
         {
-            public string Token { get; set; }
+            public required string Token { get; set; }
             public DateTime ExpiresAt { get; set; }
         }
 

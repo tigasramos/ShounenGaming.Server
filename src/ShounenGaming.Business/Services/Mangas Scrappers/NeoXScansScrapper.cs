@@ -1,62 +1,14 @@
 ﻿using HtmlAgilityPack;
 using Serilog;
-using ShounenGaming.Business.Interfaces.Mangas_Scrappers.Models;
+using ShounenGaming.Business.Services.Mangas_Scrappers.Models;
 using ShounenGaming.DTOs.Models.Mangas;
 using ShounenGaming.DTOs.Models.Mangas.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Web;
 
-namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
+namespace ShounenGaming.Business.Services.Mangas_Scrappers
 {
     internal class NeoXScansScrapper : IBaseMangaScrapper
     {
-        //NeoXScans PT
-        //5 seg -> 321
-        public async Task<List<MangaSourceDTO>> GetAllMangas()
-        {
-            var web = new HtmlWeb();
-            var mangasList = new List<MangaSourceDTO>();
-            int currentPage = 1;
-            
-
-            try { 
-                while (true)
-                {
-                    var htmlDoc = await web.LoadFromWebAsync($"https://neoxscans.net/manga/page/{currentPage}");
-                    var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//div[@class='col-6 col-md-2 badge-pos-2']/div");
-                    if (mangasFetched == null || !mangasFetched.Any()) break;
-
-                    foreach (var manga in mangasFetched)
-                    {
-                        var mangaName = manga.SelectSingleNode("div[@class='item-summary']/div/h3/a")?.InnerText ?? "";
-                        if (mangaName.Contains("[Novel]"))
-                            continue;
-                        var mangaUrl = manga.SelectSingleNode("div[@class='item-summary']/div/h3/a")?.GetAttributeValue("href", "") ?? "";
-                        var imageUrl = manga.SelectSingleNode("div[@class='item-thumb  c-image-hover']/a/img").GetAttributeValue("src", "") ?? "";
-                        mangasList.Add(new MangaSourceDTO
-                        {
-                            Name = HttpUtility.HtmlDecode(mangaName.Trim()),
-                            Url = mangaUrl.Remove(mangaUrl.Length - 1).Split("/").Last(),
-                            ImageURL = imageUrl,
-                            Source = GetMangaSourceEnumDTO()
-                        });
-                    }
-
-                    currentPage++;
-
-                } 
-            } catch (Exception ex) 
-            {
-                Log.Error($"NeoXScans - GetAllMangas: {ex.Message}");
-            }
-
-            return mangasList;
-        }
-
         public async Task<List<MangaSourceDTO>> GetAllMangasByPage(int page)
         {
             var web = new HtmlWeb();
@@ -155,9 +107,9 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
 
             throw new Exception();
         }
-        public string GetLanguage()
+        public MangaTranslationEnumDTO GetLanguage()
         {
-            return "PT";
+            return MangaTranslationEnumDTO.PT;
         }
 
         public string GetBaseURLForManga()

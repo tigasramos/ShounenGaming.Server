@@ -1,57 +1,13 @@
 ﻿using HtmlAgilityPack;
 using Serilog;
-using ShounenGaming.Business.Interfaces.Mangas_Scrappers.Models;
+using ShounenGaming.Business.Services.Mangas_Scrappers.Models;
 using ShounenGaming.DTOs.Models.Mangas;
 using ShounenGaming.DTOs.Models.Mangas.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
+namespace ShounenGaming.Business.Services.Mangas_Scrappers
 {
     internal class ManganatoScrapper : IBaseMangaScrapper
     {
-        //Manganato EN
-        //6:42 seg -> 35133
-        public async Task<List<MangaSourceDTO>> GetAllMangas()
-        {
-            var web = new HtmlWeb();
-            var mangasList = new List<MangaSourceDTO>();
-            int currentPage = 1;
-
-            try { 
-                while (true)
-                {
-                    var htmlDoc = await web.LoadFromWebAsync($"https://manganato.com/genre-all/{currentPage}");
-                    var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//div[@class='content-genres-item']");
-                    if (mangasFetched == null || !mangasFetched.Any()) break;
-
-                    foreach (var manga in mangasFetched)
-                    {
-                        var mangaName = manga.SelectSingleNode("div/h3/a")?.InnerText ?? "";
-                        var mangaURL = manga.SelectSingleNode("div/h3/a")?.GetAttributeValue("href", "") ?? "";
-                        var imageUrl = manga.SelectSingleNode("a/img").GetAttributeValue("src", "") ?? "";
-                        mangasList.Add(new MangaSourceDTO
-                        {
-                            Name = mangaName.Trim(),
-                            Url = mangaURL.Split("-").Last(),
-                            ImageURL = imageUrl,
-                            Source = GetMangaSourceEnumDTO()
-                        });
-                    }
-                    currentPage++;
-                } 
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"Manganato - GetAllMangas: {ex.Message}");
-            }
-
-            return mangasList;
-        }
-
         public async Task<List<MangaSourceDTO>> GetAllMangasByPage(int page)
         {
             var web = new HtmlWeb();
@@ -127,7 +83,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
                 Source = GetMangaSourceEnumDTO()
             };
         }
-        //NOTE: Needs Header Referer:https://chapmanganato.com/ to work
+
         public async Task<List<string>> GetChapterImages(string urlPart)
         {
             var web = new HtmlWeb();
@@ -141,9 +97,9 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
             }
             return imagesUrls;
         }
-        public string GetLanguage()
+        public MangaTranslationEnumDTO GetLanguage()
         {
-            return "EN";
+            return MangaTranslationEnumDTO.EN;
         }
 
         public string GetBaseURLForManga()
@@ -168,18 +124,6 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
                 var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//div[@class='search-story-item']");
                 if (mangasFetched == null || !mangasFetched.Any()) return mangasList;
 
-                // Note: Only 1 Page
-                //if (currentPage == 2)
-                //{
-                //    var pages = htmlDoc.DocumentNode.SelectNodes("//div[@class='group-page']/a");
-                //    if (pages.Any())
-                //    {
-                //        var lastPage = pages.Last();
-                //        if (Convert.ToInt32(lastPage.InnerText.Replace("LAST(", "").Replace(")", "")) < currentPage) break;
-                //    }
-                //}
-
-
                 foreach (var manga in mangasFetched)
                 {
                     var mangaName = manga.SelectSingleNode("div/h3/a")?.InnerText ?? "";
@@ -193,7 +137,6 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
                         Source = GetMangaSourceEnumDTO()
                     });
                 }
-                //currentPage++;
             }
             catch (Exception ex)
             {

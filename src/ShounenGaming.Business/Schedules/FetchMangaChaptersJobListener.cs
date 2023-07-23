@@ -1,42 +1,41 @@
 ﻿using Coravel.Invocable;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using ShounenGaming.Business.Helpers;
 using ShounenGaming.Business.Interfaces.Mangas;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ShounenGaming.Business.Schedules
 {
     
     public class FetchMangaChaptersJobListener : IInvocable
     {
-        private readonly IFetchMangasQueue _queue;
-        private readonly IMangaService _mangaService;
+        private readonly IServiceProvider services;
 
-        public FetchMangaChaptersJobListener(IMangaService mangaService, IFetchMangasQueue queue)
+        public FetchMangaChaptersJobListener(IServiceProvider services)
         {
-            _mangaService = mangaService;
-            _queue = queue;
+            this.services = services;
         }
-
 
         public async Task Invoke()
         {
             try
             {
-                var mangaId = _queue.Dequeue();
-                await _mangaService.UpdateMangaChapters(mangaId);
-                await Task.Delay(1000);
-                await Invoke();
+                using var scope = services.CreateScope();
+
+                var queue = scope.ServiceProvider.GetRequiredService<IFetchMangasQueue>();
+                var mangaId = queue.Dequeue();
+
+                var mangaService = scope.ServiceProvider.GetRequiredService<IMangaService>();
+                await mangaService.UpdateMangaChapters(mangaId);
+
             }
             catch (Exception ex)
             {
                 Log.Error($"Error Fetching Manga Chapters: {ex.Message}");
             }
+
+            await Task.Delay(1000);
+            await Invoke();
         }
     }
 }

@@ -6,13 +6,10 @@ using System.Threading.Tasks;
 
 namespace ShounenGaming.Core.Entities.Mangas.Enums
 {
-    public enum MangaUserStatusEnum
+    public enum NSFWBehaviourEnum
     {
-        READING = 0,
-        PLANNED = 1,
-        DROPPED = 2,
-        IGNORED = 3,
-        COMPLETED = 4,
-        ON_HOLD = 5
+        NONE,
+        BLUR_IMAGES,
+        HIDE_ALL
     }
 }

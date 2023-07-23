@@ -1,22 +1,20 @@
 ﻿using AutoMapper;
 using Serilog;
+using ShounenGaming.Business.Exceptions;
 using ShounenGaming.Business.Interfaces.Mangas;
 using ShounenGaming.Core.Entities.Base;
 using ShounenGaming.Core.Entities.Mangas.Enums;
+using ShounenGaming.DataAccess.Interfaces.Base;
 using ShounenGaming.DataAccess.Interfaces.Mangas;
 using ShounenGaming.DTOs.Models.Base;
 using ShounenGaming.DTOs.Models.Mangas;
 using ShounenGaming.DTOs.Models.Mangas.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ShounenGaming.Business.Services.Mangas
 {
     public class MangaUserDataService : IMangaUserDataService
     {
+        private readonly IUserRepository _userRepo;
         private readonly IMangaRepository _mangaRepository;
         private readonly IMangaUserDataRepository _mangaUserDataRepo;
         private readonly IChangedChapterStateActionRepository _mangaChangedChapterStateActionRepo;
@@ -24,17 +22,19 @@ namespace ShounenGaming.Business.Services.Mangas
 
         private readonly IMapper _mapper;
 
-        public MangaUserDataService(IMangaUserDataRepository mangaUserDataRepo, IMapper mapper, IMangaRepository mangaRepository, IChangedChapterStateActionRepository mangaChangedChapterStateActionRepo, IChangedMangaStatusActionRepository mangaStatusActionRepo)
+        public MangaUserDataService(IMangaUserDataRepository mangaUserDataRepo, IMapper mapper, IMangaRepository mangaRepository, IChangedChapterStateActionRepository mangaChangedChapterStateActionRepo, IChangedMangaStatusActionRepository mangaStatusActionRepo, IUserRepository userRepo)
         {
             _mangaUserDataRepo = mangaUserDataRepo;
             _mapper = mapper;
             _mangaRepository = mangaRepository;
             _mangaChangedChapterStateActionRepo = mangaChangedChapterStateActionRepo;
             _mangaChangedStatusActionRepo = mangaStatusActionRepo;
+            _userRepo = userRepo;
         }
 
         public async Task<MangaUserDataDTO?> GetMangaDataByMangaByUser(int userId, int mangaId)
         {
+            var user = await _userRepo.GetById(userId) ?? throw new EntityNotFoundException("User");
             var info = await _mangaUserDataRepo.GetByUserAndManga(userId, mangaId);
             if (info is null) return null;
             return await MapMangaUserData(info);
@@ -42,6 +42,7 @@ namespace ShounenGaming.Business.Services.Mangas
 
         public async Task<List<MangaUserDataDTO>> GetMangasByStatusByUser(int userId, MangaUserStatusEnumDTO status)
         {
+            var user = await _userRepo.GetById(userId) ?? throw new EntityNotFoundException("User");
             var mangas = await _mangaUserDataRepo.GetMangasByStatusByUser(_mapper.Map<MangaUserStatusEnum>(status), userId);
 
             var dtoMangas = new List<MangaUserDataDTO>();
@@ -54,6 +55,7 @@ namespace ShounenGaming.Business.Services.Mangas
 
         public async Task<MangaUserDataDTO> MarkChaptersRead(int userId, List<int> chaptersIds)
         {
+            var user = await _userRepo.GetById(userId) ?? throw new EntityNotFoundException("User");
             var manga = await _mangaRepository.GetByChapters(chaptersIds) ?? throw new Exception("Manga not Found");
             var mangaUserInfo = await _mangaUserDataRepo.GetByUserAndManga(userId, manga.Id);
 
@@ -64,11 +66,13 @@ namespace ShounenGaming.Business.Services.Mangas
                 {
                     MangaId = manga.Id,
                     UserId = userId,
+                    User = user,
                     Status = MangaUserStatusEnum.READING,
-                    IsPrivate = false
+                    IsPrivate = false,
+                    ChaptersRead = new List<Core.Entities.Mangas.MangaChapter>(),
                 };
 
-                var userData = await _mangaUserDataRepo.Create(mangaUserInfo);
+                mangaUserInfo = await _mangaUserDataRepo.Create(mangaUserInfo);
                 await _mangaChangedStatusActionRepo.Create(new Core.Entities.Mangas.ChangedMangaStatusAction
                 {
                     UserId = userId,
@@ -105,6 +109,7 @@ namespace ShounenGaming.Business.Services.Mangas
 
         public async Task<MangaUserDataDTO?> UnmarkChaptersRead(int userId, List<int> chaptersIds)
         {
+            var user = await _userRepo.GetById(userId) ?? throw new EntityNotFoundException("User");
             var manga = await _mangaRepository.GetByChapters(chaptersIds) ?? throw new Exception("Manga not Found");
             var mangaUserInfo = await _mangaUserDataRepo.GetByUserAndManga(userId, manga.Id);
             if (mangaUserInfo is null) return null;
@@ -134,7 +139,8 @@ namespace ShounenGaming.Business.Services.Mangas
 
         public async Task<MangaUserDataDTO?> UpdateMangaStatusByUser(int userId, int mangaId, MangaUserStatusEnumDTO? status)
         {
-            var manga = await _mangaRepository.GetById(mangaId) ?? throw new Exception("Manga not Found");
+            var user = await _userRepo.GetById(userId) ?? throw new EntityNotFoundException("User");
+            var manga = await _mangaRepository.GetById(mangaId) ?? throw new EntityNotFoundException("Manga");
             var mangaUserInfo = await _mangaUserDataRepo.GetByUserAndManga(userId, manga.Id);
 
             //If first time
@@ -146,6 +152,7 @@ namespace ShounenGaming.Business.Services.Mangas
                 {
                     MangaId = manga.Id,
                     UserId = userId,
+                    User = user,
                     IsPrivate = false,
                     Status = _mapper.Map<MangaUserStatusEnum>(status)
                 };
@@ -207,12 +214,17 @@ namespace ShounenGaming.Business.Services.Mangas
             var lastStatusUpdate = await _mangaChangedStatusActionRepo.GetLastMangaUserStatusUpdate(mangaUserData.UserId, mangaUserData.MangaId);
             var lastChapterReadUpdate = await _mangaChangedChapterStateActionRepo.GetLastChapterUserReadFromManga(mangaUserData.UserId, mangaUserData.MangaId);
             var firstChapterReadUpdate = await _mangaChangedChapterStateActionRepo.GetFirstChapterUserReadFromManga(mangaUserData.UserId, mangaUserData.MangaId);
+            var manga = mangaUserData.Manga;
+
+            if (!mangaUserData.User.MangasConfigurations.ShowProgressForChaptersWithDecimals)
+                manga.Chapters = manga.Chapters.Where(c => (c.Name % 1) == 0).ToList();
+
             return new MangaUserDataDTO
             {
                 AddedToStatusDate = lastStatusUpdate?.CreatedAt,
                 ChaptersRead = mangaUserData.ChaptersRead is not null ? mangaUserData.ChaptersRead.Select(c => c.Id).ToList() : new List<int>(),
                 FinishedReadingDate = lastChapterReadUpdate?.CreatedAt,
-                Manga = _mapper.Map<MangaInfoDTO>(mangaUserData.Manga),
+                Manga = _mapper.Map<MangaInfoDTO>(manga),
                 StartedReadingDate = firstChapterReadUpdate?.CreatedAt,
                 Status = _mapper.Map<MangaUserStatusEnumDTO>(mangaUserData.Status),
                 UserId = mangaUserData.UserId

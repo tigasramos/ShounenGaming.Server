@@ -1,13 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using ShounenGaming.DataAccess.Interfaces.Mangas;
 using ShounenGaming.Business.Interfaces.Mangas;
-using ShounenGaming.Business.Interfaces.Mangas_Scrappers.Models;
 using ShounenGaming.DTOs.Models.Mangas.Enums;
-using ShounenGaming.Business.Helpers;
 using ShounenGaming.DTOs.Models.Mangas;
 using Microsoft.AspNetCore.Authorization;
-using ShounenGaming.Core.Entities.Base;
 using System.Security.Claims;
 
 namespace ShounenGaming.API.Controllers.Mangas
@@ -60,7 +55,8 @@ namespace ShounenGaming.API.Controllers.Mangas
         [HttpGet("{mangaId}/chapters/{chapterId}/translations/{translation}")]
         public async Task<IActionResult> GetMangaTranslation(int mangaId, int chapterId, MangaTranslationEnumDTO translation)
         {
-            var mangaTranslation = await _service.GetMangaTranslation(mangaId, chapterId, translation);
+            var userId = int.Parse(User.FindFirst(c => c.Type == "Id")!.Value);
+            var mangaTranslation = await _service.GetMangaTranslation(userId, mangaId, chapterId, translation);
             return Ok(mangaTranslation);
         }
 
@@ -120,7 +116,11 @@ namespace ShounenGaming.API.Controllers.Mangas
         [HttpGet("recent/chapters")]
         public async Task<IActionResult> GetRecentlyReleasedChapters()
         {            
-            var chapters = await _service.GetRecentlyReleasedChapters();
+            var userId = int.Parse(User.FindFirst(c => c.Type == "Id")!.Value);
+            var claim = User.FindFirst(c => c.Type == "Id");
+            if (claim != null)
+                userId = int.Parse(claim.Value);
+            var chapters = await _service.GetRecentlyReleasedChapters(userId);
             return Ok(chapters);
         }
         
@@ -159,6 +159,18 @@ namespace ShounenGaming.API.Controllers.Mangas
         {
             var tags = await _service.GetMangaTags();
             return Ok(tags);
+        }
+
+        /// <summary>
+        /// Gets the Mangas from Tag
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("tags/{tag}")]
+        public async Task<IActionResult> GetMangasFromTag(string tag)
+        {
+            var userId = int.Parse(User.FindFirst(c => c.Type == "Id")!.Value);
+            var mangas = await _service.GetMangasFromTag(tag, userId);
+            return Ok(mangas);
         }
 
         /// <summary>
@@ -260,8 +272,20 @@ namespace ShounenGaming.API.Controllers.Mangas
         [HttpPut("{mangaId}/chapters")]
         public async Task<IActionResult> FetchChaptersForManga(int mangaId)
         {
-            await _service.StartMangaChaptersUpdate(mangaId);
+            var userId = int.Parse(User.FindFirst(c => c.Type == "Id")!.Value);
+            await _service.StartMangaChaptersUpdate(mangaId, userId);
             return Ok();
+        }
+
+        /// <summary>
+        /// Gets the Fetched Mangas Chapters Queue
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("queue")]
+        public IActionResult GetQueueStatus()
+        {
+            var queue = _service.GetQueueStatus();
+            return Ok(queue);
         }
 
         #endregion

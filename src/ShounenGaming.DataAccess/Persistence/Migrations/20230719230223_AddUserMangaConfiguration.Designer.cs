@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ShounenGaming.DataAccess.Persistence;
@@ -12,9 +13,11 @@ using ShounenGaming.DataAccess.Persistence;
 namespace ShounenGaming.DataAccess.Persistence.Migrations
 {
     [DbContext(typeof(ShounenGamingContext))]
-    partial class ShounenGamingContextModelSnapshot : ModelSnapshot
+    [Migration("20230719230223_AddUserMangaConfiguration")]
+    partial class AddUserMangaConfiguration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -165,12 +168,6 @@ namespace ShounenGaming.DataAccess.Persistence.Migrations
 
                     b.Property<int>("ReadingMode")
                         .HasColumnType("integer");
-
-                    b.Property<bool>("ShowProgressForChaptersWithDecimals")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("SkipChapterToAnotherTranslation")
-                        .HasColumnType("boolean");
 
                     b.Property<int>("TranslationLanguage")
                         .HasColumnType("integer");

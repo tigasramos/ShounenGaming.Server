@@ -13,16 +13,16 @@ namespace ShounenGaming.Core.Entities.Base
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }
-
-        public bool DiscordVerified { get; set; }
-
         public string Username { get; set; }
-
         public DateTime Birthday { get; set; }
 
+        // Discord
+        public bool DiscordVerified { get; set; }
         public bool IsInServer => ServerMemberId != null;
-
         public int? ServerMemberId { get; set; }
         public virtual ServerMember? ServerMember { get; set; }
+
+        // Configurations
+        public virtual UserMangasConfigurations MangasConfigurations { get; set; }
     }
 }

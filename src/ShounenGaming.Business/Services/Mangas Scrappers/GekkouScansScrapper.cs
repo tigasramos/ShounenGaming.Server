@@ -1,65 +1,15 @@
 ﻿using HtmlAgilityPack;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using Newtonsoft.Json;
 using Serilog;
-using ShounenGaming.Business.Interfaces.Mangas_Scrappers.Models;
+using ShounenGaming.Business.Services.Mangas_Scrappers.Models;
 using ShounenGaming.DTOs.Models.Mangas;
 using ShounenGaming.DTOs.Models.Mangas.Enums;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
+namespace ShounenGaming.Business.Services.Mangas_Scrappers
 {
     internal class GekkouScansScrapper : IBaseMangaScrapper
     {
         private const string BASE_URL = "https://gekkou.com.br/manga";
-
-        //GekkouScans PT
-        //3 seg -> 112
-        public async Task<List<MangaSourceDTO>> GetAllMangas()
-        {
-            var web = new HtmlWeb();
-            var mangasList = new List<MangaSourceDTO>();
-            var currentPage = 1;
-            try
-            {
-                while (true)
-                {
-                    var htmlDoc = await web.LoadFromWebAsync($"https://gekkou.com.br/manga/page/{currentPage}/");
-                    if (htmlDoc.DocumentNode.InnerText.Contains("There is no Manga!"))
-                        break;
-
-                    var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//div[@class='col-12 col-md-6 badge-pos-1']");
-                    if (mangasFetched == null || !mangasFetched.Any()) break;
-
-                    foreach (var manga in mangasFetched)
-                    {
-                        var mangaName = manga.SelectSingleNode("div[@class='post-title font-title']/h3/a")?.InnerText ?? "";
-                        var mangaUrl = manga.SelectSingleNode("div[@class='post-title font-title']/h3/a")?.GetAttributeValue("href", "") ?? "";
-                        var imageUrl = manga.SelectSingleNode("div[@class='item-thumb hover-details c-image-hover']/a/img").GetAttributeValue("data-src", "") ?? "";
-                        mangasList.Add(new MangaSourceDTO
-                        {
-                            Name = mangaName.Trim(),
-                            Url = mangaUrl.Split("/").Last(),
-                            ImageURL = imageUrl,
-                            Source = GetMangaSourceEnumDTO()
-                        });
-                    }
-                    currentPage++;
-
-                }
-            }
-            catch(Exception ex)
-            {
-                Log.Error($"GekkouScans - GetAllMangas: {ex.Message}");
-            }
-            
-            return mangasList;
-        }
 
         public async Task<List<MangaSourceDTO>> GetAllMangasByPage(int page)
         {
@@ -154,9 +104,9 @@ namespace ShounenGaming.Business.Interfaces.Mangas_Scrappers
             }
             return imagesUrls;
         }
-        public string GetLanguage()
+        public MangaTranslationEnumDTO GetLanguage()
         {
-            return "PT";
+            return MangaTranslationEnumDTO.PT;
         }
 
         public string GetBaseURLForManga()

@@ -1,4 +1,4 @@
-﻿using ShounenGaming.Business.Interfaces.Mangas_Scrappers.Models;
+﻿using ShounenGaming.Business.Helpers;
 using ShounenGaming.DTOs.Models.Base;
 using ShounenGaming.DTOs.Models.Mangas;
 using ShounenGaming.DTOs.Models.Mangas.Enums;
@@ -37,7 +37,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// Gets the most Popular Mangas
         /// </summary>
         /// <returns></returns>
-        Task<List<MangaInfoDTO>> GetPopularMangas();
+        Task<List<MangaInfoDTO>> GetPopularMangas(int? userId = null);
 
         /// <summary>
         /// Gets the new added Mangas
@@ -49,13 +49,13 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// Gets the new added Chapters
         /// </summary>
         /// <returns></returns>
-        Task<List<LatestReleaseMangaDTO>> GetRecentlyReleasedChapters();
+        Task<List<LatestReleaseMangaDTO>> GetRecentlyReleasedChapters(int? userId = null);
 
         /// <summary>
         /// Gets the Featured Mangas
         /// </summary>
         /// <returns></returns>
-        Task<List<MangaInfoDTO>> GetFeaturedMangas();
+        Task<List<MangaInfoDTO>> GetFeaturedMangas(int? userId = null);
 
         /// <summary>
         /// Change Featured Status
@@ -78,6 +78,13 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         Task<List<MangaWriterDTO>> GetMangaWriters();
 
         /// <summary>
+        /// Gets Mangas from Tags
+        /// </summary>
+        /// <param name="tag"></param>
+        /// <returns></returns>
+        Task<List<MangaInfoDTO>> GetMangasFromTag(string tag, int? userId = null);
+
+        /// <summary>
         /// Gets all Manga Tags
         /// </summary>
         /// <returns></returns>
@@ -88,7 +95,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task<MangaTranslationDTO> GetMangaTranslation(int mangaId, int chapterId, MangaTranslationEnumDTO translation);
+        Task<MangaTranslationDTO?> GetMangaTranslation(int userId, int mangaId, int chapterId, MangaTranslationEnumDTO translation);
 
         /// <summary>
         /// Adds a Manga from a Metadata Source with that Id
@@ -144,7 +151,13 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// </summary>
         /// <param name="mangaId"></param>
         /// <returns></returns>
-        Task StartMangaChaptersUpdate(int mangaId);
+        Task StartMangaChaptersUpdate(int mangaId, int userId);
+
+        /// <summary>
+        /// Gets the Status of the Queue that's fetching chapters
+        /// </summary>
+        /// <returns></returns>
+        List<QueuedMangaDTO> GetQueueStatus();
 
         #region Jobs
         /// <summary>
@@ -164,7 +177,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// </summary>
         /// <param name="mangaId"></param>
         /// <returns></returns>
-        internal Task UpdateMangaChapters(int mangaId);
+        internal Task UpdateMangaChapters(QueuedManga queuedManga);
         #endregion
     }
 }

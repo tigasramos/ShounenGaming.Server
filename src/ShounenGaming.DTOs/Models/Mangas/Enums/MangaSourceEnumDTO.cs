@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text.Json.Serialization;
 
 namespace ShounenGaming.DTOs.Models.Mangas.Enums
 {
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum MangaSourceEnumDTO
     {
         GEKKOU_SCANS = 0,
@@ -14,7 +11,12 @@ namespace ShounenGaming.DTOs.Models.Mangas.Enums
         SILENCE_SCANS = 3,
         HUNTERS_SCANS = 4,
         BR_MANGAS = 5,
-        MANGAS_CHAN = 6
+        MANGAS_CHAN = 6,
+        DISKUS_SCAN = 7,
+        UNION_MANGAS = 8,
+        YES_MANGAS = 9,
+        MANGAS_DEX_PT = 10,
+        MANGAS_DEX_EN = 11
     }
 
 }

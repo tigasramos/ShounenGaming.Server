@@ -57,5 +57,31 @@ namespace ShounenGaming.API.Controllers.Base
         {
             return Ok(await _userService.GetUserById(id));
         }
+
+        /// <summary>
+        /// Gets the Configs for the Mangas Module
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("configs/mangas")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserMangasConfigsDTO))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ErrorDetails))]
+        public async Task<IActionResult> GetUserConfigsForMangasModule()
+        {
+            var userId = int.Parse(User.FindFirst(c => c.Type == "Id")!.Value);
+            return Ok(await _userService.GetUserConfigsForMangas(userId));
+        }
+
+        /// <summary>
+        /// Updates the Configs for the Mangas Module
+        /// </summary>
+        /// <returns></returns>
+        [HttpPut("configs/mangas")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserMangasConfigsDTO))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ErrorDetails))]
+        public async Task<IActionResult> ChangeUserConfigsForMangasModule(ChangeUserMangasConfigsDTO userMangasConfigs)
+        {
+            var userId = int.Parse(User.FindFirst(c => c.Type == "Id")!.Value);
+            return Ok(await _userService.ChangeUserConfigsForMangas(userId, userMangasConfigs));
+        }
     }
 }

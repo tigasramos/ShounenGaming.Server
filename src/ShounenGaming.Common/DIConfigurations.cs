@@ -71,9 +71,9 @@ namespace ShounenGaming.Common
             //TODO: Check Coravel Cache Service
             app.Services.UseScheduler(scheduler =>
             {
-                if (app.Environment.IsProduction() || app.Environment.EnvironmentName == "Local")
+                if (app.Environment.IsProduction())
                 {
-                    // Fetch Manga Metadata Every 3 Hours
+                    // Fetch Manga Metadata every 3h
                     scheduler.OnWorker("MangasMetadata");
                     scheduler.Schedule<AddOrUpdateMangasMetadataJob>().Cron("0 */3 * * *").RunOnceAtStart().PreventOverlapping("MangasMetadata");
 
@@ -81,9 +81,9 @@ namespace ShounenGaming.Common
                     scheduler.OnWorker("MangasChapters_Listener");
                     scheduler.Schedule<FetchMangaChaptersJobListener>().Monthly().RunOnceAtStart().PreventOverlapping("MangasChapters_Listener");
 
-                    // Adds All Mangas to fetch new chapters hourly
+                    // Adds All Mangas to fetch new chapters every 2h
                     scheduler.OnWorker("MangasChapters");
-                    scheduler.Schedule<FetchAllMangasChaptersJob>().Hourly();
+                    scheduler.Schedule<FetchAllMangasChaptersJob>().Cron("0 */2 * * *").RunOnceAtStart();
                 } 
                 else
                 { 
@@ -94,7 +94,10 @@ namespace ShounenGaming.Common
                     // Background Job that will listen the queue to Fetch New Chapters
                     scheduler.OnWorker("MangasChapters_Listener");
                     scheduler.Schedule<FetchMangaChaptersJobListener>().Monthly().RunOnceAtStart().PreventOverlapping("MangasChapters_Listener");
-
+                    
+                    // Adds All Mangas to fetch new chapters
+                    scheduler.OnWorker("MangasChapters");
+                    scheduler.Schedule<FetchAllMangasChaptersJob>().Monthly().RunOnceAtStart();
                 }
                 
 
@@ -111,10 +114,6 @@ namespace ShounenGaming.Common
             app.UseSwaggerUI();
 
             app.UseMiddleware<ExceptionMiddleware>();
-
-
-            //TODO: Remove when deploying
-            //app.UseHttpsRedirection();
 
             app.UseAuthentication();
             app.UseAuthorization();
@@ -208,13 +207,24 @@ namespace ShounenGaming.Common
                 {
                     OnMessageReceived = context =>
                     {
-                        //Get Token from Header
-                        var accessToken = context.Request.Headers["Authorization"];
-                        if (accessToken.Count > 0)
+                        var accessToken = string.Empty;
+
+                        // Get Token from Headers
+                        var authHeader = context.Request.Headers["Authorization"];
+                        if (authHeader.Count > 0)
                         {
-                            //Remove the Bearer part
-                            context.Token = accessToken[0]!.Split(" ")[1];
-                        } 
+                            accessToken = authHeader[0]!.Split(" ")[1];
+                        }
+
+                        // Get Token from Query (SignalR)
+                        if (string.IsNullOrEmpty(accessToken))
+                        {
+                            accessToken = context.Request.Query["access_token"].ToString();
+                        }
+
+                        if (!string.IsNullOrEmpty(accessToken))
+                            context.Token = accessToken;
+
                         return Task.CompletedTask;
                     }
                 };

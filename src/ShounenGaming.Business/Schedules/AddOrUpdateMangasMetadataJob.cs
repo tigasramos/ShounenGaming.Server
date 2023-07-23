@@ -1,30 +1,27 @@
 ﻿using Coravel.Invocable;
-using Coravel.Queuing.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using ShounenGaming.Business.Interfaces.Mangas;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ShounenGaming.Business.Schedules
 {
     public class AddOrUpdateMangasMetadataJob : IInvocable
     {
-        private readonly IMangaService _mangaService;
+        private readonly IServiceProvider services;
 
-        public AddOrUpdateMangasMetadataJob(IMangaService mangaService)
+        public AddOrUpdateMangasMetadataJob(IServiceProvider services)
         {
-            _mangaService = mangaService;
+            this.services = services;
         }
 
 
         public async Task Invoke()
         {
             try
-            {  
-                await _mangaService.AddOrUpdateAllMangasMetadata();
+            {
+                using var scope = services.CreateScope();
+                var mangaService = scope.ServiceProvider.GetRequiredService<IMangaService>();
+                await mangaService.AddOrUpdateAllMangasMetadata();
             }
             catch (Exception ex)
             {
