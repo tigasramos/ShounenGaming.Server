@@ -13,7 +13,7 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
         
         public async Task<List<Manga>> GetWaitingMangas()
         {
-            return await dbSet.Where(m => m.UsersData.Any(ud => ud.Status == MangaUserStatusEnum.PLANNED) && !m.Sources.Any()).OrderBy(m => m.UsersData.OrderBy(us => us.UpdatedAt).First().UpdatedAt).ToListAsync();
+            return await dbSet.Where(m => m.UsersData.Any(ud => ud.Status == MangaUserStatusEnum.PLANNED || ud.Status == MangaUserStatusEnum.READING || ud.Status == MangaUserStatusEnum.ON_HOLD) && !m.Sources.Any()).OrderBy(m => m.UsersData.OrderBy(us => us.UpdatedAt).First().UpdatedAt).ToListAsync();
         }
         public async Task<List<Manga>> GetPopularMangas(bool includeNSFW = true)
         {

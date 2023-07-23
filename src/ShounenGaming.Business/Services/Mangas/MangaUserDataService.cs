@@ -216,18 +216,26 @@ namespace ShounenGaming.Business.Services.Mangas
             var firstChapterReadUpdate = await _mangaChangedChapterStateActionRepo.GetFirstChapterUserReadFromManga(mangaUserData.UserId, mangaUserData.MangaId);
             var manga = mangaUserData.Manga;
 
-            if (!mangaUserData.User.MangasConfigurations.ShowProgressForChaptersWithDecimals)
-                manga.Chapters = manga.Chapters.Where(c => (c.Name % 1) == 0).ToList();
+            var filteredReadChapters = mangaUserData?.ChaptersRead?.Count ?? 0;
+            var filteredTotalChapters = manga.Chapters.Count;
+            if (!mangaUserData?.User.MangasConfigurations.ShowProgressForChaptersWithDecimals ?? false)
+            {
+                filteredTotalChapters = manga.Chapters.Where(c => (c.Name % 1) == 0).Count();
+                filteredReadChapters = mangaUserData?.ChaptersRead?.Where(cr => (cr.Name % 1) == 0).Count() ?? 0;
+
+            }
 
             return new MangaUserDataDTO
             {
                 AddedToStatusDate = lastStatusUpdate?.CreatedAt,
-                ChaptersRead = mangaUserData.ChaptersRead is not null ? mangaUserData.ChaptersRead.Select(c => c.Id).ToList() : new List<int>(),
+                FilteredReadChapters = filteredReadChapters,
+                FilteredTotalChapters = filteredTotalChapters,
+                ChaptersRead = mangaUserData?.ChaptersRead is not null ? mangaUserData.ChaptersRead.Select(c => c.Id).ToList() : new List<int>(),
                 FinishedReadingDate = lastChapterReadUpdate?.CreatedAt,
                 Manga = _mapper.Map<MangaInfoDTO>(manga),
                 StartedReadingDate = firstChapterReadUpdate?.CreatedAt,
-                Status = _mapper.Map<MangaUserStatusEnumDTO>(mangaUserData.Status),
-                UserId = mangaUserData.UserId
+                Status = _mapper.Map<MangaUserStatusEnumDTO>(mangaUserData?.Status),
+                UserId = mangaUserData?.UserId ?? -1
             };
         }
     }
