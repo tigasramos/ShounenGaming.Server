@@ -79,19 +79,27 @@ namespace ShounenGaming.Common
 
                     // Fetch Manga Metadata every 3h
                     scheduler.OnWorker("Mangas");
-                    scheduler.Schedule<AddOrUpdateMangasMetadataJob>().Cron("0 */3 * * *").RunOnceAtStart().PreventOverlapping("MangasMetadata");
+                    scheduler.Schedule<AddOrUpdateMangasMetadataJob>().Cron("20 */3 * * *").RunOnceAtStart().PreventOverlapping("MangasMetadata");
                     scheduler.Schedule<FetchAllMangasChaptersJob>().Cron("0 */2 * * *").RunOnceAtStart();
+
+                    // Get Season Mangas
+                    scheduler.OnWorker("SeasonMangas");
+                    scheduler.Schedule<FetchSeasonMangasJob>().DailyAt(3, 30).RunOnceAtStart();
                 } 
                 else
-                { 
-                    // Fetch Manga Metadata
-                    scheduler.OnWorker("Mangas");
-                    scheduler.Schedule<AddOrUpdateMangasMetadataJob>().DailyAt(1, 30).PreventOverlapping("MangasMetadata");
-                    scheduler.Schedule<FetchAllMangasChaptersJob>().Monthly().RunOnceAtStart();
-
+                {
                     // Background Job that will listen the queue to Fetch New Chapters
                     scheduler.OnWorker("MangasChapters_Listener");
                     scheduler.Schedule<FetchMangaChaptersJobListener>().Monthly().RunOnceAtStart().PreventOverlapping("MangasChapters_Listener");
+
+                    // Fetch Manga Metadata
+                    scheduler.OnWorker("Mangas");
+                    scheduler.Schedule<AddOrUpdateMangasMetadataJob>().DailyAt(1, 30).PreventOverlapping("MangasMetadata");
+                    scheduler.Schedule<FetchAllMangasChaptersJob>().Monthly();
+
+                    // Get Season Mangas
+                    scheduler.OnWorker("SeasonMangas");
+                    scheduler.Schedule<FetchSeasonMangasJob>().DailyAt(3, 0).RunOnceAtStart();
                 }
                 
 
@@ -242,6 +250,7 @@ namespace ShounenGaming.Common
             services.AddTransient<FetchAllMangasChaptersJob>();
             services.AddTransient<FetchMangaChaptersJobListener>();
             services.AddTransient<AddOrUpdateMangasMetadataJob>();
+            services.AddTransient<FetchSeasonMangasJob>();
 
             //Services
             services.AddTransient<IAuthService, AuthService>();

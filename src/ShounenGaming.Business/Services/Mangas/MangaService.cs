@@ -155,6 +155,13 @@ namespace ShounenGaming.Business.Services.Mangas
             var waitingMangas = await _mangaRepo.GetWaitingMangas();
             return _mapper.Map<List<MangaInfoDTO>>(waitingMangas);
         }
+
+        public async Task<List<MangaInfoDTO>> GetSeasonMangas()
+        {
+            var seasonMangas = await _mangaRepo.GetSeasonMangas();
+            return _mapper.Map<List<MangaInfoDTO>>(seasonMangas);
+        }
+
         public async Task<List<MangaInfoDTO>> GetPopularMangas(int? userId = null)
         {
             var includesNSFW = true;
@@ -1023,6 +1030,47 @@ namespace ShounenGaming.Business.Services.Mangas
             return updatedMangas;
         }
 
+        public async Task FetchSeasonMangas()
+        {
+            Log.Information("Reseting Season Mangas");
+
+            var allMangas = await _mangaRepo.GetAll();
+            foreach (var manga in allMangas)
+            {
+                if (!manga.IsSeasonManga) continue;
+                manga.IsSeasonManga = false;
+                await _mangaRepo.Update(manga);
+            }
+           
+            Log.Information("Getting Season Mangas");
+            var seasonAnimes = await _jikan.GetCurrentSeasonAsync();
+            foreach (var anime in seasonAnimes.Data)
+            {
+                try
+                {
+                    if (anime is null)
+                        continue;
+
+                    var relations = await _jikan.GetAnimeRelationsAsync(anime.MalId!.Value);
+                    var mangaId = relations.Data.Where(r => r.Relation == "Adaptation" && r.Entry.First().Type == "manga").Select(s => s.Entry.First().MalId).FirstOrDefault();
+
+                    var dbManga = allMangas.Where(m => m.MangaMyAnimeListID == mangaId).FirstOrDefault();
+                    dbManga ??= await AddMALManga(mangaId, null);
+
+                    dbManga.IsSeasonManga = true;
+
+                    await _mangaRepo.Update(dbManga);
+
+                    await Task.Delay(500);
+                }
+                catch(Exception ex)
+                {
+                    Log.Error($"Error Fetching {anime.Titles.First().Title}", ex);
+                }
+                
+            }
+            Log.Information("Season Mangas Updated");
+        }
         #endregion
 
         #region Private
@@ -1104,7 +1152,7 @@ namespace ShounenGaming.Business.Services.Mangas
                             Log.Information($"Added Chapter: {dbChapter.Name} for {scrapperTranslation}");
                             await Task.Delay(1500);
                             // TODO : Remove Later
-#if DEBUG
+#if DEBUG && false
                             if (scrapperTranslation == TranslationLanguageEnum.PT)
                             {
                                 await SaveImage(scrapper, scrapperTranslation, manga.Name, dbChapter.Name.ToString(), chapter.Link);

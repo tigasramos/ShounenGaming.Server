@@ -29,6 +29,7 @@ namespace ShounenGaming.Core.Entities.Mangas
         //Configurations
         public bool IsFeatured { get; set; }
         public bool IsNSFW { get; set; } = false;
+        public bool IsSeasonManga { get; set; }
 
         public long? MangaMyAnimeListID { get; set; }
         public int? MALPopularity { get; set; }

@@ -60,6 +60,16 @@ namespace ShounenGaming.API.Controllers.Mangas
             return Ok(mangaTranslation);
         }
 
+        /// <summary>
+        /// Gets the Mangas from the Season Animes
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("season")]
+        public async Task<IActionResult> GetSeasonMangas()
+        {
+            var mangas = await _service.GetSeasonMangas();
+            return Ok(mangas);
+        }
 
         /// <summary>
         /// Searches a Manga (by Name or by some tags)

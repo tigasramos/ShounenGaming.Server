@@ -22,6 +22,12 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         Task<List<MangaSourceDTO>> GetMangaSourcesById(int id);
 
         /// <summary>
+        /// Gets the Mangas from the Anime Season
+        /// </summary>
+        /// <returns></returns>
+        Task<List<MangaInfoDTO>> GetSeasonMangas();
+
+        /// <summary>
         /// Searches Mangas
         /// </summary>
         /// <returns></returns>
@@ -171,6 +177,12 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// </summary>
         /// <returns></returns>
         internal Task UpdateMangasChapters();
+
+        /// <summary>
+        /// Fetch Season Mangas
+        /// </summary>
+        /// <returns></returns>
+        internal Task FetchSeasonMangas();
 
         /// <summary>
         /// Fetch new Chapters for a Manga
