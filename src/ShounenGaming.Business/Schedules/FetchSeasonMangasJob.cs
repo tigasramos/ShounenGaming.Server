@@ -27,6 +27,7 @@ namespace ShounenGaming.Business.Schedules
                 using var scope = services.CreateScope();
                 var mangaService = scope.ServiceProvider.GetRequiredService<IMangaService>();
                 await mangaService.FetchSeasonMangas();
+                await Task.Delay(60000);
             }
             catch (Exception ex)
             {

@@ -101,10 +101,10 @@ namespace ShounenGaming.Business.Services.Mangas
                     var cachedManga = _cache.TryGetValue(source.Url, out ScrappedManga? mangaInfo);
                     if (!cachedManga)
                     {
-                        mangaInfo = await scrapper.GetManga(source.Url);
+                        mangaInfo = await scrapper!.GetManga(source.Url);
                         _cache.Set(source.Url, mangaInfo, DateTimeOffset.Now.AddMinutes(30));
                     }
-
+                    
                     foreach(var c in mangaInfo!.Chapters)
                     {
                         var treatedName = c.Name.Split(":").First().Split("-").First().Split(" ").First().Trim();
@@ -1044,6 +1044,8 @@ namespace ShounenGaming.Business.Services.Mangas
            
             Log.Information("Getting Season Mangas");
             var seasonAnimes = await _jikan.GetCurrentSeasonAsync();
+            await Task.Delay(1000);
+
             foreach (var anime in seasonAnimes.Data)
             {
                 try
@@ -1052,16 +1054,50 @@ namespace ShounenGaming.Business.Services.Mangas
                         continue;
 
                     var relations = await _jikan.GetAnimeRelationsAsync(anime.MalId!.Value);
-                    var mangaId = relations.Data.Where(r => r.Relation == "Adaptation" && r.Entry.First().Type == "manga").Select(s => s.Entry.First().MalId).FirstOrDefault();
+                    var mangaId = relations.Data.Where(r => r.Relation == "Adaptation" && r.Entry.First().Type == "manga").Select(s => s.Entry.First().MalId).First();
 
                     var dbManga = allMangas.Where(m => m.MangaMyAnimeListID == mangaId).FirstOrDefault();
-                    dbManga ??= await AddMALManga(mangaId, null);
+                    BaseJikanResponse<JikanDotNet.Manga>? manga = null;
+                    if (dbManga is null)
+                    {
+                        await Task.Delay(350);
+
+                        // Fetch First Degree Relation
+                        manga = await _jikan.GetMangaAsync(mangaId);
+                        if (manga is null)
+                            continue;
+
+                        var isMangaType = MangasHelper.IsMALMangaCorrectType(manga!.Data);
+                        if (!isMangaType)
+                        {
+                            await Task.Delay(350);
+
+                            // Fetch Second Degree Relation
+                            var relationsManga = await _jikan.GetMangaRelationsAsync(mangaId);
+                            mangaId = relationsManga.Data.Where(r => r.Relation == "Alternative version" && r.Entry.First().Type == "manga").Select(s => s.Entry.First().MalId).First();
+                            
+                            dbManga = allMangas.Where(m => m.MangaMyAnimeListID == mangaId).FirstOrDefault();
+
+                            // Get the Manga & check the type
+                            if (dbManga is null)
+                            {
+                                await Task.Delay(350);
+                                manga = await _jikan.GetMangaAsync(mangaId);
+                                isMangaType = MangasHelper.IsMALMangaCorrectType(manga!.Data);
+
+                                if (!isMangaType)
+                                    continue;
+                            }
+                        }
+                    }
+
+                    dbManga ??= await AddMALManga(manga!.Data, null);
 
                     dbManga.IsSeasonManga = true;
 
                     await _mangaRepo.Update(dbManga);
 
-                    await Task.Delay(500);
+                    await Task.Delay(1000);
                 }
                 catch(Exception ex)
                 {
@@ -1089,11 +1125,11 @@ namespace ShounenGaming.Business.Services.Mangas
                 var cachedManga = _cache.TryGetValue(source.Url, out ScrappedManga? mangaInfo);
                 if (!cachedManga)
                 {
-                    mangaInfo = await scrapper.GetManga(source.Url);
+                    mangaInfo = await scrapper!.GetManga(source.Url);
                     _cache.Set(source.Url, mangaInfo, DateTimeOffset.Now.AddMinutes(30));
                 }
-                
-                mangaInfo.Chapters.Reverse();
+
+                mangaInfo!.Chapters.Reverse();
 
                 int scrapperFailures = 0;
 
@@ -1198,7 +1234,7 @@ namespace ShounenGaming.Business.Services.Mangas
             }
             catch (Exception ex)
             {
-                Log.Error($"Error Updating {manga.Name}: {ex.Message}");
+                Log.Error($"Error Updating {manga.Name}", ex);
             }
         }
         private MangaTranslationDTO MapMangaTranslation(MangaTranslation mangaTranslation, string source, List<string> pages, bool changeTranslation)
