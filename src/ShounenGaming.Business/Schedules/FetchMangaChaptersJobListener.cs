@@ -31,10 +31,10 @@ namespace ShounenGaming.Business.Schedules
             }
             catch (Exception ex)
             {
-                Log.Error($"Error Fetching Manga Chapters: {ex.Message}");
+                Log.Error($"Error Fetching Manga Chapters: {ex.Message}\n{ex.StackTrace}");
             }
 
-            await Task.Delay(1000);
+            await Task.Delay(2000);
             await Invoke();
         }
     }
