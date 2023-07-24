@@ -80,11 +80,9 @@ namespace ShounenGaming.Common
                     // Fetch Manga Metadata every 3h
                     scheduler.OnWorker("Mangas");
                     scheduler.Schedule<AddOrUpdateMangasMetadataJob>().Cron("20 */3 * * *").RunOnceAtStart().PreventOverlapping("MangasMetadata");
+                    scheduler.Schedule<FetchSeasonMangasJob>().DailyAt(3, 30).RunOnceAtStart();
                     scheduler.Schedule<FetchAllMangasChaptersJob>().Cron("0 */2 * * *").RunOnceAtStart();
 
-                    // Get Season Mangas
-                    scheduler.OnWorker("SeasonMangas");
-                    scheduler.Schedule<FetchSeasonMangasJob>().DailyAt(3, 30).RunOnceAtStart();
                 } 
                 else
                 {
