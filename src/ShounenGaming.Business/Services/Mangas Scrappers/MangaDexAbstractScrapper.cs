@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using ShounenGaming.Business.Services.Mangas_Scrappers.Models;
 using ShounenGaming.DTOs.Models.Mangas;
 using ShounenGaming.DTOs.Models.Mangas.Enums;
@@ -25,13 +26,13 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
 
             var responseString = await response.Content.ReadAsStringAsync();
             var responseObject = JsonConvert.DeserializeObject<MangaDexResponse<List<MangaDexManga>>>(responseString);
-
+            
             return responseObject?.Data
                 .Select(x => new MangaSourceDTO()
                 {
                     Url = x.Id,
                     ImageURL = $"https://mangadex.org/covers/{x.Id}/{x.Relationships.SingleOrDefault(d => d.Type == "cover_art")?.Attributes?.FileName}",
-                    Name = x.Attributes.Title.En,
+                    Name = x.Attributes.Title.En ??  x.Attributes.AltTitles.FirstOrDefault(t => t.En != null)?.En ?? x.Attributes.AltTitles.FirstOrDefault(t => t.Ja_ro != null)?.Ja_ro ?? "",
                     Source = GetMangaSourceEnumDTO()
                 }).ToList() ?? new List<MangaSourceDTO>();
         }
@@ -122,9 +123,17 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
         protected class MangaDexMangaAttributes
         {
             public MangaDexTitle Title { get; set; }
-            public List<dynamic> AltTitles { get; set; }
+            public List<MangaDexMangaAltTitle> AltTitles { get; set; }
             public MangaDexDescription Description { get; set; }
             public List<string> AvailableTranslatedLanguages { get; set; }
+        }
+
+        protected class MangaDexMangaAltTitle
+        {
+            public string? En { get; set; }
+
+            [JsonProperty("ja-ro")]
+            public string? Ja_ro { get; set; }
         }
 
         protected class MangaDexManga
