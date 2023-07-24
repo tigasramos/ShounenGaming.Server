@@ -1200,11 +1200,11 @@ namespace ShounenGaming.Business.Services.Mangas
                         }
                         catch(SavingImageException sie)
                         {
-                            Log.Error($"Chapter {nameScrapped} failed saving image: {sie.Message}");
+                            Log.Error($"Chapter {nameScrapped} failed saving image: {sie.Message}\n{sie.StackTrace}");
                         }
                         catch (Exception ex)
                         {
-                            Log.Error($"Chapter {nameScrapped} failed saving: {ex.Message}");
+                            Log.Error($"Chapter {nameScrapped} failed saving: {ex.Message}\n{ex.StackTrace}");
 
                             var sourceFailedTooManyTimesInARow = ++scrapperFailures == 5;
                             if (sourceFailedTooManyTimesInARow)
@@ -1234,7 +1234,7 @@ namespace ShounenGaming.Business.Services.Mangas
             }
             catch (Exception ex)
             {
-                Log.Error($"Error Updating {manga.Name}", ex);
+                Log.Error($"Error Updating {manga.Name}: {ex.Message}\n{ex.StackTrace}");
             }
         }
         private MangaTranslationDTO MapMangaTranslation(MangaTranslation mangaTranslation, string source, List<string> pages, bool changeTranslation)
