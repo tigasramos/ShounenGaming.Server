@@ -11,6 +11,10 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
         {
         }
         
+        public async Task<List<Manga>> GetSeasonMangas()
+        {
+            return await dbSet.Where(m => m.IsSeasonManga).OrderByDescending(m => ((m.MALPopularity ?? m.ALPopularity) + (m.ALPopularity ?? m.MALPopularity)) / 2).ToListAsync();
+        }
         public async Task<List<Manga>> GetWaitingMangas()
         {
             return await dbSet.Where(m => m.UsersData.Any(ud => ud.Status == MangaUserStatusEnum.PLANNED || ud.Status == MangaUserStatusEnum.READING || ud.Status == MangaUserStatusEnum.ON_HOLD) && !m.Sources.Any()).OrderBy(m => m.UsersData.OrderBy(us => us.UpdatedAt).First().UpdatedAt).ToListAsync();

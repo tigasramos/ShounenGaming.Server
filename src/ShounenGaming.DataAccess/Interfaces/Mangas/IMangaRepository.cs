@@ -9,6 +9,7 @@ namespace ShounenGaming.DataAccess.Interfaces.Mangas
         Task<Manga?> GetByMALId(long malId);
         Task<Manga?> GetByALId(long alId);
         Task<List<Manga>> GetWaitingMangas();
+        Task<List<Manga>> GetSeasonMangas();
         Task<List<Manga>> GetMangasByTag(string tag, bool includeNSFW = true);
         Task<List<Manga>> GetPopularMangas(bool includeNSFW = true);
         Task<List<Manga>> GetFeaturedMangas(bool includeNSFW = true);
