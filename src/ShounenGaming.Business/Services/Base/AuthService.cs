@@ -119,7 +119,7 @@ namespace ShounenGaming.Business.Services.Base
             _cache.Remove(username);
 
             //Expires in 3 Days
-            if (user.RefreshTokenExpiryDate.HasValue && user.RefreshTokenExpiryDate.Value.AddDays(-3) <= DateTime.UtcNow)
+            if (!user.RefreshTokenExpiryDate.HasValue || user.RefreshTokenExpiryDate.Value.AddDays(-3) <= DateTime.UtcNow)
             {
                 user.RefreshToken = await GenerateRefreshToken();
                 user.RefreshTokenExpiryDate = DateTime.UtcNow.AddDays(30);
