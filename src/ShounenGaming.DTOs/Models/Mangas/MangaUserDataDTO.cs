@@ -15,8 +15,9 @@ namespace ShounenGaming.DTOs.Models.Mangas
         public int FilteredReadChapters { get; set; }
         public int FilteredTotalChapters { get; set; }
 
-        public MangaUserStatusEnumDTO Status { get; set; }
+        public MangaUserStatusEnumDTO? Status { get; set; }
         public DateTime? AddedToStatusDate { get; set; }
+        public double? Rating { get; set; }
 
         public DateTime? StartedReadingDate { get; set; }
         public DateTime? FinishedReadingDate { get; set; }

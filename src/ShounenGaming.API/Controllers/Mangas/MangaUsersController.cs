@@ -77,11 +77,28 @@ namespace ShounenGaming.API.Controllers.Mangas
         /// <param name="status"></param>
         /// <returns></returns>
         [HttpPut("{mangaId}/status")]
-        public async Task<IActionResult> UpdateMangaStatusByUser(int mangaId, [FromQuery]MangaUserStatusEnumDTO? status = null)
+        public async Task<IActionResult> UpdateMangaStatusByUser(int mangaId, [FromQuery] MangaUserStatusEnumDTO? status = null)
         {
             var userId = User.FindFirstValue("Id");
             var userData = await _mangaUsersService.UpdateMangaStatusByUser(Convert.ToInt32(userId), mangaId, status);
             if (userData != null) 
+                return Ok(userData);
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// Updates the Rating for the Manga to the current User
+        /// </summary>
+        /// <param name="mangaId"></param>
+        /// <param name="rating"></param>
+        /// <returns></returns>
+        [HttpPut("{mangaId}/rating")]
+        public async Task<IActionResult> UpdateMangaStatusByUser(int mangaId, [FromQuery] double? rating = null)
+        {
+            var userId = User.FindFirstValue("Id");
+            var userData = await _mangaUsersService.UpdateMangaRatingByUser(Convert.ToInt32(userId), mangaId, rating);
+            if (userData != null)
                 return Ok(userData);
 
             return Ok();

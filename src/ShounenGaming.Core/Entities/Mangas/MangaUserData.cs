@@ -16,11 +16,12 @@ namespace ShounenGaming.Core.Entities.Mangas
         public virtual Manga Manga { get; set; }
 
         public MangaUserStatusEnum Status { get; set; }
+        public double? Rating { get; set; }
 
         public virtual List<MangaChapter> ChaptersRead { get; set; }
 
 
-        public bool IsPrivate { get; set; }
+        public bool IsPrivate { get; set; } = false;
     }
 
 }

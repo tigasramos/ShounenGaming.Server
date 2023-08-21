@@ -9,7 +9,6 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -94,10 +93,8 @@ namespace ShounenGaming.Common
                     scheduler.OnWorker("Mangas");
                     scheduler.Schedule<AddOrUpdateMangasMetadataJob>().DailyAt(1, 30).PreventOverlapping("MangasMetadata");
                     scheduler.Schedule<FetchAllMangasChaptersJob>().Monthly();
-
-                    // Get Season Mangas
-                    scheduler.OnWorker("SeasonMangas");
                     scheduler.Schedule<FetchSeasonMangasJob>().DailyAt(3, 0).RunOnceAtStart();
+
                 }
                 
 

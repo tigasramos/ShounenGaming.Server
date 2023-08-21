@@ -206,9 +206,41 @@ namespace ShounenGaming.Business.Services.Mangas
                 return await MapMangaUserData(dbMangaUserInfo);
             }
         }
-    
-    
-        
+        public async Task<MangaUserDataDTO?> UpdateMangaRatingByUser(int userId, int mangaId, double? rating)
+        {
+            if (rating < 0 || rating > 5) throw new Exception($"Invalid Rating ({rating}), only values allowed are between 0 and 5");
+
+            var user = await _userRepo.GetById(userId) ?? throw new EntityNotFoundException("User");
+            var manga = await _mangaRepository.GetById(mangaId) ?? throw new EntityNotFoundException("Manga");
+            var mangaUserInfo = await _mangaUserDataRepo.GetByUserAndManga(userId, manga.Id);
+
+            //If first time
+            if (mangaUserInfo is null)
+            {
+                if (rating == null) return null;
+
+                mangaUserInfo = new Core.Entities.Mangas.MangaUserData
+                {
+                    MangaId = manga.Id,
+                    UserId = userId,
+                    User = user,
+                    Rating = rating
+                };
+
+                var dbMangaUserInfo = await _mangaUserDataRepo.Create(mangaUserInfo);
+                return await MapMangaUserData(dbMangaUserInfo);
+            }
+            else
+            {
+                //Change
+                mangaUserInfo.Rating = rating;
+                var dbMangaUserInfo = await _mangaUserDataRepo.Update(mangaUserInfo);
+                return await MapMangaUserData(dbMangaUserInfo);
+            }
+        }
+
+
+
         private async Task<MangaUserDataDTO> MapMangaUserData(Core.Entities.Mangas.MangaUserData mangaUserData)
         {
             var lastStatusUpdate = await _mangaChangedStatusActionRepo.GetLastMangaUserStatusUpdate(mangaUserData.UserId, mangaUserData.MangaId);
@@ -230,6 +262,7 @@ namespace ShounenGaming.Business.Services.Mangas
                 AddedToStatusDate = lastStatusUpdate?.CreatedAt,
                 FilteredReadChapters = filteredReadChapters,
                 FilteredTotalChapters = filteredTotalChapters,
+                Rating =  mangaUserData?.Rating,
                 ChaptersRead = mangaUserData?.ChaptersRead is not null ? mangaUserData.ChaptersRead.Select(c => c.Id).ToList() : new List<int>(),
                 FinishedReadingDate = lastChapterReadUpdate?.CreatedAt,
                 Manga = _mapper.Map<MangaInfoDTO>(manga),
