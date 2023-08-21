@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using Serilog;
 using ShounenGaming.Business.Services.Mangas_Scrappers.Models;
 using ShounenGaming.DTOs.Models.Mangas;
 using ShounenGaming.DTOs.Models.Mangas.Enums;
@@ -20,21 +20,35 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
 
         public async Task<List<MangaSourceDTO>> SearchMangasUnified(string query)
         {
-            var client = new HttpClient();
-            var response = await client.GetAsync(query);
-            response.EnsureSuccessStatusCode();
+            try
+            {
+                var client = new HttpClient();
+                client.DefaultRequestHeaders.Clear();
+                client.DefaultRequestHeaders.Add("Host", "api.mangadex.org");
+                client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36");
 
-            var responseString = await response.Content.ReadAsStringAsync();
-            var responseObject = JsonConvert.DeserializeObject<MangaDexResponse<List<MangaDexManga>>>(responseString);
-            
-            return responseObject?.Data
-                .Select(x => new MangaSourceDTO()
-                {
-                    Url = x.Id,
-                    ImageURL = $"https://mangadex.org/covers/{x.Id}/{x.Relationships.SingleOrDefault(d => d.Type == "cover_art")?.Attributes?.FileName}",
-                    Name = x.Attributes.Title.En ??  x.Attributes.AltTitles.FirstOrDefault(t => t.En != null)?.En ?? x.Attributes.AltTitles.FirstOrDefault(t => t.Ja_ro != null)?.Ja_ro ?? "",
-                    Source = GetMangaSourceEnumDTO()
-                }).ToList() ?? new List<MangaSourceDTO>();
+                var response = await client.GetAsync(query);
+                response.EnsureSuccessStatusCode();
+
+                var responseString = await response.Content.ReadAsStringAsync();
+                var responseObject = JsonConvert.DeserializeObject<MangaDexResponse<List<MangaDexManga>>>(responseString);
+
+                return responseObject?.Data
+                    .Select(x => new MangaSourceDTO()
+                    {
+                        Url = x.Id,
+                        ImageURL = $"https://mangadex.org/covers/{x.Id}/{x.Relationships.SingleOrDefault(d => d.Type == "cover_art")?.Attributes?.FileName}",
+                        Name = x.Attributes.Title.En ?? x.Attributes.AltTitles.FirstOrDefault(t => t.En != null)?.En ?? x.Attributes.AltTitles.FirstOrDefault(t => t.Ja_ro != null)?.Ja_ro ?? "",
+                        Source = GetMangaSourceEnumDTO()
+                    }).ToList() ?? new List<MangaSourceDTO>();
+
+            } 
+            catch (Exception ex)
+            {
+                Log.Error($"MangasDex - SearchManga: {ex.Message}");
+            }
+
+            return new List<MangaSourceDTO>();
         }
         public string GetBaseURLForManga()
         {
