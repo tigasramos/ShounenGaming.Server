@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Prometheus;
 using Serilog;
 using ShounenGaming.Business;
 using ShounenGaming.Business.Helpers;
@@ -135,6 +136,9 @@ namespace ShounenGaming.Common
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapSignalRHubs();
+
+            app.UseMetricServer();
+            app.UseHttpMetrics();
 
             app.UseRateLimiter();
 
@@ -277,6 +281,8 @@ namespace ShounenGaming.Common
             services.AddTransient<IImageService, ImageService>();
             services.AddTransient<IMangaUserDataService, MangaUserDataService>();
             services.AddTransient<IJikan, Jikan>();
+
+            services.AddHttpContextAccessor();
         }
         private static void AddRepositories(this IServiceCollection services)
         {
