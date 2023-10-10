@@ -3,6 +3,8 @@ using JikanDotNet;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Caching.Memory;
@@ -33,6 +35,7 @@ using ShounenGaming.DataAccess.Repositories.Tierlists;
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 
 namespace ShounenGaming.Common
 {
@@ -49,6 +52,23 @@ namespace ShounenGaming.Common
 
             services.AddHealthChecks();
 
+            services.AddRateLimiter(options => {
+                options.RejectionStatusCode = 429;
+
+                options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext => RateLimitPartition.GetFixedWindowLimiter(partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? httpContext.Request.Headers.Host.ToString(), factory: partition => new FixedWindowRateLimiterOptions
+                {
+                    AutoReplenishment = true,
+                    PermitLimit = 100,
+                    QueueLimit = 0,
+                    Window = TimeSpan.FromMinutes(1)
+                }));
+
+                options.AddFixedWindowLimiter("Auth", options => {
+                    options.AutoReplenishment = true;
+                    options.PermitLimit = 10;
+                    options.Window = TimeSpan.FromMinutes(1);
+                });
+            });
             services.AddScheduler();
             services.AddControllers().AddJsonOptions(options =>
             {
@@ -115,6 +135,8 @@ namespace ShounenGaming.Common
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapSignalRHubs();
+
+            app.UseRateLimiter();
 
             app.MapControllers();
 
