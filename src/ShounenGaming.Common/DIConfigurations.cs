@@ -37,6 +37,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
+using ZiggyCreatures.Caching.Fusion;
 
 namespace ShounenGaming.Common
 {
@@ -70,6 +71,13 @@ namespace ShounenGaming.Common
                     options.Window = TimeSpan.FromMinutes(1);
                 });
             });
+
+            services.AddFusionCache()
+                .WithDefaultEntryOptions(new FusionCacheEntryOptions
+                {
+                    Duration = TimeSpan.FromMinutes(30),
+                });
+
             services.AddScheduler();
             services.AddControllers().AddJsonOptions(options =>
             {

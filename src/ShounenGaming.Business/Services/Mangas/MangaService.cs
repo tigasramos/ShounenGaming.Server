@@ -19,6 +19,7 @@ using ShounenGaming.DTOs.Models.Mangas;
 using ShounenGaming.DTOs.Models.Mangas.Enums;
 using System.Globalization;
 using System.Net;
+using ZiggyCreatures.Caching.Fusion;
 
 namespace ShounenGaming.Business.Services.Mangas
 {
@@ -46,8 +47,9 @@ namespace ShounenGaming.Business.Services.Mangas
         private readonly IFetchMangasQueue _queue;
         private readonly IHubContext<MangasHub, IMangasHubClient> _mangasHub;
         private readonly IMemoryCache _cache;
+        private readonly IFusionCache _fusionCache;
 
-        public MangaService(IMangaRepository mangaRepo, IMangaWriterRepository mangaWriterRepo, IMangaTagRepository mangaTagRepo, IMapper mapper, IImageService imageService, IJikan jikan, IAddedMangaActionRepository addedMangaRepo, IUserRepository userRepository, IFetchMangasQueue queue, IMemoryCache cache, IHubContext<MangasHub, IMangasHubClient> mangasHub)
+        public MangaService(IMangaRepository mangaRepo, IMangaWriterRepository mangaWriterRepo, IMangaTagRepository mangaTagRepo, IMapper mapper, IImageService imageService, IJikan jikan, IAddedMangaActionRepository addedMangaRepo, IUserRepository userRepository, IFetchMangasQueue queue, IMemoryCache cache, IHubContext<MangasHub, IMangasHubClient> mangasHub, IFusionCache fusionCache)
         {
             _mangaRepo = mangaRepo;
             _mangaWriterRepo = mangaWriterRepo;
@@ -60,24 +62,33 @@ namespace ShounenGaming.Business.Services.Mangas
             _queue = queue;
             _cache = cache;
             _mangasHub = mangasHub;
+            _fusionCache = fusionCache;
         }
 
 
         public async Task<MangaDTO> GetMangaById(int id)
         {
-            var manga = await _mangaRepo.GetById(id);
-            return manga == null ? throw new EntityNotFoundException("Manga") : _mapper.Map<MangaDTO>(manga);
+            var manga = await _fusionCache.GetOrSetAsync($"manga_{id}", async _ =>  await _mangaRepo.GetById(id));
+            if (manga is null)
+                throw new EntityNotFoundException("Manga");
+
+            return _mapper.Map<MangaDTO>(manga);
         }
         public async Task<List<MangaSourceDTO>> GetMangaSourcesById(int id)
         {
-            var manga = await _mangaRepo.GetById(id);
+            var manga = await _fusionCache.GetOrSetAsync($"manga_{id}", async _ => await _mangaRepo.GetById(id));
             return manga != null ? _mapper.Map<List<MangaSourceDTO>>(manga.Sources) : throw new EntityNotFoundException("Manga");
         }
         public async Task<MangaTranslationDTO?> GetMangaTranslation(int userId, int mangaId, int chapterId, MangaTranslationEnumDTO translation)
         {
-            var user = await _userRepository.GetById(userId) ?? throw new EntityNotFoundException("User");
+            var user = await _fusionCache.GetOrSetAsync($"user_{userId}", async _ => await _userRepository.GetById(userId));
+            if (user is null)
+                throw new EntityNotFoundException("User");
 
-            var manga = await _mangaRepo.GetById(mangaId) ?? throw new EntityNotFoundException("Manga");
+            var manga = await _fusionCache.GetOrSetAsync($"manga_{mangaId}", async _ => await _mangaRepo.GetById(mangaId));
+            if (manga is null) 
+                throw new EntityNotFoundException("Manga");
+
             var mangaChapter = manga.Chapters.FirstOrDefault(c => c.Id == chapterId) ?? 
                 throw new EntityNotFoundException("MangaChapter");
 
@@ -133,7 +144,9 @@ namespace ShounenGaming.Business.Services.Mangas
 
             if (userId != null)
             {
-                var user = await _userRepository.GetById(userId.Value) ?? throw new EntityNotFoundException("User");
+                var user = await _fusionCache.GetOrSetAsync($"user_{userId.Value}", async _ => await _userRepository.GetById(userId.Value));
+                if (user is null)
+                    throw new EntityNotFoundException("User");
                 includeNSFW = user.MangasConfigurations.NSFWBehaviour != NSFWBehaviourEnum.HIDE_ALL;
                 showProgressAll = user.MangasConfigurations.ShowProgressForChaptersWithDecimals;
             }
@@ -158,7 +171,7 @@ namespace ShounenGaming.Business.Services.Mangas
 
         public async Task<List<MangaInfoDTO>> GetSeasonMangas()
         {
-            var seasonMangas = await _mangaRepo.GetSeasonMangas();
+            var seasonMangas = await _fusionCache.GetOrSetAsync($"season_mangas", async _ => await _mangaRepo.GetSeasonMangas());
             return _mapper.Map<List<MangaInfoDTO>>(seasonMangas);
         }
 
@@ -202,7 +215,7 @@ namespace ShounenGaming.Business.Services.Mangas
         }
         public async Task<List<MangaInfoDTO>> GetRecentlyAddedMangas()
         {
-            var mangas = await _mangaRepo.GetRecentlyAddedMangas();
+            var mangas = await _fusionCache.GetOrSetAsync($"recent_mangas", async _ => await _mangaRepo.GetRecentlyAddedMangas());
             return _mapper.Map<List<MangaInfoDTO>>(mangas);
         }
         public async Task<List<LatestReleaseMangaDTO>> GetRecentlyReleasedChapters(int? userId = null)
@@ -212,10 +225,16 @@ namespace ShounenGaming.Business.Services.Mangas
 
             if (userId != null)
             {
-                var user = await _userRepository.GetById(userId.Value) ?? throw new EntityNotFoundException("User");
+                var user = await _fusionCache.GetOrSetAsync($"user_{userId}", async _ => await _userRepository.GetById(userId.Value));
+                if (user is null)
+                    throw new EntityNotFoundException("User");
                 includeNSFW = user.MangasConfigurations.NSFWBehaviour != NSFWBehaviourEnum.HIDE_ALL;
                 showProgressAll = user.MangasConfigurations.ShowProgressForChaptersWithDecimals;
             }
+
+            var cachedDto = await _fusionCache.TryGetAsync<List<LatestReleaseMangaDTO>>($"recent_chapters_{includeNSFW}");
+            if (cachedDto.HasValue)
+                return cachedDto.Value;
 
             var mangas = await _mangaRepo.GetRecentlyReleasedChapters(includeNSFW);
             var dto = new List<LatestReleaseMangaDTO>();
@@ -252,11 +271,12 @@ namespace ShounenGaming.Business.Services.Mangas
                     ReleasedChapters = dic
                 });
             }
+            await _fusionCache.SetAsync($"recent_chapters_{includeNSFW}", dto, options: new FusionCacheEntryOptions { Duration = TimeSpan.FromMinutes(5)});
             return dto;
         }
         public async Task<List<MangaWriterDTO>> GetMangaWriters()
         {
-            var writers = await _mangaWriterRepo.GetAll();
+            var writers = await _fusionCache.GetOrSetAsync($"manga_writers", async _ => await _mangaWriterRepo.GetAll());
             return _mapper.Map<List<MangaWriterDTO>>(writers);
         }
         
@@ -267,12 +287,14 @@ namespace ShounenGaming.Business.Services.Mangas
 
             if (userId != null)
             {
-                var user = await _userRepository.GetById(userId.Value) ?? throw new EntityNotFoundException("User");
+                var user = await _fusionCache.GetOrSetAsync($"user_{userId.Value}", async _ => await _userRepository.GetById(userId.Value));
+                if (user is null)
+                    throw new EntityNotFoundException("User");
                 includesNSFW = user.MangasConfigurations.NSFWBehaviour != NSFWBehaviourEnum.HIDE_ALL;
                 showProgressAll = user.MangasConfigurations.ShowProgressForChaptersWithDecimals;
             }
 
-            var mangas = await _mangaRepo.GetMangasByTag(tag , includesNSFW);
+            var mangas = await _fusionCache.GetOrSetAsync($"manga_tag_{tag.ToLower()}_{includesNSFW}", async _ => await _mangaRepo.GetMangasByTag(tag , includesNSFW));
 
             if (!showProgressAll)
                 mangas.ForEach(m => m.Chapters = m.Chapters.Where(c => (c.Name % 1) == 0).ToList());
@@ -281,7 +303,7 @@ namespace ShounenGaming.Business.Services.Mangas
         }
         public async Task<List<string>> GetMangaTags()
         {
-            var tags = await _mangaTagRepo.GetAll();
+            var tags = await _fusionCache.GetOrSetAsync("manga_tags", async _ => await _mangaTagRepo.GetAll()) ?? new List<MangaTag>();
             return tags.Select(t => t.Name).ToList();
         }
         public async Task<MangaWriterDTO> GetMangaWriterById(int id)
@@ -1096,7 +1118,14 @@ namespace ShounenGaming.Business.Services.Mangas
                     dbManga.IsSeasonManga = true;
 
                     await _mangaRepo.Update(dbManga);
-
+                    await _fusionCache.ExpireAsync($"manga_{dbManga.Id}");
+                    await _fusionCache.ExpireAsync($"manga_writers");
+                    await _fusionCache.ExpireAsync($"manga_tags");
+                    foreach (var tag in dbManga.Tags)
+                    {
+                        await _fusionCache.ExpireAsync($"manga_tag_${tag.Name.ToLower()}_true");
+                        await _fusionCache.ExpireAsync($"manga_tag_${tag.Name.ToLower()}_false");
+                    }
                     await Task.Delay(1000);
                 }
                 catch(Exception ex)
@@ -1105,6 +1134,10 @@ namespace ShounenGaming.Business.Services.Mangas
                 }
                 
             }
+            await _fusionCache.ExpireAsync("recent_mangas");
+            await _fusionCache.ExpireAsync("recent_chapters_true");
+            await _fusionCache.ExpireAsync("recent_chapters_false");
+            await _fusionCache.ExpireAsync("season_mangas");
             Log.Information("Season Mangas Updated");
         }
         #endregion
