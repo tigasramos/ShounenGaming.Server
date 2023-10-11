@@ -25,6 +25,7 @@ using ShounenGaming.Business.Mappers;
 using ShounenGaming.Business.Schedules;
 using ShounenGaming.Business.Services.Base;
 using ShounenGaming.Business.Services.Mangas;
+using ShounenGaming.Business.Services.Mangas_Scrappers;
 using ShounenGaming.Business.Services.Tierlists;
 using ShounenGaming.DataAccess.Interfaces.Base;
 using ShounenGaming.DataAccess.Interfaces.Mangas;
@@ -45,6 +46,8 @@ namespace ShounenGaming.Common
     {
         public static void ConfigureServices(this IServiceCollection services, ConfigurationManager configuration, IWebHostEnvironment environment, string assemblyName)
         {
+            services.AddHttpClient();
+
             services.AddJwt(configuration);
             services.AddSwagger(assemblyName);
             services.AddAutoMapper(typeof(UserMapper).Assembly);
@@ -290,6 +293,20 @@ namespace ShounenGaming.Common
             services.AddTransient<IMangaUserDataService, MangaUserDataService>();
             services.AddTransient<IJikan, Jikan>();
 
+            //Scrappers
+            services.AddTransient<IBaseMangaScrapper, ManganatoScrapper>();
+            services.AddTransient<IBaseMangaScrapper, GekkouScansScrapper>();
+            services.AddTransient<IBaseMangaScrapper, HuntersScansScrapper>();
+            services.AddTransient<IBaseMangaScrapper, NeoXScansScrapper>();
+            services.AddTransient<IBaseMangaScrapper, SilenceScansScrapper>();
+            services.AddTransient<IBaseMangaScrapper, DiskusScanScrapper>();
+            services.AddTransient<IBaseMangaScrapper, YesMangasScrapper>();
+            services.AddTransient<IBaseMangaScrapper, MangaDexPTScrapper>();
+            services.AddTransient<IBaseMangaScrapper, MangaDexENScrapper>();
+            services.AddTransient<IBaseMangaScrapper, MangaClashScrapper>();
+            services.AddTransient<IBaseMangaScrapper, BRMangasScrapper>();
+            services.AddTransient<IBaseMangaScrapper, RandomScanScrapper>();
+            
             services.AddHttpContextAccessor();
         }
         private static void AddRepositories(this IServiceCollection services)

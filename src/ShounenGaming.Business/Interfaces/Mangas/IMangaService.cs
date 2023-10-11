@@ -135,14 +135,6 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         Task<List<MangaSourceDTO>> SearchMangaSource(string name);
 
         /// <summary>
-        /// Gets all Mangas from a Source by Page
-        /// </summary>
-        /// <param name="source"></param>
-        /// <param name="page"></param>
-        /// <returns></returns>
-        Task<List<MangaSourceDTO>> GetAllMangasFromSourceByPage(MangaSourceEnumDTO source, int page);
-
-        /// <summary>
         /// Adds Sources to an already existing Manga with that Id
         /// </summary>
         /// <param name="mangaId"></param>

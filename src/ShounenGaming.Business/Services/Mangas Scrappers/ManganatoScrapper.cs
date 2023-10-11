@@ -6,41 +6,8 @@ using ShounenGaming.DTOs.Models.Mangas.Enums;
 
 namespace ShounenGaming.Business.Services.Mangas_Scrappers
 {
-    internal class ManganatoScrapper : IBaseMangaScrapper
+    public class ManganatoScrapper : IBaseMangaScrapper
     {
-        public async Task<List<MangaSourceDTO>> GetAllMangasByPage(int page)
-        {
-            var web = new HtmlWeb();
-            var mangasList = new List<MangaSourceDTO>();
-
-            try
-            {
-                var htmlDoc = await web.LoadFromWebAsync($"https://manganato.com/genre-all/{page}");
-                var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//div[@class='content-genres-item']");
-                if (mangasFetched == null || !mangasFetched.Any()) return new List<MangaSourceDTO>();
-
-                foreach (var manga in mangasFetched)
-                {
-                    var mangaName = manga.SelectSingleNode("div/h3/a")?.InnerText ?? "";
-                    var mangaURL = manga.SelectSingleNode("div/h3/a")?.GetAttributeValue("href", "") ?? "";
-                    var imageUrl = manga.SelectSingleNode("a/img").GetAttributeValue("src", "") ?? "";
-                    mangasList.Add(new MangaSourceDTO
-                    {
-                        Name = mangaName.Trim(),
-                        Url = mangaURL.Split("-").Last(),
-                        ImageURL = imageUrl,
-                        Source = GetMangaSourceEnumDTO()
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"Manganato - GetAllMangasByPage: {ex.Message}");
-            }
-
-            return mangasList;
-        }
-
         public virtual Dictionary<string, string> GetImageHeaders()
         {
             return new Dictionary<string, string>

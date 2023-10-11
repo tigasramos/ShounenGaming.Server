@@ -9,44 +9,9 @@ using System.Web;
 
 namespace ShounenGaming.Business.Services.Mangas_Scrappers
 {
-    internal class BRMangasScrapper : IBaseMangaScrapper
+    public class BRMangasScrapper : IBaseMangaScrapper
     {
-        public async Task<List<MangaSourceDTO>> GetAllMangasByPage(int page)
-        {
-            var web = new HtmlWeb();
-            var mangasList = new List<MangaSourceDTO>();
-            try
-            {
-                var htmlDoc = await web.LoadFromWebAsync($"https://www.brmangas.net/lista-de-manga/page/{page}");
-                var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//div[@class='listagem row']/div/div/a");
-                if (mangasFetched == null || !mangasFetched.Any()) return new List<MangaSourceDTO>();
-
-                foreach (var manga in mangasFetched)
-                {
-                    var mangaName = manga.SelectSingleNode("h2").InnerText ?? "";
-                    if (mangaName.Contains("(Novel)"))
-                        continue;
-                    var mangaURL = manga.GetAttributeValue("href", "") ?? "";
-                    var imageURL = manga.SelectSingleNode("div/img").GetAttributeValue("src", "") ?? "";
-                    mangasList.Add(new MangaSourceDTO
-                    {
-                        Name = HttpUtility.HtmlDecode(mangaName.Trim()),
-                        Url = mangaURL.Remove(mangaURL.Length - 1).Split("/").Last(),
-                        ImageURL = imageURL,
-                        Source = GetMangaSourceEnumDTO()
-                    });
-                }
-            }
-            catch (Exception ex) 
-            {
-                Log.Error($"BRMangas - GetAllMangasByPage: {ex.Message}");
-            }
-
-
-            return mangasList;
-        }
-
-
+      
         public async Task<ScrappedManga> GetManga(string urlPart)
         {
             var web = new HtmlWeb();

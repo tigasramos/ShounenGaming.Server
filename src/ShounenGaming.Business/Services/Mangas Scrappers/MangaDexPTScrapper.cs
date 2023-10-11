@@ -4,11 +4,10 @@ using ShounenGaming.DTOs.Models.Mangas.Enums;
 
 namespace ShounenGaming.Business.Services.Mangas_Scrappers
 {
-    internal class MangaDexPTScrapper : MangaDexAbstractScrapper, IBaseMangaScrapper
+    public class MangaDexPTScrapper : MangaDexAbstractScrapper, IBaseMangaScrapper
     {
-        public async Task<List<MangaSourceDTO>> GetAllMangasByPage(int page)
+        public MangaDexPTScrapper(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
         {
-            return await SearchMangasUnified(GetSearchQuery(limit: 50, offset: page * 50));
         }
 
         public override MangaTranslationEnumDTO GetLanguage()

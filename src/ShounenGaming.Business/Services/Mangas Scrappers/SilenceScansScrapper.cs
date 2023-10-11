@@ -8,41 +8,9 @@ using System.Text;
 
 namespace ShounenGaming.Business.Services.Mangas_Scrappers
 {
-    internal class SilenceScansScrapper : IBaseMangaScrapper
+    public class SilenceScansScrapper : IBaseMangaScrapper
     {
-        public async Task<List<MangaSourceDTO>> GetAllMangasByPage(int page)
-        {
-            var web = new HtmlWeb();
-            var mangasList = new List<MangaSourceDTO>();
-
-            try
-            {
-                var htmlDoc = await web.LoadFromWebAsync($"https://silencescan.com.br/manga/?page={page}");
-                var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//div[@class='listupd']/div/div/a");
-                if (mangasFetched == null || !mangasFetched.Any()) return new List<MangaSourceDTO>();
-
-                foreach (var manga in mangasFetched)
-                {
-                    var mangaName = manga.GetAttributeValue("title", "") ?? "";
-                    var mangaURL = manga.GetAttributeValue("href", "") ?? "";
-                    var imageURL = manga.SelectSingleNode("div[@class='limit']/img").GetAttributeValue("src", "") ?? "";
-                    mangasList.Add(new MangaSourceDTO
-                    {
-                        Name = mangaName.Trim(),
-                        Url = mangaURL.Remove(mangaURL.Length - 1).Split("/").Last(),
-                        Source = GetMangaSourceEnumDTO()
-                    });
-                }
-            }
-            catch (Exception ex) 
-            {
-                Log.Error($"SilenceScans - GetAllMangasByPage: {ex.Message}");
-            }
-
-
-            return mangasList;
-        }
-
+        
         public async Task<ScrappedManga> GetManga(string urlPart)
         {
             var web = new HtmlWeb();

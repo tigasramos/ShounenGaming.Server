@@ -16,7 +16,9 @@ namespace ShounenGaming.DTOs.Models.Mangas.Enums
         UNION_MANGAS = 8,
         YES_MANGAS = 9,
         MANGAS_DEX_PT = 10,
-        MANGAS_DEX_EN = 11
+        MANGAS_DEX_EN = 11,
+        MANGA_CLASH = 12,
+        RANDOM_SCAN = 13,
     }
 
 }

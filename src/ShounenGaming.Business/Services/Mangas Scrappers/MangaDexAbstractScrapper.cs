@@ -10,11 +10,18 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
      * Rate Limits:
      * 5 per Second
      */
-    internal abstract class MangaDexAbstractScrapper
+    public abstract class MangaDexAbstractScrapper
     {
-        private HttpClient CreateHTTPClient()
+
+        private readonly IHttpClientFactory _httpClientFactory;
+
+        protected MangaDexAbstractScrapper(IHttpClientFactory httpClientFactory)
         {
-            var client = new HttpClient();
+            _httpClientFactory = httpClientFactory;
+        }
+
+        private static HttpClient PutHttpClientHeaders(HttpClient client)
+        {
             client.DefaultRequestHeaders.Clear();
             client.DefaultRequestHeaders.Add("Host", "api.mangadex.org");
             client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36");
@@ -31,7 +38,8 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
         {
             try
             {
-                var response = await CreateHTTPClient().GetAsync(query);
+                var httpClient = PutHttpClientHeaders(_httpClientFactory.CreateClient());
+                using var response = await httpClient.GetAsync(query);
                 response.EnsureSuccessStatusCode();
 
                 var responseString = await response.Content.ReadAsStringAsync();
@@ -62,7 +70,8 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
         public abstract MangaTranslationEnumDTO GetLanguage();
         public async Task<List<string>> GetChapterImages(string urlPart)
         {
-            var response = await CreateHTTPClient().GetAsync($"https://api.mangadex.org/at-home/server/{urlPart}?forcePort443=true");
+            var httpClient = PutHttpClientHeaders(_httpClientFactory.CreateClient());
+            var response = await httpClient.GetAsync($"https://api.mangadex.org/at-home/server/{urlPart}?forcePort443=true");
             response.EnsureSuccessStatusCode();
 
             var responseString = await response.Content.ReadAsStringAsync();
@@ -79,8 +88,8 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
             var languages = GetLanguage() == MangaTranslationEnumDTO.PT ? "translatedLanguage%5B%5D=pt-br&translatedLanguage%5B%5D=pt" : "translatedLanguage%5B%5D=en";
 
             // Get Manga
-            var client = CreateHTTPClient();
-            var mangaResponse = await CreateHTTPClient().GetAsync($"https://api.mangadex.org/manga/{urlPart}?includes%5B%5D=cover_art");
+            var httpClient = PutHttpClientHeaders(_httpClientFactory.CreateClient());
+            using var mangaResponse = await httpClient.GetAsync($"https://api.mangadex.org/manga/{urlPart}?includes%5B%5D=cover_art");
             mangaResponse.EnsureSuccessStatusCode();
 
             var mangaResponseString = await mangaResponse.Content.ReadAsStringAsync();
@@ -100,7 +109,8 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
             var chapters = new List<ScrappedChapter>();
             do
             {
-                var response = await client.GetAsync($"https://api.mangadex.org/manga/{urlPart}/feed?limit={limit}&offset={chapters.Count}&{languages}&contentRating%5B%5D=safe&contentRating%5B%5D=suggestive&contentRating%5B%5D=erotica&includeFutureUpdates=1&order%5BcreatedAt%5D=asc&order%5BupdatedAt%5D=asc&order%5BpublishAt%5D=asc&order%5BreadableAt%5D=asc&order%5Bvolume%5D=asc&order%5Bchapter%5D=asc");
+                var httpClient2 = PutHttpClientHeaders(_httpClientFactory.CreateClient());
+                using var response = await httpClient2.GetAsync($"https://api.mangadex.org/manga/{urlPart}/feed?limit={limit}&offset={chapters.Count}&{languages}&contentRating%5B%5D=safe&contentRating%5B%5D=suggestive&contentRating%5B%5D=erotica&includeFutureUpdates=1&order%5BcreatedAt%5D=asc&order%5BupdatedAt%5D=asc&order%5BpublishAt%5D=asc&order%5BreadableAt%5D=asc&order%5Bvolume%5D=asc&order%5Bchapter%5D=asc");
                 response.EnsureSuccessStatusCode();
 
                 var responseString = await response.Content.ReadAsStringAsync();

@@ -27,14 +27,6 @@ namespace ShounenGaming.Business.Services.Mangas
     {
         private static readonly string QUEUE_CACHE_KEY = "mangasQueue";
 
-        // TODO: UnionMangas ?
-        static readonly List<IBaseMangaScrapper> scrappers = new() { 
-                    new ManganatoScrapper(), new GekkouScansScrapper(), 
-                    new SilenceScansScrapper(), new HuntersScansScrapper(), 
-                    new NeoXScansScrapper(), new BRMangasScrapper(), 
-                    new DiskusScanScrapper(), new YesMangasScrapper(),
-                    new MangaDexPTScrapper(), new MangaDexENScrapper()};
-
         private readonly IUserRepository _userRepository;
         private readonly IMangaRepository _mangaRepo;
         private readonly IMangaWriterRepository _mangaWriterRepo;
@@ -49,7 +41,9 @@ namespace ShounenGaming.Business.Services.Mangas
         private readonly IMemoryCache _cache;
         private readonly IFusionCache _fusionCache;
 
-        public MangaService(IMangaRepository mangaRepo, IMangaWriterRepository mangaWriterRepo, IMangaTagRepository mangaTagRepo, IMapper mapper, IImageService imageService, IJikan jikan, IAddedMangaActionRepository addedMangaRepo, IUserRepository userRepository, IFetchMangasQueue queue, IMemoryCache cache, IHubContext<MangasHub, IMangasHubClient> mangasHub, IFusionCache fusionCache)
+        private readonly IEnumerable<IBaseMangaScrapper> _scrappers;
+
+        public MangaService(IMangaRepository mangaRepo, IMangaWriterRepository mangaWriterRepo, IMangaTagRepository mangaTagRepo, IMapper mapper, IImageService imageService, IJikan jikan, IAddedMangaActionRepository addedMangaRepo, IUserRepository userRepository, IFetchMangasQueue queue, IMemoryCache cache, IHubContext<MangasHub, IMangasHubClient> mangasHub, IFusionCache fusionCache, IEnumerable<IBaseMangaScrapper> scrappers)
         {
             _mangaRepo = mangaRepo;
             _mangaWriterRepo = mangaWriterRepo;
@@ -63,6 +57,7 @@ namespace ShounenGaming.Business.Services.Mangas
             _cache = cache;
             _mangasHub = mangasHub;
             _fusionCache = fusionCache;
+            _scrappers = scrappers;
         }
 
 
@@ -105,6 +100,9 @@ namespace ShounenGaming.Business.Services.Mangas
                 {
                     var scrapperEnum = (MangaSourceEnumDTO)Enum.Parse(typeof(MangaSourceEnumDTO), source.Source);
                     var scrapper = GetScrapperByEnum(scrapperEnum);
+                    if (scrapper == null)
+                        continue;
+
                     var scrapperTranslation = _mapper.Map<TranslationLanguageEnum>(scrapper?.GetLanguage());
                     if (scrapperTranslation != mangaTranslation.Language)
                         continue;
@@ -405,7 +403,7 @@ namespace ShounenGaming.Business.Services.Mangas
 
             List<Task<List<MangaSourceDTO>>> allMangasTasks = new();
 
-            foreach(var scrapper in scrappers)
+            foreach(var scrapper in _scrappers)
             {
                 allMangasTasks.Add(scrapper.SearchManga(treatedName));
             }
@@ -418,12 +416,7 @@ namespace ShounenGaming.Business.Services.Mangas
             }
             return listResults;
         }
-        public async Task<List<MangaSourceDTO>> GetAllMangasFromSourceByPage(MangaSourceEnumDTO source, int page = 1)
-        {
-            var scrapper = scrappers.Where(s => s.GetMangaSourceEnumDTO() == source).FirstOrDefault();
-            var mangas = await scrapper?.GetAllMangasByPage(page);
-            return mangas ?? new List<MangaSourceDTO>();
-        }
+
         public async Task<List<MangaSourceDTO>> LinkSourcesToManga(int mangaId, List<MangaSourceDTO> mangas)
         {
             var manga = await _mangaRepo.ClearSources(mangaId);
@@ -785,7 +778,7 @@ namespace ShounenGaming.Business.Services.Mangas
                     Log.Information($"Source: {source}");
 
                     var scrapperEnum = (MangaSourceEnumDTO)Enum.Parse(typeof(MangaSourceEnumDTO), source.Source);
-                    var scrapper = scrappers.First(s => s.GetMangaSourceEnumDTO() == scrapperEnum);
+                    var scrapper = _scrappers.First(s => s.GetMangaSourceEnumDTO() == scrapperEnum);
 
                     var fetchedManga = await scrapper.GetManga(source.Url);
                     var chapters = manga.Chapters.Where(c => c.Translations.Any(t => !t.Downloaded && t.Language == TranslationLanguageEnum.PT));
@@ -1132,7 +1125,7 @@ namespace ShounenGaming.Business.Services.Mangas
                 {
                     Log.Error($"Error Fetching {anime.Titles.First().Title}", ex);
                 }
-                
+
             }
             await _fusionCache.ExpireAsync("recent_mangas");
             await _fusionCache.ExpireAsync("recent_chapters_true");
@@ -1152,6 +1145,8 @@ namespace ShounenGaming.Business.Services.Mangas
                 // Get Scrapper
                 var scrapperEnum = (MangaSourceEnumDTO)Enum.Parse(typeof(MangaSourceEnumDTO), source.Source);
                 var scrapper = GetScrapperByEnum(scrapperEnum);
+                if (scrapper == null)
+                    throw new Exception("No Scrapper Registered");
                 var scrapperTranslation = _mapper.Map<TranslationLanguageEnum>(scrapper?.GetLanguage());
 
                 // Get (Cached) Manga Info
@@ -1333,9 +1328,9 @@ namespace ShounenGaming.Business.Services.Mangas
                 _ => Core.Entities.Mangas.Enums.MangaTypeEnum.MANGA,
             };
         }
-        private static IBaseMangaScrapper? GetScrapperByEnum(MangaSourceEnumDTO source)
+        private IBaseMangaScrapper? GetScrapperByEnum(MangaSourceEnumDTO source)
         {
-            return scrappers.FirstOrDefault(s => s.GetMangaSourceEnumDTO() == source);
+            return _scrappers.FirstOrDefault(s => s.GetMangaSourceEnumDTO() == source);
         }
         #endregion
     }
