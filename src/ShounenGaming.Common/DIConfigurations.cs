@@ -95,8 +95,6 @@ namespace ShounenGaming.Common
 
         public static void ConfigureApp(this WebApplication app)
         {
-            app.UseSerilogRequestLogging();
-
             Log.Information($"Environment: {app.Environment.EnvironmentName}");
 
             //TODO: Check Coravel Cache Service
