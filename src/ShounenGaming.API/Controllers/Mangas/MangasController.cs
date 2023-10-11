@@ -246,19 +246,6 @@ namespace ShounenGaming.API.Controllers.Mangas
         }
 
         /// <summary>
-        /// Gets All Mangas From a Source by Page
-        /// </summary>
-        /// <param name="source"></param>
-        /// <param name="page"></param>
-        /// <returns></returns>
-        [HttpGet("search/source/{source}")]
-        public async Task<IActionResult> GetAllMangasFromSource(MangaSourceEnumDTO source, [FromQuery]int page = 1)
-        {
-            var mangas = await _service.GetAllMangasFromSourceByPage(source, page);
-            return Ok(mangas);
-        }
-
-        /// <summary>
         /// Adds Sources to an already existing Manga with that Id
         /// </summary>
         /// <param name="mangaId"></param>
