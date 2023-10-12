@@ -95,7 +95,7 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
                 {
                     var mangaName = manga.SelectSingleNode("div/h3/a")?.InnerText ?? "";
                     var mangaURL = manga.SelectSingleNode("div/h3/a")?.GetAttributeValue("href", "") ?? "";
-                    var imageUrl = manga.SelectSingleNode("a/img").GetAttributeValue("src", "") ?? "";
+                    var imageUrl = manga.SelectSingleNode("a/img")?.GetAttributeValue("src", "") ?? "";
                     mangasList.Add(new MangaSourceDTO
                     {
                         Name = mangaName.Trim(),

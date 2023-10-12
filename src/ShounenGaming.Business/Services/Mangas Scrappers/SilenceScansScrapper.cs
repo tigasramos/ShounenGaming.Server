@@ -82,26 +82,23 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
             var currentPage = 1;
             try
             {
-                while (true)
-                {
-                    var htmlDoc = await web.LoadFromWebAsync($"https://silencescan.com.br/page/{currentPage}/?s={name.Replace(" ", "+")}");
-                    var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//div[@class='listupd']/div/div/a");
-                    if (mangasFetched == null || !mangasFetched.Any()) break;
+                var htmlDoc = await web.LoadFromWebAsync($"https://silencescan.com.br/page/{currentPage}/?s={name.Replace(" ", "+")}");
+                var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//div[@class='listupd']/div/div/a");
+                if (mangasFetched == null || !mangasFetched.Any())
+                    return mangasList;
 
-                    foreach (var manga in mangasFetched)
+                foreach (var manga in mangasFetched)
+                {
+                    var mangaName = manga.GetAttributeValue("title", "") ?? "";
+                    var mangaURL = manga.GetAttributeValue("href", "") ?? "";
+                    var imageURL = manga.SelectSingleNode("div[@class='limit']/img").GetAttributeValue("src", "") ?? "";
+                    mangasList.Add(new MangaSourceDTO
                     {
-                        var mangaName = manga.GetAttributeValue("title", "") ?? "";
-                        var mangaURL = manga.GetAttributeValue("href", "") ?? "";
-                        var imageURL = manga.SelectSingleNode("div[@class='limit']/img").GetAttributeValue("src", "") ?? "";
-                        mangasList.Add(new MangaSourceDTO
-                        {
-                            Name = mangaName.Trim(),
-                            Url = mangaURL.Remove(mangaURL.Length - 1).Split("/").Last(),
-                            ImageURL = imageURL,
-                            Source = GetMangaSourceEnumDTO()
-                        });
-                    }
-                    currentPage++;
+                        Name = mangaName.Trim(),
+                        Url = mangaURL.Remove(mangaURL.Length - 1).Split("/").Last(),
+                        ImageURL = imageURL,
+                        Source = GetMangaSourceEnumDTO()
+                    });
                 }
 
             }

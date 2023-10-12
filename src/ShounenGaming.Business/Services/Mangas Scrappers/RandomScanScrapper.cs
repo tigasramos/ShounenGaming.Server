@@ -76,7 +76,7 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
                 {
                     var chapterName = chapter.SelectSingleNode("a").InnerText.Replace(mangaName, "").Replace("Capítulo", "").Replace("Cap.", "").Trim() ?? "";
                     var chapterUrl = chapter.SelectSingleNode("a").GetAttributeValue("href", "") ?? "";
-                    var releasedDate = chapter.SelectSingleNode("span/i").InnerText;
+                    var releasedDate = chapter.SelectSingleNode("span/i")?.InnerText;
                     DateTime convertedDate = DateTime.Now;
                     var dateConverted = releasedDate is null ? false : DateTime.TryParseExact(releasedDate, "MMMM d, yyyy", new CultureInfo("pt-BR"), DateTimeStyles.None, out convertedDate);
 
@@ -117,8 +117,9 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
                 foreach (var manga in mangasFetched)
                 {
                     var mangaName = manga.SelectSingleNode("div/div[@class='tab-summary']/div/h3/a")?.InnerText ?? "";
+                    if (mangaName.Contains("(Novel)")) continue;
                     var mangaUrl = manga.SelectSingleNode("div/div[@class='tab-summary']/div/h3/a")?.GetAttributeValue("href", "") ?? "";
-                    var imageUrl = manga.SelectSingleNode("div/div[@class='tab-thumb c-image-hover']/a/img").GetAttributeValue("src", "") ?? "";
+                    var imageUrl = manga.SelectSingleNode("div/div[@class='tab-thumb c-image-hover']/a/img")?.GetAttributeValue("src", "") ?? "";
                     mangasList.Add(new MangaSourceDTO
                     {
                         Name = HttpUtility.HtmlDecode(mangaName.Trim()),

@@ -19,6 +19,7 @@ namespace ShounenGaming.DTOs.Models.Mangas.Enums
         MANGAS_DEX_EN = 11,
         MANGA_CLASH = 12,
         RANDOM_SCAN = 13,
+        SAIKAI_SCANS = 14,
     }
 
 }
