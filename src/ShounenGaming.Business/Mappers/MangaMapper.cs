@@ -41,6 +41,7 @@ namespace ShounenGaming.Business.Mappers
                 .ForMember(m => m.ChaptersCount, (x) => x.MapFrom((a) => a.Chapters.Count))
                 .ForMember(m => m.MyAnimeListId, (x) => x.MapFrom((a) => a.MangaMyAnimeListID))
                 .ForMember(m => m.AnilistId, (x) => x.MapFrom((a) => a.MangaAniListID))
+                .ForMember(m => m.AverageScore, (x) => x.MapFrom((a) => ((a.ALScore ?? a.MALScore) + (a.MALScore ?? a.ALScore)) / 2))
                 .ForMember(m => m.LastChapterDate, (x) => {
                     x.AllowNull();
                     x.PreCondition(a => a.Chapters.Any());
