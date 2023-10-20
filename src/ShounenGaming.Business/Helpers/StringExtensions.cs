@@ -8,10 +8,17 @@ namespace ShounenGaming.Business.Helpers
 {
     public static class StringExtensions
     {
-        public static string NormalizeStringToDirectory(this string str)
+        public static string NormalizeStringToDirectory(this string folderName)
         {
-            // TODO: Try this https://stackoverflow.com/questions/10081907/in-c-sharp-how-can-i-prepare-a-string-to-be-valid-for-windows-directory-name
-            return str.ToLower().Replace(".", "-").Replace(" ", "-").Replace(":","").Replace("\\", "").Replace("/", "").Replace(";","").Replace("?","").Replace("\"", "");
+            if (string.IsNullOrEmpty(folderName)) return folderName;
+
+            foreach (var c in Path.GetInvalidFileNameChars())
+                folderName = folderName.Replace(c.ToString(), string.Empty);
+
+            foreach (var c in Path.GetInvalidPathChars())
+                folderName = folderName.Replace(c.ToString(), string.Empty);
+
+            return folderName;
         }
     }
 }

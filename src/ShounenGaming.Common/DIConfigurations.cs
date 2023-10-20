@@ -111,6 +111,7 @@ namespace ShounenGaming.Common
                     scheduler.Schedule<AddOrUpdateMangasMetadataJob>().Cron("20 */3 * * *").RunOnceAtStart().PreventOverlapping("MangasMetadata");
                     scheduler.Schedule<FetchSeasonMangasJob>().DailyAt(3, 30).RunOnceAtStart();
                     scheduler.Schedule<FetchAllMangasChaptersJob>().Cron("0 */2 * * *").RunOnceAtStart();
+                    scheduler.Schedule<DownloadChapterImagesJob>().DailyAt(5,0).RunOnceAtStart();
 
                 } 
                 else
@@ -123,7 +124,8 @@ namespace ShounenGaming.Common
                     scheduler.OnWorker("Mangas");
                     scheduler.Schedule<AddOrUpdateMangasMetadataJob>().DailyAt(1, 30).PreventOverlapping("MangasMetadata");
                     scheduler.Schedule<FetchAllMangasChaptersJob>().Monthly();
-                    scheduler.Schedule<FetchSeasonMangasJob>().DailyAt(3, 0).RunOnceAtStart();
+                    scheduler.Schedule<FetchSeasonMangasJob>().DailyAt(3, 0);
+                    scheduler.Schedule<DownloadChapterImagesJob>().DailyAt(5, 0).RunOnceAtStart();
 
                 }
                 
@@ -278,6 +280,7 @@ namespace ShounenGaming.Common
 
             //Schedules
             services.AddTransient<FetchAllMangasChaptersJob>();
+            services.AddTransient<DownloadChapterImagesJob>();
             services.AddTransient<FetchMangaChaptersJobListener>();
             services.AddTransient<AddOrUpdateMangasMetadataJob>();
             services.AddTransient<FetchSeasonMangasJob>();

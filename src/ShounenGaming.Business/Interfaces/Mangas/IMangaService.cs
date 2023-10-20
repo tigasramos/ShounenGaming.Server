@@ -177,6 +177,12 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         internal Task FetchSeasonMangas();
 
         /// <summary>
+        /// Downloads images for chapters that don't have
+        /// </summary>
+        /// <returns></returns>
+        internal Task DownloadImages();
+
+        /// <summary>
         /// Fetch new Chapters for a Manga
         /// </summary>
         /// <param name="mangaId"></param>

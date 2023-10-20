@@ -25,7 +25,7 @@ namespace ShounenGaming.Business.Schedules
             }
             catch (Exception ex)
             {
-                Log.Error($"Error Updating Mangas Metadata: {ex.Message}");
+                Log.Error(ex, "Error Updating Mangas Metadata");
             }
         }
     }
