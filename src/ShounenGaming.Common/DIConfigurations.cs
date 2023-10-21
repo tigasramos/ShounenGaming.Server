@@ -292,6 +292,7 @@ namespace ShounenGaming.Common
             services.AddTransient<IMangaService, MangaService>();
             services.AddTransient<IImageService, ImageService>();
             services.AddTransient<IMangaUserDataService, MangaUserDataService>();
+            services.AddTransient<IMangaUserStatsService, MangaUserStatsService>();
             services.AddTransient<IJikan, Jikan>();
 
             //Scrappers

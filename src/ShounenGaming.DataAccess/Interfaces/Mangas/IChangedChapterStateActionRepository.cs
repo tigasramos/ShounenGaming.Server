@@ -9,6 +9,7 @@ namespace ShounenGaming.DataAccess.Interfaces.Mangas
 {
     public interface IChangedChapterStateActionRepository : IBaseRepository<ChangedChapterStateAction>
     {
+        Task<List<ChangedChapterStateAction>> GetChapterHistoryFromUser(int userId);
         Task<ChangedChapterStateAction?> GetLastChapterUserReadFromManga(int userId, int mangaId);
         Task<ChangedChapterStateAction?> GetFirstChapterUserReadFromManga(int userId, int mangaId);
     }
