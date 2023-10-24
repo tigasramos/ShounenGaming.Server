@@ -15,12 +15,13 @@ namespace ShounenGaming.Business.Services.Mangas
         private readonly IUserRepository _userRepo;
         private readonly IMangaRepository _mangaRepository;
         private readonly IMangaUserDataRepository _mangaUserDataRepo;
+        private readonly IAddedMangaActionRepository _mangaAddedActionRepo;
         private readonly IChangedChapterStateActionRepository _mangaChangedChapterStateActionRepo;
         private readonly IChangedMangaStatusActionRepository _mangaChangedStatusActionRepo;
 
         private readonly IMapper _mapper;
 
-        public MangaUserDataService(IMangaUserDataRepository mangaUserDataRepo, IMapper mapper, IMangaRepository mangaRepository, IChangedChapterStateActionRepository mangaChangedChapterStateActionRepo, IChangedMangaStatusActionRepository mangaStatusActionRepo, IUserRepository userRepo)
+        public MangaUserDataService(IMangaUserDataRepository mangaUserDataRepo, IMapper mapper, IMangaRepository mangaRepository, IChangedChapterStateActionRepository mangaChangedChapterStateActionRepo, IChangedMangaStatusActionRepository mangaStatusActionRepo, IUserRepository userRepo, IAddedMangaActionRepository mangaAddedActionRepo)
         {
             _mangaUserDataRepo = mangaUserDataRepo;
             _mapper = mapper;
@@ -28,6 +29,7 @@ namespace ShounenGaming.Business.Services.Mangas
             _mangaChangedChapterStateActionRepo = mangaChangedChapterStateActionRepo;
             _mangaChangedStatusActionRepo = mangaStatusActionRepo;
             _userRepo = userRepo;
+            _mangaAddedActionRepo = mangaAddedActionRepo;
         }
 
         public async Task<MangaUserDataDTO?> GetMangaDataByMangaByUser(int userId, int mangaId)
@@ -66,7 +68,6 @@ namespace ShounenGaming.Business.Services.Mangas
                     UserId = userId,
                     User = user,
                     Status = MangaUserStatusEnum.READING,
-                    IsPrivate = false,
                     ChaptersRead = new List<Core.Entities.Mangas.MangaChapter>(),
                 };
 
@@ -151,7 +152,6 @@ namespace ShounenGaming.Business.Services.Mangas
                     MangaId = manga.Id,
                     UserId = userId,
                     User = user,
-                    IsPrivate = false,
                     Status = _mapper.Map<MangaUserStatusEnum>(status)
                 };
                 var dbMangaUserInfo = await _mangaUserDataRepo.Create(mangaUserInfo);
@@ -272,7 +272,7 @@ namespace ShounenGaming.Business.Services.Mangas
 
             // Search the mangas with OK rating which have most of those tags (not read before) and not on ignore !
             var allMangas = await _mangaRepository.GetAll();
-            var allMangasNotSeen = allMangas.Where(m => !userSeenMangas.Any(usm => usm.Id == m.Id));
+            var allMangasNotSeen = allMangas.Where(m => !userSeenMangas.Any(usm => usm.Manga.Id == m.Id));
 
             var mangasScores = new Dictionary<int, double>();
             foreach(var manga in allMangasNotSeen)
@@ -285,14 +285,60 @@ namespace ShounenGaming.Business.Services.Mangas
                 }
             }
 
-            // TODO: Maybe put a where value bigger than something
-            // TODO: Pages and refresh
+            // TODO: Maybe put a "where value" bigger than something
+            // TODO: Refresh recommendations
             // TODO: If exists give, if not, search in MAL and AL and add them
+            // TODO: Also check types: Manga, Manwha...
 
             var mangaIds = mangasScores.OrderByDescending(ms => ms.Value).Select(ms => ms.Key).Take(10).ToList();
             return _mapper.Map<List<MangaInfoDTO>>(allMangasNotSeen.Where(m => mangaIds.Contains(m.Id))); 
         }
 
+        public async Task<List<MangasUserActivityDTO>> GetLastUsersActivity()
+        {
+            //TODO: Add Cache
+
+            var addedActivities = await _mangaAddedActionRepo.GetAll();
+            var statusChangedActivities = await _mangaChangedStatusActionRepo.GetAll();
+            var chaptersReadActivities = await _mangaChangedChapterStateActionRepo.GetAll();
+
+            var addedActivitiesDTOs = addedActivities.Where(a => !a.Manga.IsNSFW).Select(a => 
+                new MangasUserActivityDTO 
+                { 
+                    Manga = _mapper.Map<MangaInfoDTO>(a.Manga),
+                    User = _mapper.Map<SimpleUserDTO>(a.User),
+                    ActivityType = UserActivityTypeEnumDTO.ADD_MANGA,
+                    MadeAt = a.CreatedAt,
+                });
+
+            var statusChangedActivitiesDTOs = statusChangedActivities.Where(a => !a.Manga.IsNSFW).Select(a =>
+                new MangasUserActivityDTO
+                {
+                    Manga = _mapper.Map<MangaInfoDTO>(a.Manga),
+                    User = _mapper.Map<SimpleUserDTO>(a.User),
+                    ActivityType = UserActivityTypeEnumDTO.CHANGE_STATUS,
+                    PreviousState = _mapper.Map<MangaUserStatusEnumDTO>(a.PreviousState),
+                    NewState = _mapper.Map<MangaUserStatusEnumDTO>(a.NewState),
+                    MadeAt = a.CreatedAt,
+                });
+
+            var chaptersReadActivitiesDTOs = chaptersReadActivities.Where(a => !a.Chapter.Manga.IsNSFW).Select(a =>
+                new MangasUserActivityDTO
+                {
+                    Manga = _mapper.Map<MangaInfoDTO>(a.Chapter.Manga),
+                    User = _mapper.Map<SimpleUserDTO>(a.User),
+                    ActivityType = a.Read ? UserActivityTypeEnumDTO.SEE_CHAPTER : UserActivityTypeEnumDTO.UNSEE_CHAPTER,
+                    ChaptersRead = a.Chapter.Name.ToString(),
+                    MadeAt = a.CreatedAt,
+                });
+
+            var allActivities = new List<MangasUserActivityDTO>();
+            allActivities.AddRange(addedActivitiesDTOs);
+            allActivities.AddRange(statusChangedActivitiesDTOs);
+            allActivities.AddRange(chaptersReadActivitiesDTOs);
+
+            return allActivities.OrderByDescending(a => a.MadeAt).Take(30).ToList();
+        }
 
         private async Task<MangaUserDataDTO> MapMangaUserData(Core.Entities.Mangas.MangaUserData mangaUserData)
         {
