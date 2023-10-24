@@ -103,5 +103,17 @@ namespace ShounenGaming.API.Controllers.Mangas
 
             return Ok();
         }
+
+        /// <summary>
+        /// Gets Manga Recommendations for specific User
+        /// </summary>
+        /// <returns></returns>
+        [HttpPut("{mangaId}/recommendations")]
+        public async Task<IActionResult> GetMangaRecommendations()
+        {
+            var userId = User.FindFirstValue("Id");
+            var userData = await _mangaUsersService.GetMangaRecommendations(Convert.ToInt32(userId));
+            return Ok(userData);
+        }
     }
 }

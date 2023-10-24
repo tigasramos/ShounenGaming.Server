@@ -1,10 +1,5 @@
 ﻿using ShounenGaming.DTOs.Models.Mangas;
 using ShounenGaming.DTOs.Models.Mangas.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ShounenGaming.Business.Interfaces.Mangas
 {
@@ -66,5 +61,13 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// <param name="rating"></param>
         /// <returns></returns>
         Task<MangaUserDataDTO?> UpdateMangaRatingByUser(int userId, int mangaId, double? rating);
+
+
+        /// <summary>
+        /// Gets Recommendations for Specific Users
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        Task<List<MangaInfoDTO>> GetMangaRecommendations(int userId);
     }
 }
