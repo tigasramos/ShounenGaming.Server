@@ -131,28 +131,6 @@ namespace ShounenGaming.API.Controllers.Mangas
             return Ok(chapters);
         }
         
-        /// <summary>
-        /// Gets the Featured Mangas
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet("featured")]
-        public async Task<IActionResult> GetFeaturedMangas()
-        {
-            var mangas = await _service.GetFeaturedMangas();
-            return Ok(mangas);
-        }
-
-        /// <summary>
-        /// Change the Feature Status of a Manga
-        /// </summary>
-        /// <returns></returns>
-        [HttpPut("{mangaId}/feature")]
-        public async Task<IActionResult> ChangeFeaturedStatus(int mangaId)
-        {
-            var manga = await _service.ChangeMangaFeaturedStatus(mangaId);
-            return Ok(manga);
-        }
-
         #endregion
 
         #region Tags & Writers
