@@ -30,17 +30,6 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
 
             return await query.OrderByDescending(m => ((m.MALPopularity ?? m.ALPopularity) + (m.ALPopularity ?? m.MALPopularity)) / 2).Take(10).ToListAsync();
         }
-        public async Task<List<Manga>> GetFeaturedMangas(bool includeNSFW = true)
-        {
-            var query = dbSet.AsQueryable();
-
-            if (!includeNSFW)
-            {
-                query = query.Where(m => !m.IsNSFW);
-            }
-
-            return await query.Where(m => m.IsFeatured).ToListAsync();
-        }
 
         public override void DeleteDependencies(Manga entity)
         {

@@ -11,7 +11,8 @@ namespace ShounenGaming.DTOs.Models.Mangas
         public DateTime MadeAt { get; set; }
 
         // Chapter Related
-        public string? ChaptersRead { get; set; }
+        public double? FirstChapterRead { get; set; }
+        public double? LastChapterRead { get; set; }
 
         //Status Related
         public MangaUserStatusEnumDTO? PreviousState { get; set; }

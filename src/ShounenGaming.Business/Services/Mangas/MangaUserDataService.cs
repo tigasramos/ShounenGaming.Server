@@ -299,8 +299,8 @@ namespace ShounenGaming.Business.Services.Mangas
             //TODO: Add Cache
 
             var addedActivities = await _mangaAddedActionRepo.GetAll();
-            var statusChangedActivities = await _mangaChangedStatusActionRepo.GetAll();
-            var chaptersReadActivities = await _mangaChangedChapterStateActionRepo.GetAll();
+            var statusChangedActivities = (await _mangaChangedStatusActionRepo.GetAll()).Where(c => !c.Manga.IsNSFW).OrderByDescending(c => c.CreatedAt).ToList();
+            var chaptersReadActivities = (await _mangaChangedChapterStateActionRepo.GetAll()).Where(c => !c.Chapter.Manga.IsNSFW).OrderByDescending(c => c.CreatedAt).ToList();
 
             var addedActivitiesDTOs = addedActivities.Where(a => !a.Manga.IsNSFW).Select(a => 
                 new MangasUserActivityDTO 
@@ -311,31 +311,115 @@ namespace ShounenGaming.Business.Services.Mangas
                     MadeAt = a.CreatedAt,
                 });
 
-            var statusChangedActivitiesDTOs = statusChangedActivities.Where(a => !a.Manga.IsNSFW).Select(a =>
-                new MangasUserActivityDTO
-                {
-                    Manga = _mapper.Map<MangaInfoDTO>(a.Manga),
-                    User = _mapper.Map<SimpleUserDTO>(a.User),
-                    ActivityType = UserActivityTypeEnumDTO.CHANGE_STATUS,
-                    PreviousState = _mapper.Map<MangaUserStatusEnumDTO>(a.PreviousState),
-                    NewState = _mapper.Map<MangaUserStatusEnumDTO>(a.NewState),
-                    MadeAt = a.CreatedAt,
-                });
-
-            var chaptersReadActivitiesDTOs = chaptersReadActivities.Where(a => !a.Chapter.Manga.IsNSFW).Select(a =>
-                new MangasUserActivityDTO
-                {
-                    Manga = _mapper.Map<MangaInfoDTO>(a.Chapter.Manga),
-                    User = _mapper.Map<SimpleUserDTO>(a.User),
-                    ActivityType = a.Read ? UserActivityTypeEnumDTO.SEE_CHAPTER : UserActivityTypeEnumDTO.UNSEE_CHAPTER,
-                    ChaptersRead = a.Chapter.Name.ToString(),
-                    MadeAt = a.CreatedAt,
-                });
-
             var allActivities = new List<MangasUserActivityDTO>();
             allActivities.AddRange(addedActivitiesDTOs);
-            allActivities.AddRange(statusChangedActivitiesDTOs);
-            allActivities.AddRange(chaptersReadActivitiesDTOs);
+
+            for(int i = 0; i < statusChangedActivities.Count; i++)
+            {
+                var current = statusChangedActivities[i];
+                var firstState = current.PreviousState;
+                var firstStateDate = current.CreatedAt;
+
+                var lastState = current.NewState;
+                var lastStateDate = current.CreatedAt;
+
+                if (i + 1 < statusChangedActivities.Count)
+                {
+                    var nextIsSameMangaAndTime = false;
+                    int increment = 1;
+
+                    while (statusChangedActivities.Count > i + increment)
+                    {
+                        var next = statusChangedActivities[i + increment];
+                        nextIsSameMangaAndTime = next.MangaId == current.MangaId
+                            && current.UserId == next.UserId
+                            && next.CreatedAt.Subtract(lastStateDate).TotalMinutes < 30;
+
+                        if (!nextIsSameMangaAndTime)
+                            break;
+
+                        if (next.CreatedAt > lastStateDate)
+                        {
+                            lastState = next.NewState;
+                            lastStateDate = next.CreatedAt;
+                        }
+
+                        if (next.CreatedAt < firstStateDate)
+                        {
+                            firstState = next.PreviousState;
+                            firstStateDate = next.CreatedAt;
+                        }
+
+                        increment++;
+                    }
+
+
+                    i += increment - 1;
+                }
+
+                if (firstState is null && lastState is null)
+                    continue;
+
+                allActivities.Add(new MangasUserActivityDTO
+                {
+                    Manga = _mapper.Map<MangaInfoDTO>(current.Manga),
+                    User = _mapper.Map<SimpleUserDTO>(current.User),
+                    PreviousState = firstState is not null ? _mapper.Map<MangaUserStatusEnumDTO>(firstState) : null,
+                    NewState = lastState is not null ? _mapper.Map<MangaUserStatusEnumDTO>(lastState) : null,
+                    ActivityType = UserActivityTypeEnumDTO.CHANGE_STATUS,
+                    MadeAt = lastStateDate,
+                });
+            }
+
+            for(int i = 0; i < chaptersReadActivities.Count; i++)
+            {
+                var current = chaptersReadActivities[i];
+                var firstChapter = current.Chapter.Name;
+                var lastChapter = current.Chapter.Name;
+                var lastDate = current.CreatedAt;
+                if (i + 1 < chaptersReadActivities.Count)
+                {
+                    var nextIsSameMangaAndTime = false;
+                    int increment = 1;
+
+                    while (chaptersReadActivities.Count > i + increment)
+                    {
+                        var next = chaptersReadActivities[i + increment];
+                        nextIsSameMangaAndTime = next.Chapter.MangaId == current.Chapter.MangaId
+                            && current.UserId == next.UserId
+                            && current.Read == next.Read
+                            && next.CreatedAt.Subtract(lastDate).TotalMinutes < 30;
+
+                        if (!nextIsSameMangaAndTime)
+                            break;
+
+
+                        if (firstChapter > next.Chapter.Name)
+                            firstChapter = next.Chapter.Name;
+
+                        if (lastChapter < next.Chapter.Name)
+                            lastChapter = next.Chapter.Name;
+
+                        if (next.CreatedAt > lastDate)
+                            lastDate = next.CreatedAt;
+
+                        increment++;
+                    }
+
+                    
+                    i += increment - 1;
+                }
+
+                allActivities.Add(new MangasUserActivityDTO
+                {
+                    Manga = _mapper.Map<MangaInfoDTO>(current.Chapter.Manga),
+                    User = _mapper.Map<SimpleUserDTO>(current.User),
+                    FirstChapterRead = firstChapter,
+                    LastChapterRead = lastChapter,
+                    ActivityType = current.Read ? UserActivityTypeEnumDTO.SEE_CHAPTER : UserActivityTypeEnumDTO.UNSEE_CHAPTER,
+                    MadeAt = lastDate,
+                });
+            }
 
             return allActivities.OrderByDescending(a => a.MadeAt).Take(30).ToList();
         }

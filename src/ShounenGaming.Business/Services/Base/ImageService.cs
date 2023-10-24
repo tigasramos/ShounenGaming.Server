@@ -27,7 +27,10 @@ namespace ShounenGaming.Business.Services.Base
         {
             var files = new DirectoryInfo(folderPath).GetFiles();
             if (files is null) return new List<string>();
-            return files.OrderBy(f => Convert.ToInt16(f.Name.Split(".").First())).Select(f => $"https://localhost:7252/{folderPath}{f.Name}").ToList(); //TODO: Remove this
+            return files
+                .OrderBy(f => Convert.ToInt16(f.Name.Split(".").First()))
+                .Select(f => $"{folderPath}/{f.Name}")
+                .ToList();
         }
     }
 }

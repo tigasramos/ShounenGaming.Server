@@ -58,19 +58,6 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         Task<List<LatestReleaseMangaDTO>> GetRecentlyReleasedChapters(int? userId = null);
 
         /// <summary>
-        /// Gets the Featured Mangas
-        /// </summary>
-        /// <returns></returns>
-        Task<List<MangaInfoDTO>> GetFeaturedMangas(int? userId = null);
-
-        /// <summary>
-        /// Change Featured Status
-        /// </summary>
-        /// <param name="mangaId"></param>
-        /// <returns></returns>
-        Task<MangaInfoDTO> ChangeMangaFeaturedStatus(int mangaId);
-
-        /// <summary>
         /// Get Manga Writer by its Id
         /// </summary>
         /// <param name="id"></param>

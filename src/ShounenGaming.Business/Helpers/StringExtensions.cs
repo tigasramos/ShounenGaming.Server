@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ShounenGaming.Business.Helpers
+﻿namespace ShounenGaming.Business.Helpers
 {
     public static class StringExtensions
     {
@@ -12,13 +6,18 @@ namespace ShounenGaming.Business.Helpers
         {
             if (string.IsNullOrEmpty(folderName)) return folderName;
 
+            var newName = folderName.ToLower().Replace(".", "-").Replace(" ", "-")
+                .Replace(":", "").Replace("\\", "").Replace("/", "")
+                .Replace(";", "").Replace("?", "").Replace("\"", "");
+            
+
             foreach (var c in Path.GetInvalidFileNameChars())
-                folderName = folderName.Replace(c.ToString(), string.Empty);
+                newName = newName.Replace(c.ToString(), string.Empty);
 
             foreach (var c in Path.GetInvalidPathChars())
-                folderName = folderName.Replace(c.ToString(), string.Empty);
+                newName = newName.Replace(c.ToString(), string.Empty);
 
-            return folderName;
+            return newName;
         }
     }
 }

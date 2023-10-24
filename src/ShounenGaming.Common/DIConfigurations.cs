@@ -79,6 +79,7 @@ namespace ShounenGaming.Common
                 .WithDefaultEntryOptions(new FusionCacheEntryOptions
                 {
                     Duration = TimeSpan.FromMinutes(30),
+                    IsFailSafeEnabled = false,
                 });
 
             services.AddScheduler();
