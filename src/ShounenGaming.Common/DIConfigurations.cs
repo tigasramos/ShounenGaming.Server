@@ -303,7 +303,7 @@ namespace ShounenGaming.Common
             services.AddTransient<IBaseMangaScrapper, NeoXScansScrapper>();
             services.AddTransient<IBaseMangaScrapper, SilenceScansScrapper>();
             services.AddTransient<IBaseMangaScrapper, DiskusScanScrapper>();
-            services.AddTransient<IBaseMangaScrapper, YesMangasScrapper>();
+            //services.AddTransient<IBaseMangaScrapper, YesMangasScrapper>();
             services.AddTransient<IBaseMangaScrapper, MangaDexPTScrapper>();
             services.AddTransient<IBaseMangaScrapper, MangaDexENScrapper>();
             services.AddTransient<IBaseMangaScrapper, MangaClashScrapper>();
