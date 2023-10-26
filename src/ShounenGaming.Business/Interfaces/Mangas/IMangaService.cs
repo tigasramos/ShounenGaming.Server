@@ -21,17 +21,19 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// <returns></returns>
         Task<List<MangaSourceDTO>> GetMangaSourcesById(int id);
 
-        /// <summary>
-        /// Gets the Mangas from the Anime Season
-        /// </summary>
-        /// <returns></returns>
-        Task<List<MangaInfoDTO>> GetSeasonMangas();
-
+       
         /// <summary>
         /// Searches Mangas
         /// </summary>
         /// <returns></returns>
         Task<PaginatedResponse<MangaInfoDTO>> SearchMangas(SearchMangaQueryDTO query, int page, int? userId = null);
+        
+        #region Lists of Mangas
+        /// <summary>
+        /// Gets the Mangas from the Anime Season
+        /// </summary>
+        /// <returns></returns>
+        Task<List<MangaInfoDTO>> GetSeasonMangas();
 
         /// <summary>
         /// Gets the Mangas on Planned with no Sources
@@ -56,20 +58,9 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// </summary>
         /// <returns></returns>
         Task<List<LatestReleaseMangaDTO>> GetRecentlyReleasedChapters(int? userId = null);
+        #endregion
 
-        /// <summary>
-        /// Gets the Featured Mangas
-        /// </summary>
-        /// <returns></returns>
-        Task<List<MangaInfoDTO>> GetFeaturedMangas(int? userId = null);
-
-        /// <summary>
-        /// Change Featured Status
-        /// </summary>
-        /// <param name="mangaId"></param>
-        /// <returns></returns>
-        Task<MangaInfoDTO> ChangeMangaFeaturedStatus(int mangaId);
-
+        #region Writers
         /// <summary>
         /// Get Manga Writer by its Id
         /// </summary>
@@ -82,7 +73,9 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// </summary>
         /// <returns></returns>
         Task<List<MangaWriterDTO>> GetMangaWriters();
+        #endregion
 
+        #region Tags
         /// <summary>
         /// Gets Mangas from Tags
         /// </summary>
@@ -95,6 +88,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// </summary>
         /// <returns></returns>
         Task<List<string>> GetMangaTags();
+        #endregion
 
         /// <summary>
         /// Gets a Manga Translation by its Id
@@ -135,14 +129,6 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         Task<List<MangaSourceDTO>> SearchMangaSource(string name);
 
         /// <summary>
-        /// Gets all Mangas from a Source by Page
-        /// </summary>
-        /// <param name="source"></param>
-        /// <param name="page"></param>
-        /// <returns></returns>
-        Task<List<MangaSourceDTO>> GetAllMangasFromSourceByPage(MangaSourceEnumDTO source, int page);
-
-        /// <summary>
         /// Adds Sources to an already existing Manga with that Id
         /// </summary>
         /// <param name="mangaId"></param>
@@ -150,7 +136,23 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// <returns></returns>
         Task<List<MangaSourceDTO>> LinkSourcesToManga(int mangaId, List<MangaSourceDTO> mangas);
 
-       
+
+        /// <summary>
+        /// Gets Recommendations for Specific Users
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        Task<List<MangaInfoDTO>> GetMangaRecommendations(int userId);
+
+
+        /// <summary>
+        /// Gets Recommendations for Specific Users not yet added in DB (MAL and AL)
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        Task<List<MangaMetadataDTO>> SearchMangaRecommendations(int userId);
+
+
 
         /// <summary>
         /// Adds a Task to the queue to get all Chapters from a Manga by its Sources
@@ -183,6 +185,12 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// </summary>
         /// <returns></returns>
         internal Task FetchSeasonMangas();
+
+        /// <summary>
+        /// Downloads images for chapters that don't have
+        /// </summary>
+        /// <returns></returns>
+        public Task DownloadImages();
 
         /// <summary>
         /// Fetch new Chapters for a Manga

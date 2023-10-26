@@ -146,7 +146,7 @@ namespace ShounenGaming.Business.Services.Base
                     {
                         new Claim("DiscordId", discordId),
                         new Claim("Role", "Bot"),
-                    }, DateTime.UtcNow.AddMinutes(1)),
+                    }, DateTime.UtcNow.AddYears(1)),
             }; 
         }
         public async Task<AuthResponse> RefreshToken(string refreshToken)

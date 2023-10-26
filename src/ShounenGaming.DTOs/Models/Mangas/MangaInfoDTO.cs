@@ -12,6 +12,7 @@ namespace ShounenGaming.DTOs.Models.Mangas
         public List<string> Tags { get; set; }
         public int ChaptersCount { get; set; }
         public List<string> ImagesUrls { get; set; }
+        public double? AverageScore { get; set; }
         public int? MyAnimeListId { get; set; }
         public int? AnilistId { get; set; }
         public DateTime? StartedAt { get; set; }

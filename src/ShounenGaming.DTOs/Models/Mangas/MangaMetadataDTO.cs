@@ -1,9 +1,4 @@
 ﻿using ShounenGaming.DTOs.Models.Mangas.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ShounenGaming.DTOs.Models.Mangas
 {
@@ -16,7 +11,7 @@ namespace ShounenGaming.DTOs.Models.Mangas
 
         public List<string> Titles { get; set; }
         public string ImageUrl { get; set; }
-        public string Type { get; set; }
+        public MangaTypeEnumDTO Type { get; set; }
         public string Description { get; set; }
         public string Status { get; set; }
         public decimal? Score { get; set; }

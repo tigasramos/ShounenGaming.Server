@@ -3,15 +3,17 @@ using JikanDotNet;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Prometheus;
 using Serilog;
 using ShounenGaming.Business;
 using ShounenGaming.Business.Helpers;
@@ -23,6 +25,7 @@ using ShounenGaming.Business.Mappers;
 using ShounenGaming.Business.Schedules;
 using ShounenGaming.Business.Services.Base;
 using ShounenGaming.Business.Services.Mangas;
+using ShounenGaming.Business.Services.Mangas_Scrappers;
 using ShounenGaming.Business.Services.Tierlists;
 using ShounenGaming.DataAccess.Interfaces.Base;
 using ShounenGaming.DataAccess.Interfaces.Mangas;
@@ -34,6 +37,8 @@ using ShounenGaming.DataAccess.Repositories.Tierlists;
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
+using ZiggyCreatures.Caching.Fusion;
 
 namespace ShounenGaming.Common
 {
@@ -41,6 +46,8 @@ namespace ShounenGaming.Common
     {
         public static void ConfigureServices(this IServiceCollection services, ConfigurationManager configuration, IWebHostEnvironment environment, string assemblyName)
         {
+            services.AddHttpClient();
+
             services.AddJwt(configuration);
             services.AddSwagger(assemblyName);
             services.AddAutoMapper(typeof(UserMapper).Assembly);
@@ -49,6 +56,31 @@ namespace ShounenGaming.Common
             services.AddServices(environment, configuration);
 
             services.AddHealthChecks();
+
+            services.AddRateLimiter(options => {
+                options.RejectionStatusCode = 429;
+
+                options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext => RateLimitPartition.GetFixedWindowLimiter(partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? httpContext.Request.Headers.Host.ToString(), factory: partition => new FixedWindowRateLimiterOptions
+                {
+                    AutoReplenishment = true,
+                    PermitLimit = 100,
+                    QueueLimit = 0,
+                    Window = TimeSpan.FromMinutes(1)
+                }));
+
+                options.AddFixedWindowLimiter("Auth", options => {
+                    options.AutoReplenishment = true;
+                    options.PermitLimit = 10;
+                    options.Window = TimeSpan.FromMinutes(1);
+                });
+            });
+
+            services.AddFusionCache()
+                .WithDefaultEntryOptions(new FusionCacheEntryOptions
+                {
+                    Duration = TimeSpan.FromMinutes(30),
+                    IsFailSafeEnabled = false,
+                });
 
             services.AddScheduler();
             services.AddControllers().AddJsonOptions(options =>
@@ -64,8 +96,6 @@ namespace ShounenGaming.Common
 
         public static void ConfigureApp(this WebApplication app)
         {
-            app.UseSerilogRequestLogging();
-
             Log.Information($"Environment: {app.Environment.EnvironmentName}");
 
             //TODO: Check Coravel Cache Service
@@ -82,6 +112,7 @@ namespace ShounenGaming.Common
                     scheduler.Schedule<AddOrUpdateMangasMetadataJob>().Cron("20 */3 * * *").RunOnceAtStart().PreventOverlapping("MangasMetadata");
                     scheduler.Schedule<FetchSeasonMangasJob>().DailyAt(3, 30).RunOnceAtStart();
                     scheduler.Schedule<FetchAllMangasChaptersJob>().Cron("0 */2 * * *").RunOnceAtStart();
+                    scheduler.Schedule<DownloadChapterImagesJob>().DailyAt(5,0).RunOnceAtStart();
 
                 } 
                 else
@@ -94,10 +125,9 @@ namespace ShounenGaming.Common
                     scheduler.OnWorker("Mangas");
                     scheduler.Schedule<AddOrUpdateMangasMetadataJob>().DailyAt(1, 30).PreventOverlapping("MangasMetadata");
                     scheduler.Schedule<FetchAllMangasChaptersJob>().Monthly();
+                    scheduler.Schedule<FetchSeasonMangasJob>().DailyAt(3, 0);
+                    scheduler.Schedule<DownloadChapterImagesJob>().DailyAt(5, 0).RunOnceAtStart();
 
-                    // Get Season Mangas
-                    scheduler.OnWorker("SeasonMangas");
-                    scheduler.Schedule<FetchSeasonMangasJob>().DailyAt(3, 0).RunOnceAtStart();
                 }
                 
 
@@ -118,6 +148,11 @@ namespace ShounenGaming.Common
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapSignalRHubs();
+
+            app.UseMetricServer();
+            app.UseHttpMetrics();
+
+            app.UseRateLimiter();
 
             app.MapControllers();
 
@@ -246,6 +281,7 @@ namespace ShounenGaming.Common
 
             //Schedules
             services.AddTransient<FetchAllMangasChaptersJob>();
+            services.AddTransient<DownloadChapterImagesJob>();
             services.AddTransient<FetchMangaChaptersJobListener>();
             services.AddTransient<AddOrUpdateMangasMetadataJob>();
             services.AddTransient<FetchSeasonMangasJob>();
@@ -257,7 +293,25 @@ namespace ShounenGaming.Common
             services.AddTransient<IMangaService, MangaService>();
             services.AddTransient<IImageService, ImageService>();
             services.AddTransient<IMangaUserDataService, MangaUserDataService>();
+            services.AddTransient<IMangaUserStatsService, MangaUserStatsService>();
             services.AddTransient<IJikan, Jikan>();
+
+            //Scrappers
+            services.AddTransient<IBaseMangaScrapper, ManganatoScrapper>();
+            services.AddTransient<IBaseMangaScrapper, GekkouScansScrapper>();
+            services.AddTransient<IBaseMangaScrapper, HuntersScansScrapper>();
+            services.AddTransient<IBaseMangaScrapper, NeoXScansScrapper>();
+            services.AddTransient<IBaseMangaScrapper, SilenceScansScrapper>();
+            services.AddTransient<IBaseMangaScrapper, DiskusScanScrapper>();
+            services.AddTransient<IBaseMangaScrapper, YesMangasScrapper>();
+            services.AddTransient<IBaseMangaScrapper, MangaDexPTScrapper>();
+            services.AddTransient<IBaseMangaScrapper, MangaDexENScrapper>();
+            services.AddTransient<IBaseMangaScrapper, MangaClashScrapper>();
+            services.AddTransient<IBaseMangaScrapper, BRMangasScrapper>();
+            services.AddTransient<IBaseMangaScrapper, RandomScanScrapper>();
+            services.AddTransient<IBaseMangaScrapper, SaikaiScansScrapper>();
+            
+            services.AddHttpContextAccessor();
         }
         private static void AddRepositories(this IServiceCollection services)
         {

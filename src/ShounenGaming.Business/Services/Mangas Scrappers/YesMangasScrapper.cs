@@ -8,41 +8,13 @@ using System.Web;
 namespace ShounenGaming.Business.Services.Mangas_Scrappers
 {
     // IMPORTANT: Needs at least 1sec delay between requests
-    internal class YesMangasScrapper : IBaseMangaScrapper
+    public class YesMangasScrapper : IBaseMangaScrapper
     {
-        public async Task<List<MangaSourceDTO>> GetAllMangasByPage(int page)
+        private readonly IHttpClientFactory _httpClientFactory;
+
+        public YesMangasScrapper(IHttpClientFactory httpClientFactory)
         {
-            var web = new HtmlWeb();
-            var mangasList = new List<MangaSourceDTO>();
-            try
-            {
-                var htmlDoc = await web.LoadFromWebAsync($"https://yesmangas1.com/mangas/page/{page}");
-
-                var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//div[@class='two columns']");
-                if (mangasFetched == null || !mangasFetched.Any()) return new List<MangaSourceDTO>();
-
-                foreach (var manga in mangasFetched)
-                {
-                    var mangaName = manga.SelectSingleNode("h3/a")?.InnerText ?? "";
-                    if (mangaName.Contains("(Novel)")) continue;
-
-                    var mangaUrl = manga.SelectSingleNode("a")?.GetAttributeValue("href", "") ?? "";
-                    var imageUrl = manga.SelectSingleNode("a/img").GetAttributeValue("data-path", "") ?? "";
-                    mangasList.Add(new MangaSourceDTO
-                    {
-                        Name = HttpUtility.HtmlDecode(mangaName.Trim()),
-                        Url = mangaUrl.Remove(mangaUrl.Length - 1).Split("/").Last(),
-                        ImageURL = imageUrl,
-                        Source = GetMangaSourceEnumDTO()
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"DiskusScan - GetAllMangasByPage: {ex.Message}");
-            }
-
-            return mangasList;
+            _httpClientFactory = httpClientFactory;
         }
 
         public string GetBaseURLForManga()
@@ -72,10 +44,10 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
 
         public async Task<ScrappedManga> GetManga(string urlPart)
         {
-            var client = new HttpClient();
+            var client = _httpClientFactory.CreateClient();
             client.DefaultRequestHeaders.Host = "yesmangas1.com";
 
-            var response = await client.GetAsync($"https://yesmangas1.com/manga/{urlPart}");
+            using var response = await client.GetAsync($"https://yesmangas1.com/manga/{urlPart}");
             response.EnsureSuccessStatusCode();
 
             var htmlDoc = new HtmlDocument();

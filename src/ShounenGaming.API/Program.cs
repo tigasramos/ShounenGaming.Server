@@ -3,31 +3,40 @@ using ShounenGaming.Common;
 using System.Reflection;
 using Microsoft.Extensions.FileProviders;
 using System.Net;
+using Serilog.Exceptions;
 
 try
 {
-    Log.Logger = new LoggerConfiguration()
-        .MinimumLevel.Override("Default", Serilog.Events.LogEventLevel.Information)
-        .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
-        .MinimumLevel.Override("Microsoft.Hosting.Lifetime", Serilog.Events.LogEventLevel.Information)
-        .Enrich.FromLogContext()
-        .WriteTo.Console()
-        .WriteTo.File($"logs/log-.txt", rollingInterval: RollingInterval.Day)
-        .CreateLogger();
-
     // To Work without HTTPS
     ServicePointManager.ServerCertificateValidationCallback += (sender, certificate, chain, errors) => true;
     
-    Log.Information("Starting Shounen Gaming Server");
-
     //Services
     var builder = WebApplication.CreateBuilder(args);
-    builder.Host.UseSerilog();
+
     builder.Configuration
         .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json",
             optional: true,
             reloadOnChange: true)
         .AddEnvironmentVariables();
+
+    builder.Host.UseSerilog((context, loggerConfig) =>
+    {
+        loggerConfig
+            .MinimumLevel.Override("Default", Serilog.Events.LogEventLevel.Information)
+            .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+            .MinimumLevel.Override("Microsoft.Hosting.Lifetime", Serilog.Events.LogEventLevel.Information)
+            .Enrich.FromLogContext()
+            .Enrich.WithEnvironmentName()
+            .Enrich.WithMachineName()
+            .Enrich.WithExceptionDetails()
+            .Enrich.WithProperty("ApplicationName", "ShounenGaming.API")
+            .WriteTo.Console()
+            .WriteTo.File($"logs/log-.txt", rollingInterval: RollingInterval.Day)
+            .WriteTo.Seq(context.Configuration["Settings:SeqServer"] ?? "localhost:5341");
+    });
+
+
+    Log.Information("Starting Shounen Gaming Server");
 
     builder.Services.ConfigureServices(builder.Configuration, builder.Environment, Assembly.GetExecutingAssembly().GetName().Name!);
 
@@ -45,6 +54,11 @@ try
             ctx.Context.Response.Headers.Append(
                  "Cache-Control", $"public, max-age={60 * 60 * 24 * 7}");
         }
+    });
+
+    app.UseSerilogRequestLogging(options =>
+    {
+        options.EnrichDiagnosticContext = ShounenGaming.Business.Helpers.LogsEnricherHelper.Enricher.HttpRequestEnricher;
     });
 
     app.ConfigureApp();

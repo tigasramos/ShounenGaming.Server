@@ -1,10 +1,5 @@
 ﻿using ShounenGaming.Core.Entities.Base;
 using ShounenGaming.Core.Entities.Mangas.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ShounenGaming.Core.Entities.Mangas
 {
@@ -16,11 +11,9 @@ namespace ShounenGaming.Core.Entities.Mangas
         public virtual Manga Manga { get; set; }
 
         public MangaUserStatusEnum Status { get; set; }
+        public double? Rating { get; set; }
 
         public virtual List<MangaChapter> ChaptersRead { get; set; }
-
-
-        public bool IsPrivate { get; set; }
     }
 
 }

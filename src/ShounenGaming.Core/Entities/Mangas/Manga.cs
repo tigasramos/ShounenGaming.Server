@@ -1,10 +1,4 @@
-﻿using ShounenGaming.Core.Entities.Base;
-using ShounenGaming.Core.Entities.Mangas.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ShounenGaming.Core.Entities.Mangas.Enums;
 
 namespace ShounenGaming.Core.Entities.Mangas
 {
@@ -27,7 +21,6 @@ namespace ShounenGaming.Core.Entities.Mangas
         public virtual List<MangaUserData> UsersData { get; set; }
 
         //Configurations
-        public bool IsFeatured { get; set; }
         public bool IsNSFW { get; set; } = false;
         public bool IsSeasonManga { get; set; }
 

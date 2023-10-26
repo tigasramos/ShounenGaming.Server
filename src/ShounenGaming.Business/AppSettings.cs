@@ -8,6 +8,7 @@ namespace ShounenGaming.Business
 {
     public class AppSettings
     {
+        public string SeqServer { get; set; }
         public string JwtSecret { get; set; }
         public DiscordBotSettings DiscordBot { get; set; }
     }

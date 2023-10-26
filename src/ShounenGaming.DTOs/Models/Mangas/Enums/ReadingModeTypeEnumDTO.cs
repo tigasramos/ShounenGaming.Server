@@ -2,9 +2,8 @@
 {
     public enum ReadingModeTypeEnumDTO
     {
-        ALWAYS_VERTICAL, 
-        ALWAYS_VERTICAL_PAGED,
-        ALWAYS_HORIZONTAL,
-        HORIZONTAL_MANGAS_OTHERS_VERTICAL
+        ALWAYS_VERTICAL = 0,
+        ALWAYS_HORIZONTAL = 2,
+        HORIZONTAL_MANGAS_OTHERS_VERTICAL = 3
     }
 }

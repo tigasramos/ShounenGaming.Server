@@ -16,6 +16,32 @@ namespace ShounenGaming.Business.Helpers
             var query = "query{Page{media(type:MANGA, format: MANGA, search: \"" + name + "\")" + MediaBody + "}}";
             return (await SendRequest<ALResponse<ALSearchResponse>>(query)).Data.Page.Media;
         }
+
+        public static async Task<List<ALManga>> SearchAllMangaTypeByTags(List<string> tags, int page = 1)
+        {
+            var str = tags.Aggregate((a, b) => a + ", " + b);
+            var query = "query{Page (page:" + page + "){media(type:MANGA, format: MANGA, sort:POPULARITY_DESC, genre_in: [\"" + str + "\"])" + MediaBody + "}}";
+            return (await SendRequest<ALResponse<ALSearchResponse>>(query)).Data.Page.Media;
+        }
+        public static async Task<List<ALManga>> SearchMangaByTags(List<string> tags, int page = 1)
+        {
+            var str = tags.Aggregate((a, b) => a + ", " + b);
+            var query = "query{Page (page:" + page + "){media(type:MANGA, format: MANGA, countryOfOrigin: \"JP\", sort:POPULARITY_DESC, genre_in: [\"" + str + "\"])" + MediaBody + "}}";
+            return (await SendRequest<ALResponse<ALSearchResponse>>(query)).Data.Page.Media;
+        }
+        public static async Task<List<ALManga>> SearchManwhaByTags(List<string> tags, int page = 1)
+        {
+            var str = tags.Aggregate((a, b) => a + ", " + b);
+            var query = "query{Page (page:" + page + "){media(type:MANGA, format: MANGA, countryOfOrigin: \"KR\", sort:POPULARITY_DESC, genre_in: [\"" + str + "\"])" + MediaBody + "}}";
+            return (await SendRequest<ALResponse<ALSearchResponse>>(query)).Data.Page.Media;
+        }
+        public static async Task<List<ALManga>> SearchManhuaByTags(List<string> tags, int page = 1)
+        {
+            var str = tags.Aggregate((a, b) => a + ", " + b);
+            var query = "query{Page (page:" + page + "){media(type:MANGA, format: MANGA, countryOfOrigin: \"CN\", sort:POPULARITY_DESC, genre_in: [\"" + str + "\"])" + MediaBody + "}}";
+            return (await SendRequest<ALResponse<ALSearchResponse>>(query)).Data.Page.Media;
+        }
+
         public static async Task<List<ALManga>> GetPopularMangas()
         {
             var query = "query{Page{media(type:MANGA, format: MANGA, countryOfOrigin: \"JP\", sort:POPULARITY_DESC)" + MediaBody + "}}";

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using ShounenGaming.Business.Exceptions;
 using ShounenGaming.Business.Interfaces.Base;
 using ShounenGaming.DTOs.Models.Base;
@@ -68,6 +69,7 @@ namespace ShounenGaming.API.Controllers.Base
         /// </summary>
         /// <param name="username"></param>
         /// <returns></returns>
+        [EnableRateLimiting("Auth")]
         [HttpPost("user/token")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorDetails))]
@@ -84,6 +86,7 @@ namespace ShounenGaming.API.Controllers.Base
         /// <param name="username"></param>
         /// <param name="token"></param>
         /// <returns></returns>
+        [EnableRateLimiting("Auth")]
         [HttpGet("user/login")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorDetails))]

@@ -31,7 +31,7 @@ namespace ShounenGaming.Business.Schedules
             }
             catch (Exception ex)
             {
-                Log.Error($"Error Fetching Season Mangas: {ex.Message}");
+                Log.Error(ex, "Error Fetching Season Mangas");
             }
         }
     }

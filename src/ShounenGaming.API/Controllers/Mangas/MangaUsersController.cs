@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ShounenGaming.Business.Interfaces.Mangas;
-using ShounenGaming.Core.Entities.Base;
 using ShounenGaming.DTOs.Models.Mangas.Enums;
 using System.Security.Claims;
 
@@ -77,7 +75,7 @@ namespace ShounenGaming.API.Controllers.Mangas
         /// <param name="status"></param>
         /// <returns></returns>
         [HttpPut("{mangaId}/status")]
-        public async Task<IActionResult> UpdateMangaStatusByUser(int mangaId, [FromQuery]MangaUserStatusEnumDTO? status = null)
+        public async Task<IActionResult> UpdateMangaStatusByUser(int mangaId, [FromQuery] MangaUserStatusEnumDTO? status = null)
         {
             var userId = User.FindFirstValue("Id");
             var userData = await _mangaUsersService.UpdateMangaStatusByUser(Convert.ToInt32(userId), mangaId, status);
@@ -85,6 +83,34 @@ namespace ShounenGaming.API.Controllers.Mangas
                 return Ok(userData);
 
             return Ok();
+        }
+
+        /// <summary>
+        /// Updates the Rating for the Manga to the current User
+        /// </summary>
+        /// <param name="mangaId"></param>
+        /// <param name="rating"></param>
+        /// <returns></returns>
+        [HttpPut("{mangaId}/rating")]
+        public async Task<IActionResult> UpdateMangaStatusByUser(int mangaId, [FromQuery] double? rating = null)
+        {
+            var userId = User.FindFirstValue("Id");
+            var userData = await _mangaUsersService.UpdateMangaRatingByUser(Convert.ToInt32(userId), mangaId, rating);
+            if (userData != null)
+                return Ok(userData);
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// Gets Last Community Activities
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("activities")]
+        public async Task<IActionResult> GetLastCommunityActivities()
+        {
+            var activity = await _mangaUsersService.GetLastUsersActivity();
+            return Ok(activity);
         }
     }
 }

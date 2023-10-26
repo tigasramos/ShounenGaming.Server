@@ -1,8 +1,6 @@
 ﻿using AutoMapper;
-using Serilog;
 using ShounenGaming.Business.Exceptions;
 using ShounenGaming.Business.Interfaces.Mangas;
-using ShounenGaming.Core.Entities.Base;
 using ShounenGaming.Core.Entities.Mangas.Enums;
 using ShounenGaming.DataAccess.Interfaces.Base;
 using ShounenGaming.DataAccess.Interfaces.Mangas;
@@ -17,12 +15,13 @@ namespace ShounenGaming.Business.Services.Mangas
         private readonly IUserRepository _userRepo;
         private readonly IMangaRepository _mangaRepository;
         private readonly IMangaUserDataRepository _mangaUserDataRepo;
+        private readonly IAddedMangaActionRepository _mangaAddedActionRepo;
         private readonly IChangedChapterStateActionRepository _mangaChangedChapterStateActionRepo;
         private readonly IChangedMangaStatusActionRepository _mangaChangedStatusActionRepo;
 
         private readonly IMapper _mapper;
 
-        public MangaUserDataService(IMangaUserDataRepository mangaUserDataRepo, IMapper mapper, IMangaRepository mangaRepository, IChangedChapterStateActionRepository mangaChangedChapterStateActionRepo, IChangedMangaStatusActionRepository mangaStatusActionRepo, IUserRepository userRepo)
+        public MangaUserDataService(IMangaUserDataRepository mangaUserDataRepo, IMapper mapper, IMangaRepository mangaRepository, IChangedChapterStateActionRepository mangaChangedChapterStateActionRepo, IChangedMangaStatusActionRepository mangaStatusActionRepo, IUserRepository userRepo, IAddedMangaActionRepository mangaAddedActionRepo)
         {
             _mangaUserDataRepo = mangaUserDataRepo;
             _mapper = mapper;
@@ -30,6 +29,7 @@ namespace ShounenGaming.Business.Services.Mangas
             _mangaChangedChapterStateActionRepo = mangaChangedChapterStateActionRepo;
             _mangaChangedStatusActionRepo = mangaStatusActionRepo;
             _userRepo = userRepo;
+            _mangaAddedActionRepo = mangaAddedActionRepo;
         }
 
         public async Task<MangaUserDataDTO?> GetMangaDataByMangaByUser(int userId, int mangaId)
@@ -68,7 +68,6 @@ namespace ShounenGaming.Business.Services.Mangas
                     UserId = userId,
                     User = user,
                     Status = MangaUserStatusEnum.READING,
-                    IsPrivate = false,
                     ChaptersRead = new List<Core.Entities.Mangas.MangaChapter>(),
                 };
 
@@ -153,7 +152,6 @@ namespace ShounenGaming.Business.Services.Mangas
                     MangaId = manga.Id,
                     UserId = userId,
                     User = user,
-                    IsPrivate = false,
                     Status = _mapper.Map<MangaUserStatusEnum>(status)
                 };
                 var dbMangaUserInfo = await _mangaUserDataRepo.Create(mangaUserInfo);
@@ -206,9 +204,169 @@ namespace ShounenGaming.Business.Services.Mangas
                 return await MapMangaUserData(dbMangaUserInfo);
             }
         }
-    
-    
+        public async Task<MangaUserDataDTO?> UpdateMangaRatingByUser(int userId, int mangaId, double? rating)
+        {
+            if (rating < 0 || rating > 5) throw new Exception($"Invalid Rating ({rating}), only values allowed are between 0 and 5");
+
+            var user = await _userRepo.GetById(userId) ?? throw new EntityNotFoundException("User");
+            var manga = await _mangaRepository.GetById(mangaId) ?? throw new EntityNotFoundException("Manga");
+            var mangaUserInfo = await _mangaUserDataRepo.GetByUserAndManga(userId, manga.Id);
+
+            //If first time
+            if (mangaUserInfo is null)
+            {
+                if (rating == null) return null;
+
+                mangaUserInfo = new Core.Entities.Mangas.MangaUserData
+                {
+                    MangaId = manga.Id,
+                    UserId = userId,
+                    User = user,
+                    Rating = rating
+                };
+
+                var dbMangaUserInfo = await _mangaUserDataRepo.Create(mangaUserInfo);
+                return await MapMangaUserData(dbMangaUserInfo);
+            }
+            else
+            {
+                //Change
+                mangaUserInfo.Rating = rating;
+                var dbMangaUserInfo = await _mangaUserDataRepo.Update(mangaUserInfo);
+                return await MapMangaUserData(dbMangaUserInfo);
+            }
+        }
         
+        public async Task<List<MangasUserActivityDTO>> GetLastUsersActivity()
+        {
+            //TODO: Add Cache
+
+            var addedActivities = await _mangaAddedActionRepo.GetAll();
+            var statusChangedActivities = (await _mangaChangedStatusActionRepo.GetAll()).Where(c => !c.Manga.IsNSFW).OrderByDescending(c => c.CreatedAt).ToList();
+            var chaptersReadActivities = (await _mangaChangedChapterStateActionRepo.GetAll()).Where(c => !c.Chapter.Manga.IsNSFW).OrderByDescending(c => c.CreatedAt).ToList();
+
+            var addedActivitiesDTOs = addedActivities.Where(a => !a.Manga.IsNSFW).Select(a => 
+                new MangasUserActivityDTO 
+                { 
+                    Manga = _mapper.Map<MangaInfoDTO>(a.Manga),
+                    User = _mapper.Map<SimpleUserDTO>(a.User),
+                    ActivityType = UserActivityTypeEnumDTO.ADD_MANGA,
+                    MadeAt = a.CreatedAt,
+                });
+
+            var allActivities = new List<MangasUserActivityDTO>();
+            allActivities.AddRange(addedActivitiesDTOs);
+
+            for(int i = 0; i < statusChangedActivities.Count; i++)
+            {
+                var current = statusChangedActivities[i];
+                var firstState = current.PreviousState;
+                var firstStateDate = current.CreatedAt;
+
+                var lastState = current.NewState;
+                var lastStateDate = current.CreatedAt;
+
+                if (i + 1 < statusChangedActivities.Count)
+                {
+                    var nextIsSameMangaAndTime = false;
+                    int increment = 1;
+
+                    while (statusChangedActivities.Count > i + increment)
+                    {
+                        var next = statusChangedActivities[i + increment];
+                        nextIsSameMangaAndTime = next.MangaId == current.MangaId
+                            && current.UserId == next.UserId
+                            && next.CreatedAt.Subtract(lastStateDate).TotalMinutes < 30;
+
+                        if (!nextIsSameMangaAndTime)
+                            break;
+
+                        if (next.CreatedAt > lastStateDate)
+                        {
+                            lastState = next.NewState;
+                            lastStateDate = next.CreatedAt;
+                        }
+
+                        if (next.CreatedAt < firstStateDate)
+                        {
+                            firstState = next.PreviousState;
+                            firstStateDate = next.CreatedAt;
+                        }
+
+                        increment++;
+                    }
+
+
+                    i += increment - 1;
+                }
+
+                if (firstState is null && lastState is null)
+                    continue;
+
+                allActivities.Add(new MangasUserActivityDTO
+                {
+                    Manga = _mapper.Map<MangaInfoDTO>(current.Manga),
+                    User = _mapper.Map<SimpleUserDTO>(current.User),
+                    PreviousState = firstState is not null ? _mapper.Map<MangaUserStatusEnumDTO>(firstState) : null,
+                    NewState = lastState is not null ? _mapper.Map<MangaUserStatusEnumDTO>(lastState) : null,
+                    ActivityType = UserActivityTypeEnumDTO.CHANGE_STATUS,
+                    MadeAt = lastStateDate,
+                });
+            }
+
+            for(int i = 0; i < chaptersReadActivities.Count; i++)
+            {
+                var current = chaptersReadActivities[i];
+                var firstChapter = current.Chapter.Name;
+                var lastChapter = current.Chapter.Name;
+                var lastDate = current.CreatedAt;
+                if (i + 1 < chaptersReadActivities.Count)
+                {
+                    var nextIsSameMangaAndTime = false;
+                    int increment = 1;
+
+                    while (chaptersReadActivities.Count > i + increment)
+                    {
+                        var next = chaptersReadActivities[i + increment];
+                        nextIsSameMangaAndTime = next.Chapter.MangaId == current.Chapter.MangaId
+                            && current.UserId == next.UserId
+                            && current.Read == next.Read
+                            && next.CreatedAt.Subtract(lastDate).TotalMinutes < 30;
+
+                        if (!nextIsSameMangaAndTime)
+                            break;
+
+
+                        if (firstChapter > next.Chapter.Name)
+                            firstChapter = next.Chapter.Name;
+
+                        if (lastChapter < next.Chapter.Name)
+                            lastChapter = next.Chapter.Name;
+
+                        if (next.CreatedAt > lastDate)
+                            lastDate = next.CreatedAt;
+
+                        increment++;
+                    }
+
+                    
+                    i += increment - 1;
+                }
+
+                allActivities.Add(new MangasUserActivityDTO
+                {
+                    Manga = _mapper.Map<MangaInfoDTO>(current.Chapter.Manga),
+                    User = _mapper.Map<SimpleUserDTO>(current.User),
+                    FirstChapterRead = firstChapter,
+                    LastChapterRead = lastChapter,
+                    ActivityType = current.Read ? UserActivityTypeEnumDTO.SEE_CHAPTER : UserActivityTypeEnumDTO.UNSEE_CHAPTER,
+                    MadeAt = lastDate,
+                });
+            }
+
+            return allActivities.OrderByDescending(a => a.MadeAt).Take(30).ToList();
+        }
+
         private async Task<MangaUserDataDTO> MapMangaUserData(Core.Entities.Mangas.MangaUserData mangaUserData)
         {
             var lastStatusUpdate = await _mangaChangedStatusActionRepo.GetLastMangaUserStatusUpdate(mangaUserData.UserId, mangaUserData.MangaId);
@@ -230,6 +388,7 @@ namespace ShounenGaming.Business.Services.Mangas
                 AddedToStatusDate = lastStatusUpdate?.CreatedAt,
                 FilteredReadChapters = filteredReadChapters,
                 FilteredTotalChapters = filteredTotalChapters,
+                Rating =  mangaUserData?.Rating,
                 ChaptersRead = mangaUserData?.ChaptersRead is not null ? mangaUserData.ChaptersRead.Select(c => c.Id).ToList() : new List<int>(),
                 FinishedReadingDate = lastChapterReadUpdate?.CreatedAt,
                 Manga = _mapper.Map<MangaInfoDTO>(manga),

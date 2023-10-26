@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using ShounenGaming.Business.Interfaces.Mangas;
 using ShounenGaming.DTOs.Models.Mangas.Enums;
 using ShounenGaming.DTOs.Models.Mangas;
@@ -125,35 +125,10 @@ namespace ShounenGaming.API.Controllers.Mangas
         /// <returns></returns>
         [HttpGet("recent/chapters")]
         public async Task<IActionResult> GetRecentlyReleasedChapters()
-        {            
+        {
             var userId = int.Parse(User.FindFirst(c => c.Type == "Id")!.Value);
-            var claim = User.FindFirst(c => c.Type == "Id");
-            if (claim != null)
-                userId = int.Parse(claim.Value);
             var chapters = await _service.GetRecentlyReleasedChapters(userId);
             return Ok(chapters);
-        }
-        
-        /// <summary>
-        /// Gets the Featured Mangas
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet("featured")]
-        public async Task<IActionResult> GetFeaturedMangas()
-        {
-            var mangas = await _service.GetFeaturedMangas();
-            return Ok(mangas);
-        }
-
-        /// <summary>
-        /// Change the Feature Status of a Manga
-        /// </summary>
-        /// <returns></returns>
-        [HttpPut("{mangaId}/feature")]
-        public async Task<IActionResult> ChangeFeaturedStatus(int mangaId)
-        {
-            var manga = await _service.ChangeMangaFeaturedStatus(mangaId);
-            return Ok(manga);
         }
 
         #endregion
@@ -230,7 +205,7 @@ namespace ShounenGaming.API.Controllers.Mangas
         /// <param name="name"></param>
         /// <returns></returns>
         [HttpGet("search/{source}")]
-        public async Task<IActionResult> SearchMangaMetadata(MangaMetadataSourceEnumDTO source, [FromQuery]string name)
+        public async Task<IActionResult> SearchMangaMetadata(MangaMetadataSourceEnumDTO source, [FromQuery] string name)
         {
             var metadata = await _service.SearchMangaMetadata(source, name);
             return Ok(metadata);
@@ -242,22 +217,9 @@ namespace ShounenGaming.API.Controllers.Mangas
         /// <param name="name"></param>
         /// <returns></returns>
         [HttpGet("search/sources")]
-        public async Task<IActionResult> SearchMangaSources([FromQuery]string name)
+        public async Task<IActionResult> SearchMangaSources([FromQuery] string name)
         {
             var mangas = await _service.SearchMangaSource(name);
-            return Ok(mangas);
-        }
-
-        /// <summary>
-        /// Gets All Mangas From a Source by Page
-        /// </summary>
-        /// <param name="source"></param>
-        /// <param name="page"></param>
-        /// <returns></returns>
-        [HttpGet("search/source/{source}")]
-        public async Task<IActionResult> GetAllMangasFromSource(MangaSourceEnumDTO source, [FromQuery]int page = 1)
-        {
-            var mangas = await _service.GetAllMangasFromSourceByPage(source, page);
             return Ok(mangas);
         }
 
@@ -268,7 +230,7 @@ namespace ShounenGaming.API.Controllers.Mangas
         /// <param name="mangas"></param>
         /// <returns></returns>
         [HttpPut("{mangaId}/links")]
-        public async Task<IActionResult> LinkSourceToManga(int mangaId, [FromBody]List<MangaSourceDTO> mangas)
+        public async Task<IActionResult> LinkSourceToManga(int mangaId, [FromBody] List<MangaSourceDTO> mangas)
         {
             var manga = await _service.LinkSourcesToManga(mangaId, mangas);
             return Ok(manga);
@@ -300,5 +262,41 @@ namespace ShounenGaming.API.Controllers.Mangas
 
         #endregion
 
+        #region Recommendations
+        /// <summary>
+        /// Gets Manga Recommendations for specific User
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("recommendations")]
+        public async Task<IActionResult> GetMangaRecommendations()
+        {
+            var userId = User.FindFirstValue("Id");
+            var recommendations = await _service.GetMangaRecommendations(Convert.ToInt32(userId));
+            return Ok(recommendations);
+        }
+
+        /// <summary>
+        /// Gets Manga Recommendations for specific User
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("recommendations/search")]
+        public async Task<IActionResult> SearchMangaRecommendations()
+        {
+            var userId = User.FindFirstValue("Id");
+            var recommendations = await _service.SearchMangaRecommendations(Convert.ToInt32(userId));
+            return Ok(recommendations);
+        }
+        #endregion
+
+        /// <summary>
+        /// For Absurd Cases Purposes
+        /// </summary>
+        /// <returns></returns>
+        [HttpPut("download/images")]
+        public async Task<IActionResult> DownloadImages()
+        {
+            await _service.DownloadImages();
+            return Ok();
+        }
     }
 }

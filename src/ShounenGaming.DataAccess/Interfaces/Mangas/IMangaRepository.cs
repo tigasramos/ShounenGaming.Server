@@ -12,7 +12,6 @@ namespace ShounenGaming.DataAccess.Interfaces.Mangas
         Task<List<Manga>> GetSeasonMangas();
         Task<List<Manga>> GetMangasByTag(string tag, bool includeNSFW = true);
         Task<List<Manga>> GetPopularMangas(bool includeNSFW = true);
-        Task<List<Manga>> GetFeaturedMangas(bool includeNSFW = true);
         Task<List<Manga>> SearchManga(int page, bool includeNSFW, string? name, int? userId);
         Task<int> GetAllCount(bool includeNSFW, string? name, int? userId);
         Task<List<Manga>> GetRecentlyAddedMangas();

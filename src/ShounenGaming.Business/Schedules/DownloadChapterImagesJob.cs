@@ -5,11 +5,11 @@ using ShounenGaming.Business.Interfaces.Mangas;
 
 namespace ShounenGaming.Business.Schedules
 {
-    public class FetchAllMangasChaptersJob : IInvocable
+    public class DownloadChapterImagesJob : IInvocable
     {
         private readonly IServiceProvider services;
 
-        public FetchAllMangasChaptersJob(IServiceProvider services)
+        public DownloadChapterImagesJob(IServiceProvider services)
         {
             this.services = services;
         }
@@ -19,15 +19,13 @@ namespace ShounenGaming.Business.Schedules
         {
             try
             {
-                Log.Information($"Started Adding Mangas Chapters to Queue");
-
                 using var scope = services.CreateScope();
                 var mangaService = scope.ServiceProvider.GetRequiredService<IMangaService>();
-                await mangaService.UpdateMangasChapters();
+                await mangaService.DownloadImages();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                Log.Error(ex, "Error Adding Mangas Chapters to Queue");
+                Log.Error(ex, "Error Downloading Chapter Images");
             }
         }
     }

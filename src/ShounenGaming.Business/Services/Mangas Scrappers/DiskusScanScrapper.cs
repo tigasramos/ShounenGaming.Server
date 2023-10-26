@@ -7,42 +7,8 @@ using System.Web;
 
 namespace ShounenGaming.Business.Services.Mangas_Scrappers
 {
-    internal class DiskusScanScrapper : IBaseMangaScrapper
+    public class DiskusScanScrapper : IBaseMangaScrapper
     {
-        public async Task<List<MangaSourceDTO>> GetAllMangasByPage(int page)
-        {
-            var web = new HtmlWeb();
-            var mangasList = new List<MangaSourceDTO>();
-            try
-            {
-                var htmlDoc = await web.LoadFromWebAsync($"https://diskusscan.com/manga/?page={page}&status=&type=&order=");
-
-                var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//div[@class='listupd']/div/div");
-                if (mangasFetched == null || !mangasFetched.Any()) return new List<MangaSourceDTO>();
-
-                foreach (var manga in mangasFetched)
-                {
-                    var mangaName = manga.SelectSingleNode("a/div/div[@class='tt']")?.InnerText ?? "";
-
-                    var mangaUrl = manga.SelectSingleNode("a")?.GetAttributeValue("href", "") ?? "";
-                    var imageUrl = manga.SelectSingleNode("a/div/img").GetAttributeValue("src", "") ?? "";
-                    mangasList.Add(new MangaSourceDTO
-                    {
-                        Name = HttpUtility.HtmlDecode(mangaName.Trim()),
-                        Url = mangaUrl.Remove(mangaUrl.Length - 1).Split("/").Last(),
-                        ImageURL = imageUrl,
-                        Source = GetMangaSourceEnumDTO()
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"DiskusScan - GetAllMangasByPage: {ex.Message}");
-            }
-
-            return mangasList;
-        }
-
         public string GetBaseURLForManga()
         {
             return "https://diskusscan.com/manga";
@@ -91,7 +57,7 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
                     ReleasedAt = parsed ? chapterDate : null
                 });
             }
-
+            chapters.Reverse();
             return new ScrappedManga
             {
                 Name = HttpUtility.HtmlDecode(mangaName.Trim()),
@@ -115,27 +81,24 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
 
             try
             {
-                while (true)
-                {
-                    var htmlDoc = await web.LoadFromWebAsync($"https://diskusscan.com/page/{currentPage}/?s={name.Replace(" " , "+")}");
-                    var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//div[@class='listupd']/div/div");
-                    if (mangasFetched == null || !mangasFetched.Any()) break;
+                var htmlDoc = await web.LoadFromWebAsync($"https://diskusscan.com/page/{currentPage}/?s={name.Replace(" ", "+")}");
+                var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//div[@class='listupd']/div/div");
+                if (mangasFetched == null || !mangasFetched.Any())
+                    return mangasList;
 
-                    foreach (var manga in mangasFetched)
+                foreach (var manga in mangasFetched)
+                {
+                    var mangaName = manga.SelectSingleNode("a/div/div[@class='tt']")?.InnerText ?? "";
+
+                    var mangaUrl = manga.SelectSingleNode("a")?.GetAttributeValue("href", "") ?? "";
+                    var imageUrl = manga.SelectSingleNode("a/div/img")?.GetAttributeValue("src", "") ?? "";
+                    mangasList.Add(new MangaSourceDTO
                     {
-                        var mangaName = manga.SelectSingleNode("a/div/div[@class='tt']")?.InnerText ?? "";
-                        
-                        var mangaUrl = manga.SelectSingleNode("a")?.GetAttributeValue("href", "") ?? "";
-                        var imageUrl = manga.SelectSingleNode("a/div/img").GetAttributeValue("src", "") ?? "";
-                        mangasList.Add(new MangaSourceDTO
-                        {
-                            Name = HttpUtility.HtmlDecode(mangaName.Trim()),
-                            Url = mangaUrl.Remove(mangaUrl.Length - 1).Split("/").Last(),
-                            ImageURL = imageUrl,
-                            Source = GetMangaSourceEnumDTO()
-                        });
-                    }
-                    currentPage++;
+                        Name = HttpUtility.HtmlDecode(mangaName.Trim()),
+                        Url = mangaUrl.Remove(mangaUrl.Length - 1).Split("/").Last(),
+                        ImageURL = imageUrl,
+                        Source = GetMangaSourceEnumDTO()
+                    });
                 }
             }
             catch (Exception ex)
