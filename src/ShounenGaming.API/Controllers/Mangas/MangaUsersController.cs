@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ShounenGaming.Business.Interfaces.Mangas;
-using ShounenGaming.Core.Entities.Base;
 using ShounenGaming.DTOs.Models.Mangas.Enums;
 using System.Security.Claims;
 
@@ -102,18 +100,6 @@ namespace ShounenGaming.API.Controllers.Mangas
                 return Ok(userData);
 
             return Ok();
-        }
-
-        /// <summary>
-        /// Gets Manga Recommendations for specific User
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet("recommendations")]
-        public async Task<IActionResult> GetMangaRecommendations()
-        {
-            var userId = User.FindFirstValue("Id");
-            var userData = await _mangaUsersService.GetMangaRecommendations(Convert.ToInt32(userId));
-            return Ok(userData);
         }
 
         /// <summary>

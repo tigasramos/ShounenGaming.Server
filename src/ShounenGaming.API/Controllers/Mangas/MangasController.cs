@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using ShounenGaming.Business.Interfaces.Mangas;
 using ShounenGaming.DTOs.Models.Mangas.Enums;
 using ShounenGaming.DTOs.Models.Mangas;
@@ -125,12 +125,12 @@ namespace ShounenGaming.API.Controllers.Mangas
         /// <returns></returns>
         [HttpGet("recent/chapters")]
         public async Task<IActionResult> GetRecentlyReleasedChapters()
-        {            
+        {
             var userId = int.Parse(User.FindFirst(c => c.Type == "Id")!.Value);
             var chapters = await _service.GetRecentlyReleasedChapters(userId);
             return Ok(chapters);
         }
-        
+
         #endregion
 
         #region Tags & Writers
@@ -262,5 +262,40 @@ namespace ShounenGaming.API.Controllers.Mangas
 
         #endregion
 
-    }
+        #region Recommendations
+        /// <summary>
+        /// Gets Manga Recommendations for specific User
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("recommendations")]
+        public async Task<IActionResult> GetMangaRecommendations()
+        {
+            var userId = User.FindFirstValue("Id");
+            var recommendations = await _service.GetMangaRecommendations(Convert.ToInt32(userId));
+            return Ok(recommendations);
+        }
+
+        /// <summary>
+        /// Gets Manga Recommendations for specific User
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("recommendations/search")]
+        public async Task<IActionResult> SearchMangaRecommendations()
+        {
+            var userId = User.FindFirstValue("Id");
+            var recommendations = await _service.SearchMangaRecommendations(Convert.ToInt32(userId));
+            return Ok(recommendations);
+        }
+        #endregion
+
+        /// <summary>
+        /// For Absurd Cases Purposes
+        /// </summary>
+        /// <returns></returns>
+        [HttpPut("download/images")]
+        public async Task<IActionResult> DownloadImages()
+        {
+            await _service.DownloadImages();
+            return Ok();
+        }
 }

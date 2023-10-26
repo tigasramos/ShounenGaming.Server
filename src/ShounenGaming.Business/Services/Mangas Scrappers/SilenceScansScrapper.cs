@@ -34,7 +34,7 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
                     ReleasedAt = parsed ? chapterDate : null
                 });
             }
-
+            chapters.Reverse();
             return new ScrappedManga
             {
                 Name = mangaName.Trim(),

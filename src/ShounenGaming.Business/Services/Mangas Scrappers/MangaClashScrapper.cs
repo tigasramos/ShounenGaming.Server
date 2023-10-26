@@ -57,7 +57,7 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
                     Link = chapterUrl.Replace("https://mangaclash.com/manga/", ""),
                 });
             }
-
+            chapters.Reverse();
             return new ScrappedManga
             {
                 Name = HttpUtility.HtmlDecode(mangaName.Trim()),

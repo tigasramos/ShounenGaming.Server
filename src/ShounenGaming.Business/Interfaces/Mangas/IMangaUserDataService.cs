@@ -64,13 +64,6 @@ namespace ShounenGaming.Business.Interfaces.Mangas
 
 
         /// <summary>
-        /// Gets Recommendations for Specific Users
-        /// </summary>
-        /// <param name="userId"></param>
-        /// <returns></returns>
-        Task<List<MangaInfoDTO>> GetMangaRecommendations(int userId);
-
-        /// <summary>
         /// Gets list of last Users activities
         /// </summary>
         /// <returns></returns>

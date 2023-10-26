@@ -236,64 +236,7 @@ namespace ShounenGaming.Business.Services.Mangas
                 return await MapMangaUserData(dbMangaUserInfo);
             }
         }
-        public async Task<List<MangaInfoDTO>> GetMangaRecommendations(int userId)
-        {
-            var user = await _userRepo.GetById(userId);
-            if (user is null)
-                throw new EntityNotFoundException("User");
-
-            var userData = await _mangaUserDataRepo.GetByUser(userId);
-            if (userData is null)
-                throw new EntityNotFoundException("UserData");
-
-            var userSeenMangas = userData.Where(m => m.Status == MangaUserStatusEnum.COMPLETED ||
-                m.Status == MangaUserStatusEnum.READING ||
-                m.Status == MangaUserStatusEnum.ON_HOLD);
-
-            // If no readings yet -> Popular
-            if (!userData.Any())
-            {
-                return _mapper.Map<List<MangaInfoDTO>>(await _mangaRepository.GetPopularMangas());
-            }
-
-            // If readings search the most common tags
-            var tagsScores = new Dictionary<string, double>();
-            foreach(var manga in userSeenMangas)
-            {
-                foreach(var tag in manga.Manga.Tags)
-                {
-                    if (tagsScores.ContainsKey(tag.Name))
-                    {
-                        tagsScores[tag.Name] += manga.Rating ?? 2.5;
-                    }
-                    else tagsScores[tag.Name] = manga.Rating ?? 2.5;
-                }
-            }
-
-            // Search the mangas with OK rating which have most of those tags (not read before) and not on ignore !
-            var allMangas = await _mangaRepository.GetAll();
-            var allMangasNotSeen = allMangas.Where(m => !userSeenMangas.Any(usm => usm.Manga.Id == m.Id));
-
-            var mangasScores = new Dictionary<int, double>();
-            foreach(var manga in allMangasNotSeen)
-            {
-                mangasScores[manga.Id] = 0;
-                foreach(var tag in manga.Tags)
-                {
-                    if (tagsScores.ContainsKey(tag.Name))
-                        mangasScores[manga.Id] += tagsScores[tag.Name];
-                }
-            }
-
-            // TODO: Maybe put a "where value" bigger than something
-            // TODO: Refresh recommendations
-            // TODO: If exists give, if not, search in MAL and AL and add them
-            // TODO: Also check types: Manga, Manwha...
-
-            var mangaIds = mangasScores.OrderByDescending(ms => ms.Value).Select(ms => ms.Key).Take(10).ToList();
-            return _mapper.Map<List<MangaInfoDTO>>(allMangasNotSeen.Where(m => mangaIds.Contains(m.Id))); 
-        }
-
+        
         public async Task<List<MangasUserActivityDTO>> GetLastUsersActivity()
         {
             //TODO: Add Cache
