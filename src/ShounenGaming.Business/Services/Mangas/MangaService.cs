@@ -152,7 +152,10 @@ namespace ShounenGaming.Business.Services.Mangas
                     }
                     
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Error Fetching Manga Translation");
+                }
             }
 
             return null;
@@ -411,7 +414,7 @@ namespace ShounenGaming.Business.Services.Mangas
                 throw new EntityNotFoundException("UserData");
 
             var userSeenMangas = userData.Where(m => m.Status == MangaUserStatusEnum.COMPLETED ||
-                m.Status == MangaUserStatusEnum.READING ||
+                m.Status == MangaUserStatusEnum.READING || m.Status == MangaUserStatusEnum.DROPPED ||
                 m.Status == MangaUserStatusEnum.ON_HOLD);
 
             // If no readings yet -> Popular
@@ -478,7 +481,7 @@ namespace ShounenGaming.Business.Services.Mangas
                 throw new EntityNotFoundException("UserData");
 
             var userSeenMangas = userData.Where(m => m.Status == MangaUserStatusEnum.COMPLETED ||
-                m.Status == MangaUserStatusEnum.READING ||
+                m.Status == MangaUserStatusEnum.READING || m.Status == MangaUserStatusEnum.DROPPED ||
                 m.Status == MangaUserStatusEnum.ON_HOLD);
 
             var allDTOs = new List<MangaMetadataDTO>();
