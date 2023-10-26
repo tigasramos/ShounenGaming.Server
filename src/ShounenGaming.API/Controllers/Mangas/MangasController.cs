@@ -205,7 +205,7 @@ namespace ShounenGaming.API.Controllers.Mangas
         /// <param name="name"></param>
         /// <returns></returns>
         [HttpGet("search/{source}")]
-        public async Task<IActionResult> SearchMangaMetadata(MangaMetadataSourceEnumDTO source, [FromQuery]string name)
+        public async Task<IActionResult> SearchMangaMetadata(MangaMetadataSourceEnumDTO source, [FromQuery] string name)
         {
             var metadata = await _service.SearchMangaMetadata(source, name);
             return Ok(metadata);
@@ -217,7 +217,7 @@ namespace ShounenGaming.API.Controllers.Mangas
         /// <param name="name"></param>
         /// <returns></returns>
         [HttpGet("search/sources")]
-        public async Task<IActionResult> SearchMangaSources([FromQuery]string name)
+        public async Task<IActionResult> SearchMangaSources([FromQuery] string name)
         {
             var mangas = await _service.SearchMangaSource(name);
             return Ok(mangas);
@@ -230,7 +230,7 @@ namespace ShounenGaming.API.Controllers.Mangas
         /// <param name="mangas"></param>
         /// <returns></returns>
         [HttpPut("{mangaId}/links")]
-        public async Task<IActionResult> LinkSourceToManga(int mangaId, [FromBody]List<MangaSourceDTO> mangas)
+        public async Task<IActionResult> LinkSourceToManga(int mangaId, [FromBody] List<MangaSourceDTO> mangas)
         {
             var manga = await _service.LinkSourcesToManga(mangaId, mangas);
             return Ok(manga);
@@ -298,4 +298,5 @@ namespace ShounenGaming.API.Controllers.Mangas
             await _service.DownloadImages();
             return Ok();
         }
+    }
 }
