@@ -44,10 +44,10 @@ namespace ShounenGaming.Business.Services.Base
             return _mapper.Map<UserMangasConfigsDTO>(user.MangasConfigurations);
         }
 
-        public async Task<List<UserDTO>> GetUsers()
+        public async Task<List<SimpleUserDTO>> GetUsers()
         {
             var users = await _userRepo.GetAll();
-            return _mapper.Map<List<UserDTO>>(users);
+            return _mapper.Map<List<SimpleUserDTO>>(users);
         }
     }
 }
