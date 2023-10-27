@@ -411,7 +411,7 @@ namespace ShounenGaming.Business.Services.Mangas
                 throw new EntityNotFoundException("UserData");
 
             var userSeenMangas = userData.Where(m => m.Status == MangaUserStatusEnum.COMPLETED ||
-                m.Status == MangaUserStatusEnum.READING || 
+                m.Status == MangaUserStatusEnum.READING ||
                 m.Status == MangaUserStatusEnum.ON_HOLD);
 
             // If no readings yet -> Popular
@@ -423,8 +423,10 @@ namespace ShounenGaming.Business.Services.Mangas
             // If readings search the most common tags
             var tagsScores = new Dictionary<string, double>();
             var typesScores = new Dictionary<MangaTypeEnum, double>();
-            foreach (var manga in userSeenMangas)
+            foreach (var manga in userData)
             {
+                if (manga.Status == MangaUserStatusEnum.DROPPED || manga.Status == MangaUserStatusEnum.IGNORED) continue;
+
                 //Types
                 if (typesScores.ContainsKey(manga.Manga.Type))
                 {
@@ -445,7 +447,7 @@ namespace ShounenGaming.Business.Services.Mangas
 
             // Search the mangas with OK rating which have most of those tags (not read before) and not on ignore !
             var allMangas = await _mangaRepo.GetAll();
-            var allMangasNotSeen = allMangas.Where(m => !userSeenMangas.Any(usm => usm.Manga.Id == m.Id)).OrderByDescending(a => ((a.ALScore ?? a.MALScore) + (a.MALScore ?? a.ALScore)) / 2);
+            var allMangasNotSeen = allMangas.Where(m => !userSeenMangas.Where(m => m.Status != MangaUserStatusEnum.PLANNED).Any(usm => usm.Manga.Id == m.Id)).OrderByDescending(a => ((a.ALScore ?? a.MALScore) + (a.MALScore ?? a.ALScore)) / 2);
 
             var mangasScores = new Dictionary<int, double>();
             foreach (var manga in allMangasNotSeen)
@@ -464,7 +466,7 @@ namespace ShounenGaming.Business.Services.Mangas
             // TODO: Maybe put a "where value" bigger than something
             // TODO: Take points from Ignored
 
-            var mangaIds = mangasScores.Where(ms => ms.Value > 0).OrderByDescending(ms => ms.Value).Select(ms => ms.Key).Take(20).ToList();
+            var mangaIds = mangasScores.Where(ms => ms.Value > 0).OrderByDescending(ms => ms.Value).Select(ms => ms.Key).Take(25).ToList();
             return _mapper.Map<List<MangaInfoDTO>>(allMangasNotSeen.Where(m => mangaIds.Contains(m.Id)));
         }
         public async Task<List<MangaMetadataDTO>> SearchMangaRecommendations(int userId)
@@ -534,7 +536,7 @@ namespace ShounenGaming.Business.Services.Mangas
             // Fetch Mangas
             var mostSeenTags = tagsScores.OrderByDescending(ms => ms.Value).Select(ms => ms.Key).Take(5).ToList();
             
-            // Take min 20 from MAL
+            // Take min.20 from MAL
             int malI = 1;
             while (allDTOs.Count < 20 || malI == 5)
             {
