@@ -533,20 +533,20 @@ namespace ShounenGaming.Business.Services.Mangas
 
             // Fetch Mangas
             var mostSeenTags = tagsScores.OrderByDescending(ms => ms.Value).Select(ms => ms.Key).Take(5).ToList();
-            int page = 1;
-
+            
             // Take min 20 from MAL
-            int malI = 0;
-            var maxMalPages = 3;
-            while (allDTOs.Count < 20)
+            int malI = 1;
+            while (allDTOs.Count < 20 || malI == 5)
             {
-                var searchedMALMangas = await _fusionCache.GetOrSetAsync($"searched_mal_{malI}_{page}", async _ => (await _jikan.SearchMangaAsync(new MangaSearchConfig { Page = (page * maxMalPages) - (maxMalPages - 1) + malI, OrderBy = MangaSearchOrderBy.Popularity })).Data, new FusionCacheEntryOptions { Duration = TimeSpan.FromHours(12) });
+                var searchedMALMangas = await _fusionCache.GetOrSetAsync($"searched_mal_{malI}", async _ => (await _jikan.SearchMangaAsync(new MangaSearchConfig { Page = malI, OrderBy = MangaSearchOrderBy.Popularity })).Data, new FusionCacheEntryOptions { Duration = TimeSpan.FromHours(12) });
                 searchedMALMangas = searchedMALMangas?.FilterCorrectTypes();
                 var searchedMALMangasNotAdded = searchedMALMangas?.Where(sm => !allMangas.Any(am => am.MangaMyAnimeListID == sm.MalId) && !allDTOs.Any(dtos => dtos.Source == MangaMetadataSourceEnumDTO.MYANIMELIST && dtos.Id == sm.MalId)).ToList();
                 searchedMALMangasNotAdded?.ForEach(async s => allDTOs.Add(await ConvertMALMangaToDTO(s, false)));
                 malI++;
+                await Task.Delay(1000);
             }
 
+            int page = 1;
             do 
             {
                 //TODO: Take more Types and Search only for Types
@@ -1289,6 +1289,8 @@ namespace ShounenGaming.Business.Services.Mangas
                     await _mangaRepo.Update(manga);
                     updatedMangas++;
                     await Task.Delay(1000);
+                    if (manga.MangaMyAnimeListID != null)
+                        await Task.Delay(500);
                 }
             }
 
