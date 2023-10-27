@@ -411,7 +411,7 @@ namespace ShounenGaming.Business.Services.Mangas
                 throw new EntityNotFoundException("UserData");
 
             var userSeenMangas = userData.Where(m => m.Status == MangaUserStatusEnum.COMPLETED ||
-                m.Status == MangaUserStatusEnum.READING || m.Status == MangaUserStatusEnum.DROPPED ||
+                m.Status == MangaUserStatusEnum.READING || 
                 m.Status == MangaUserStatusEnum.ON_HOLD);
 
             // If no readings yet -> Popular
@@ -428,18 +428,18 @@ namespace ShounenGaming.Business.Services.Mangas
                 //Types
                 if (typesScores.ContainsKey(manga.Manga.Type))
                 {
-                    typesScores[manga.Manga.Type] += (manga.Rating ?? 2.5) * recommendations_type_growth;
+                    typesScores[manga.Manga.Type] += (manga.Rating ?? 2.5) * recommendations_type_growth * (manga.Manga.IsNSFW ? 0.5 : 1);
                 }
-                else typesScores[manga.Manga.Type] = (manga.Rating ?? 2.5) * recommendations_type_growth;
+                else typesScores[manga.Manga.Type] = (manga.Rating ?? 2.5) * recommendations_type_growth * (manga.Manga.IsNSFW ? 0.5 : 1);
 
                 //Tags
                 foreach (var tag in manga.Manga.Tags)
                 {
                     if (tagsScores.ContainsKey(tag.Name))
                     {
-                        tagsScores[tag.Name] += (manga.Rating ?? 2.5) * recommendations_tags_growth;
+                        tagsScores[tag.Name] += (manga.Rating ?? 2.5) * recommendations_tags_growth * (manga.Manga.IsNSFW ? 0.5 : 1);
                     }
-                    else tagsScores[tag.Name] = (manga.Rating ?? 2.5) * recommendations_tags_growth;
+                    else tagsScores[tag.Name] = (manga.Rating ?? 2.5) * recommendations_tags_growth * (manga.Manga.IsNSFW ? 0.5 : 1);
                 }
             }
 
@@ -478,7 +478,7 @@ namespace ShounenGaming.Business.Services.Mangas
                 throw new EntityNotFoundException("UserData");
 
             var userSeenMangas = userData.Where(m => m.Status == MangaUserStatusEnum.COMPLETED ||
-                m.Status == MangaUserStatusEnum.READING || m.Status == MangaUserStatusEnum.DROPPED ||
+                m.Status == MangaUserStatusEnum.READING ||
                 m.Status == MangaUserStatusEnum.ON_HOLD);
 
             var allDTOs = new List<MangaMetadataDTO>();
@@ -508,24 +508,24 @@ namespace ShounenGaming.Business.Services.Mangas
             // Get most used Tags & Types
             var tagsScores = new Dictionary<string, double>();
             var typesScores = new Dictionary<MangaTypeEnumDTO, double>();
-            foreach (var manga in userSeenMangas.Where(usm => !usm.Manga.IsNSFW))
+            foreach (var manga in userSeenMangas)
             {
                 //Types
                 var dtoType = _mapper.Map<MangaTypeEnumDTO>(manga.Manga.Type);
                 if (typesScores.ContainsKey(dtoType))
                 {
-                    typesScores[dtoType] += (manga.Rating ?? 2.5) * recommendations_type_growth;
+                    typesScores[dtoType] += (manga.Rating ?? 2.5) * recommendations_type_growth * (manga.Manga.IsNSFW ? 0.5 : 1);
                 }
-                else typesScores[dtoType] = (manga.Rating ?? 2.5) * recommendations_type_growth;
+                else typesScores[dtoType] = (manga.Rating ?? 2.5) * recommendations_type_growth * (manga.Manga.IsNSFW ? 0.5 : 1);
 
                 //Tags
                 foreach (var tag in manga.Manga.Tags)
                 {
                     if (tagsScores.ContainsKey(tag.Name))
                     {
-                        tagsScores[tag.Name] += (manga.Rating ?? 2.5) * recommendations_tags_growth;
+                        tagsScores[tag.Name] += (manga.Rating ?? 2.5) * recommendations_tags_growth * (manga.Manga.IsNSFW ? 0.5 : 1);
                     }
-                    else tagsScores[tag.Name] = (manga.Rating ?? 2.5) * recommendations_tags_growth;
+                    else tagsScores[tag.Name] = (manga.Rating ?? 2.5) * recommendations_tags_growth * (manga.Manga.IsNSFW ? 0.5 : 1);
                 }
             }
 
@@ -533,20 +533,20 @@ namespace ShounenGaming.Business.Services.Mangas
 
             // Fetch Mangas
             var mostSeenTags = tagsScores.OrderByDescending(ms => ms.Value).Select(ms => ms.Key).Take(5).ToList();
-            int page = 1;
-
+            
             // Take min 20 from MAL
-            int malI = 0;
-            var maxMalPages = 3;
-            while (allDTOs.Count < 20)
+            int malI = 1;
+            while (allDTOs.Count < 20 || malI == 5)
             {
-                var searchedMALMangas = await _fusionCache.GetOrSetAsync($"searched_mal_{malI}_{page}", async _ => (await _jikan.SearchMangaAsync(new MangaSearchConfig { Page = (page * maxMalPages) - (maxMalPages - 1) + malI, OrderBy = MangaSearchOrderBy.Popularity })).Data, new FusionCacheEntryOptions { Duration = TimeSpan.FromHours(12) });
+                var searchedMALMangas = await _fusionCache.GetOrSetAsync($"searched_mal_{malI}", async _ => (await _jikan.SearchMangaAsync(new MangaSearchConfig { Page = malI, OrderBy = MangaSearchOrderBy.Popularity })).Data, new FusionCacheEntryOptions { Duration = TimeSpan.FromDays(1) });
                 searchedMALMangas = searchedMALMangas?.FilterCorrectTypes();
                 var searchedMALMangasNotAdded = searchedMALMangas?.Where(sm => !allMangas.Any(am => am.MangaMyAnimeListID == sm.MalId) && !allDTOs.Any(dtos => dtos.Source == MangaMetadataSourceEnumDTO.MYANIMELIST && dtos.Id == sm.MalId)).ToList();
                 searchedMALMangasNotAdded?.ForEach(async s => allDTOs.Add(await ConvertMALMangaToDTO(s, false)));
                 malI++;
+                await Task.Delay(1000);
             }
 
+            int page = 1;
             do 
             {
                 //TODO: Take more Types and Search only for Types
@@ -1000,7 +1000,7 @@ namespace ShounenGaming.Business.Services.Mangas
                 Log.Information($"Downloading Images for: {manga.Name}");
                 foreach (var source in manga.Sources)
                 {
-                    Log.Information($"Source: {source.Source}");
+                    Log.Debug($"Source: {source.Source}");
                     try
                     {
                         var scrapperEnum = (MangaSourceEnumDTO)Enum.Parse(typeof(MangaSourceEnumDTO), source.Source);
@@ -1012,7 +1012,7 @@ namespace ShounenGaming.Business.Services.Mangas
                         var chapters = manga.Chapters.Where(c => c.Translations.Any(t => t.Language == TranslationLanguageEnum.PT));
                         foreach (var chapter in chapters)
                         {
-                            Log.Information($"Chapter: {chapter.Name}");
+                            Log.Debug($"Chapter: {chapter.Name}");
                             try
                             {
                                 var fetchedChapter = fetchedManga.Chapters
@@ -1044,7 +1044,7 @@ namespace ShounenGaming.Business.Services.Mangas
                     }
 
                 }
-
+                Log.Information($"Done Downloading Images for: {manga.Name}");
             }
         }
         public async Task UpdateMangasChapters()
@@ -1289,6 +1289,8 @@ namespace ShounenGaming.Business.Services.Mangas
                     await _mangaRepo.Update(manga);
                     updatedMangas++;
                     await Task.Delay(1000);
+                    if (manga.MangaMyAnimeListID != null)
+                        await Task.Delay(500);
                 }
             }
 
