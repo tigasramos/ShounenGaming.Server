@@ -7,6 +7,6 @@ namespace ShounenGaming.Business.Interfaces.Base
         Task<UserMangasConfigsDTO> GetUserConfigsForMangas(int userId);
         Task<UserMangasConfigsDTO> ChangeUserConfigsForMangas(int userId, ChangeUserMangasConfigsDTO updateConfigs);
         Task<UserDTO> GetUserById(int id);
-        Task<List<UserDTO>> GetUsers();
+        Task<List<SimpleUserDTO>> GetUsers();
     }
 }
