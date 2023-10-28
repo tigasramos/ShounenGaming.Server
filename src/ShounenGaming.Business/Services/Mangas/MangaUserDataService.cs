@@ -250,6 +250,10 @@ namespace ShounenGaming.Business.Services.Mangas
         public async Task<List<MangasUserActivityDTO>> GetLastUsersActivity()
         {
             var allActivities = new List<MangasUserActivityDTO>();
+            var cacheOptions = new FusionCacheEntryOptions
+            {
+                Duration = TimeSpan.FromDays(1)
+            };
 
             // Add Mangas
             var addedActivitiesDTOs = await _fusionCache.GetOrSetAsync(CacheConstants.added_mangas_action, async (_) =>
@@ -263,7 +267,7 @@ namespace ShounenGaming.Business.Services.Mangas
                        ActivityType = UserActivityTypeEnumDTO.ADD_MANGA,
                        MadeAt = a.CreatedAt,
                    });
-            });
+            }, cacheOptions);
             allActivities.AddRange(addedActivitiesDTOs!);
 
             // Status Changed
@@ -329,7 +333,7 @@ namespace ShounenGaming.Business.Services.Mangas
                 }
 
                 return dtos;
-            });
+            }, cacheOptions);
             allActivities.AddRange(statusChangedActivitiesDTOs!);
 
 
@@ -388,7 +392,7 @@ namespace ShounenGaming.Business.Services.Mangas
                     });
                 }
                 return dtos;
-            });
+            }, cacheOptions);
             allActivities.AddRange(chaptersReadActivitiesDTOs!);
 
             return allActivities.OrderByDescending(a => a.MadeAt).Take(50).ToList();

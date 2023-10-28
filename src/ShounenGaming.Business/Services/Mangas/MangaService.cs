@@ -131,7 +131,12 @@ namespace ShounenGaming.Business.Services.Mangas
                     if (scrapperTranslation != mangaTranslation.Language)
                         continue;
 
-                    var mangaInfo = await scrapper!.GetManga(source.Url);
+                    var cachedManga = _cache.TryGetValue(source.Url, out ScrappedManga? mangaInfo);
+                    if (!cachedManga)
+                    {
+                        mangaInfo = await scrapper!.GetManga(source.Url);
+                        _cache.Set(source.Url, mangaInfo, DateTimeOffset.Now.AddMinutes(30));
+                    }
 
                     foreach (var c in mangaInfo!.Chapters)
                     {
@@ -410,10 +415,6 @@ namespace ShounenGaming.Business.Services.Mangas
             if (userData is null)
                 throw new EntityNotFoundException("UserData");
 
-            var userSeenMangas = userData.Where(m => m.Status == MangaUserStatusEnum.COMPLETED ||
-                m.Status == MangaUserStatusEnum.READING ||
-                m.Status == MangaUserStatusEnum.ON_HOLD);
-
             // If no readings yet -> Popular
             if (!userData.Any())
             {
@@ -447,7 +448,7 @@ namespace ShounenGaming.Business.Services.Mangas
 
             // Search the mangas with OK rating which have most of those tags (not read before) and not on ignore !
             var allMangas = await _mangaRepo.GetAll();
-            var allMangasNotSeen = allMangas.Where(m => !userSeenMangas.Where(m => m.Status != MangaUserStatusEnum.PLANNED).Any(usm => usm.Manga.Id == m.Id)).OrderByDescending(a => ((a.ALScore ?? a.MALScore) + (a.MALScore ?? a.ALScore)) / 2);
+            var allMangasNotSeen = allMangas.Where(m => !userData.Where(m => m.Status != MangaUserStatusEnum.PLANNED).Any(usm => usm.Manga.Id == m.Id)).OrderByDescending(a => ((a.ALScore ?? a.MALScore) + (a.MALScore ?? a.ALScore)) / 2);
 
             var mangasScores = new Dictionary<int, double>();
             foreach (var manga in allMangasNotSeen)
@@ -735,6 +736,8 @@ namespace ShounenGaming.Business.Services.Mangas
                 synonyms = aniListManga.Synonyms;
                 anilistPopularity = aniListManga.Popularity;
                 anilistAverageScore = aniListManga.AverageScore ?? aniListManga.MeanScore;
+                if (!MangasHelper.IsALMangaCorrectType(aniListManga))
+                    return null;
 
                 if (!string.IsNullOrEmpty(aniListManga.CoverImage.Large))
                     images.Add(aniListManga.CoverImage.Large);
@@ -912,7 +915,7 @@ namespace ShounenGaming.Business.Services.Mangas
         public async Task UpdateMangaChapters(QueuedManga queuedManga)
         {
             var manga = await _mangaRepo.GetById(queuedManga.MangaId);
-            Log.Information($"Scrapping {manga.Name}");
+            Log.Information($"Started Updating Chapters for {manga!.Name}");
 
             // Reset IsWorking Status
             foreach(var chapter in manga.Chapters)
@@ -944,6 +947,7 @@ namespace ShounenGaming.Business.Services.Mangas
 
             // With this here only adds all the chapters at the same time
             await _mangaRepo.Update(manga);
+            await _fusionCache.ExpireAsync(CacheConstants.manga_dto_byId(manga.Id));
             await _fusionCache.ExpireAsync(CacheConstants.recent_chapters_includesNSFW(true));
             await _fusionCache.ExpireAsync(CacheConstants.recent_chapters_includesNSFW(false));
 
