@@ -109,7 +109,7 @@ namespace ShounenGaming.Common
 
                     scheduler.OnWorker("Mangas");
                     scheduler.Schedule<AddOrUpdateMangasMetadataJob>().DailyAt(0, 0).RunOnceAtStart(); // 0
-                    scheduler.Schedule<FetchAllMangasChaptersJob>().Cron("0 4/8 * * *").RunOnceAtStart(); // 4, 12, 20
+                    scheduler.Schedule<FetchAllMangasChaptersJob>().Cron("0 4,12,20 * * *").RunOnceAtStart(); // 4, 12, 20
                     scheduler.Schedule<FetchSeasonMangasJob>().DailyAt(8, 0).RunOnceAtStart(); // 8
 
                     scheduler.OnWorker("Downloader");
