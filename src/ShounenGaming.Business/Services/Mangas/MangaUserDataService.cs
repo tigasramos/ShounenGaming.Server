@@ -252,7 +252,7 @@ namespace ShounenGaming.Business.Services.Mangas
             var allActivities = new List<MangasUserActivityDTO>();
             var cacheOptions = new FusionCacheEntryOptions
             {
-                Duration = TimeSpan.FromDays(1)
+                Duration = TimeSpan.FromDays(7)
             };
 
             // Add Mangas
