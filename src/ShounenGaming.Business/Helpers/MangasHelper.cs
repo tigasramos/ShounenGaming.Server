@@ -30,5 +30,10 @@ namespace ShounenGaming.Business.Helpers
                    m.Type.ToLowerInvariant() != "Novel".ToLowerInvariant() &&
                    m.Type.ToLowerInvariant() != "One-shot".ToLowerInvariant();
         }
+        public static bool IsALMangaCorrectType(AniListHelper.ALManga m)
+        {
+            return m.Type.ToLowerInvariant() != "NOVEL".ToLowerInvariant() &&
+                   m.Type.ToLowerInvariant() != "ONE_SHOT".ToLowerInvariant();
+        }
     }
 }
