@@ -9,7 +9,7 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
 {
     public class GekkouScansScrapper : IBaseMangaScrapper
     {
-        private const string BASE_URL = "https://gekkou.com.br/manga";
+        private const string BASE_URL = "https://gekkouscans.top/manga";
 
         private readonly IHttpClientFactory _httpClientFactory;
 
@@ -27,7 +27,7 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
             var imageUrl = htmlDoc.DocumentNode.SelectSingleNode("//div[@class='summary_image']/a/img")?.GetAttributeValue("data-src", "") ?? "";
 
             var httpClient = _httpClientFactory.CreateClient();
-            using var htmlChapters = await httpClient.PostAsync($"https://gekkou.com.br/manga/{urlPart}/ajax/chapters/", null);
+            using var htmlChapters = await httpClient.PostAsync($"{BASE_URL}{urlPart}/ajax/chapters/", null);
             var htmlChaptersDoc = new HtmlDocument();
             htmlChaptersDoc.LoadHtml(await htmlChapters.Content.ReadAsStringAsync());
 
@@ -99,7 +99,7 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
 
             try
             {
-                var htmlDoc = await web.LoadFromWebAsync($"https://gekkou.com.br/page/{currentPage}/?s={name.Replace(" ", "+")}&post_type=wp-manga&op&author&artist&release&adult");
+                var htmlDoc = await web.LoadFromWebAsync($"https://gekkouscans.top/page/{currentPage}/?s={name.Replace(" ", "+")}&post_type=wp-manga&op&author&artist&release&adult");
                 if (htmlDoc.DocumentNode.InnerText.Contains("There is no Manga!"))
                     return mangasList; 
 

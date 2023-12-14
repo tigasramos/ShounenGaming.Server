@@ -134,10 +134,6 @@ namespace ShounenGaming.Common
 
             }).OnError((ex) => Log.Error($"Running some schedule: {ex.Message}")); ;
 
-            app.UseCors(corsPolicyBuilder =>
-                corsPolicyBuilder.AllowAnyOrigin()
-                                 .AllowAnyMethod()
-                                 .AllowAnyHeader());
 
             app.MapHealthChecks("/healthz");
             app.UseSwagger();
@@ -298,7 +294,7 @@ namespace ShounenGaming.Common
 
             //Scrappers
             services.AddTransient<IBaseMangaScrapper, ManganatoScrapper>();
-            services.AddTransient<IBaseMangaScrapper, GekkouScansScrapper>();
+            //services.AddTransient<IBaseMangaScrapper, GekkouScansScrapper>();
             services.AddTransient<IBaseMangaScrapper, HuntersScansScrapper>();
             services.AddTransient<IBaseMangaScrapper, NeoXScansScrapper>();
             services.AddTransient<IBaseMangaScrapper, SilenceScansScrapper>();

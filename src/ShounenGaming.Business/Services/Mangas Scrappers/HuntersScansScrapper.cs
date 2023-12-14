@@ -24,7 +24,7 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
             var htmlDoc = await web.LoadFromWebAsync($"https://huntersscan.xyz/series/{urlPart}");
             var mangaName = htmlDoc.DocumentNode.SelectSingleNode("//title").InnerText.Replace("- Hunters Scan", "").Replace("- Hunters Comics", "").Trim() ?? "";
             var mangaDescription = htmlDoc.DocumentNode.SelectSingleNode("//meta[@name='description']")?.GetAttributeValue("content", "").Trim() ?? "";
-            var imageUrl = htmlDoc.DocumentNode.SelectSingleNode("//div[@class='summary_image']/a/img")?.GetAttributeValue("data-src", "") ?? "";
+            var imageUrl = htmlDoc.DocumentNode.SelectSingleNode("//div[@class='summary_image']/a/img")?.GetAttributeValue("src", "") ?? "";
 
 
             var httpClient = _httpClientFactory.CreateClient();
@@ -50,7 +50,7 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
             chapters.Reverse();
             return new ScrappedManga
             {
-                Name = HttpUtility.HtmlDecode(mangaName.Replace("– Hunters Scan", "").Trim()),
+                Name = HttpUtility.HtmlDecode(mangaName.Trim()).Replace("– Hunters Scan", ""),
                 Description = HttpUtility.HtmlDecode(mangaDescription),
                 Chapters = chapters,
                 ImageURL = imageUrl,
@@ -67,7 +67,7 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
             var images = htmlDoc.DocumentNode.SelectNodes("//div[@class='page-break no-gaps']/img");
             foreach (var image in images)
             {
-                imagesUrls.Add(image.GetAttributeValue("data-src", "").Trim());
+                imagesUrls.Add(image.GetAttributeValue("src", "").Trim());
             }
             return imagesUrls;
         }
@@ -105,7 +105,7 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
                     if (mangaName.Contains("(Novel)") || mangaName.Contains("– Novel"))
                         continue;
                     var mangaURL = manga.SelectSingleNode("div/div[@class='tab-summary']/div/h3/a")?.GetAttributeValue("href", "") ?? "";
-                    var imageUrl = manga.SelectSingleNode("div/div/a/img")?.GetAttributeValue("data-src", "") ?? "";
+                    var imageUrl = manga.SelectSingleNode("div/div/a/img")?.GetAttributeValue("src", "") ?? "";
                     mangasList.Add(new MangaSourceDTO
                     {
                         Name = mangaName.Trim(),

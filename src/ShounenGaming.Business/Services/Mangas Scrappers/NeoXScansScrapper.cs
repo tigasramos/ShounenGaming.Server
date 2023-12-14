@@ -21,14 +21,14 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
         public async Task<ScrappedManga> GetManga(string urlPart)
         {
             var web = new HtmlWeb();
-            var htmlDoc = await web.LoadFromWebAsync($"https://neoxscan.net/manga/{urlPart}");
+            var htmlDoc = await web.LoadFromWebAsync($"https://nexoscans.com/manga/{urlPart}");
             var mangaName = htmlDoc.DocumentNode.SelectSingleNode("//div[@class='post-title']/h1")?.InnerText.Trim() ?? "";
             var mangaDescription = htmlDoc.DocumentNode.SelectSingleNode("//div[@class='manga-excerpt']")?.InnerText.Trim() ?? "";
             var imageUrl = htmlDoc.DocumentNode.SelectSingleNode("//div[@class='summary_image']/a/img")?.GetAttributeValue("src", "") ?? "";
 
             var httpClient = _httpClientFactory.CreateClient();
-            httpClient.DefaultRequestHeaders.Host = "neoxscan.net";
-            using var htmlChapters = await httpClient.PostAsync($"https://neoxscan.net/manga/{urlPart}/ajax/chapters/", new StringContent(string.Empty));
+            httpClient.DefaultRequestHeaders.Host = "nexoscans.com";
+            using var htmlChapters = await httpClient.PostAsync($"https://nexoscans.com/manga/{urlPart}/ajax/chapters/", new StringContent(string.Empty));
             var htmlChaptersDoc = new HtmlDocument();
             htmlChaptersDoc.LoadHtml(await htmlChapters.Content.ReadAsStringAsync());
 
@@ -46,7 +46,7 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
                     chapters.Add(new ScrappedChapter
                     {
                         Name = chapterName.Trim(),
-                        Link = chapterUrl.Replace("https://neoxscan.net/manga/", "").Trim(),
+                        Link = chapterUrl.Replace("https://nexoscans.com/manga/", "").Trim(),
                         ReleasedAt = dateConverted ? DateTime.SpecifyKind(convertedDate, DateTimeKind.Utc) : null,
                     });
                 }
@@ -69,10 +69,14 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
                 try
                 {
                     var web = new HtmlWeb();
-                    var htmlDoc = await web.LoadFromWebAsync($"https://neoxscan.net/manga/{urlPart}");
+                    var htmlDoc = await web.LoadFromWebAsync($"https://nexoscans.com/manga/{urlPart}");
 
                     List<string> imagesUrls = new();
                     var images = htmlDoc.DocumentNode.SelectNodes("//div[@class='page-break ']/img");
+                    if (images == null)
+                    {
+                        images = htmlDoc.DocumentNode.SelectNodes("//div[@class='page-break no-gaps']/img");
+                    }
                     foreach (var image in images)
                     {
                         imagesUrls.Add(image.GetAttributeValue("src", "").Trim());
@@ -95,7 +99,7 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
 
         public string GetBaseURLForManga()
         {
-            return "https://neoxscan.net/manga";
+            return "https://nexoscans.com/manga";
         }
 
         public MangaSourceEnumDTO GetMangaSourceEnumDTO()
@@ -110,7 +114,7 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
             int currentPage = 1;
 
             try {
-                var htmlDoc = await web.LoadFromWebAsync($"https://neoxscan.net/page/{currentPage}/?s={name.Replace(" ", "+")}&post_type=wp-manga");
+                var htmlDoc = await web.LoadFromWebAsync($"https://nexoscans.com/page/{currentPage}/?s={name.Replace(" ", "+")}&post_type=wp-manga");
                 var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//div[@class='row c-tabs-item__content']");
                 if (mangasFetched == null || !mangasFetched.Any())
                     return mangasList;
