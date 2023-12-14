@@ -43,6 +43,11 @@ try
     //App
     var app = builder.Build();
 
+    app.UseCors(corsPolicyBuilder =>
+              corsPolicyBuilder.AllowAnyOrigin()
+                               .AllowAnyMethod()
+                               .AllowAnyHeader());
+
     //https://learn.microsoft.com/en-us/aspnet/core/fundamentals/static-files?view=aspnetcore-7.0
     app.UseStaticFiles(new StaticFileOptions
     {
