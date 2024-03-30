@@ -20,7 +20,7 @@ namespace ShounenGaming.Business.Schedules
             try
             {
                 using var scope = services.CreateScope();
-                var mangaService = scope.ServiceProvider.GetRequiredService<IMangaService>();
+                var mangaService = scope.ServiceProvider.GetRequiredService<IMangaJobsService>();
                 await mangaService.AddOrUpdateAllMangasMetadata();
             }
             catch (Exception ex)

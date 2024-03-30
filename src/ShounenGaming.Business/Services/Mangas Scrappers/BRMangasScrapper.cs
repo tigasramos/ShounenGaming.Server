@@ -1,17 +1,28 @@
 ﻿using HtmlAgilityPack;
 using Newtonsoft.Json;
 using Serilog;
+using ShounenGaming.Business.Helpers;
 using ShounenGaming.Business.Services.Mangas_Scrappers.Models;
 using ShounenGaming.DTOs.Models.Mangas;
 using ShounenGaming.DTOs.Models.Mangas.Enums;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Web;
 
 namespace ShounenGaming.Business.Services.Mangas_Scrappers
 {
     public class BRMangasScrapper : IBaseMangaScrapper
     {
-      
+
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly CacheHelper _cacheHelper;
+
+        public BRMangasScrapper(IHttpClientFactory httpClientFactory, CacheHelper cacheHelper)
+        {
+            _httpClientFactory = httpClientFactory;
+            _cacheHelper = cacheHelper;
+        }
+
         public async Task<ScrappedManga> GetManga(string urlPart)
         {
             var web = new HtmlWeb();
@@ -44,27 +55,47 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
         }
         public async Task<List<string>> GetChapterImages(string urlPart)
         {
-            var web = new HtmlWeb();
-            web.OverrideEncoding = Encoding.UTF8;
-            var htmlDoc = await web.LoadFromWebAsync($"https://www.brmangas.net/ler/{urlPart}");
-
-            List<string> imagesUrls = new();
-            var scripts = htmlDoc.DocumentNode.SelectNodes("//script[@type='text/javascript']");
-            var imagesJson = scripts.Where(s => s.InnerText?.Trim().StartsWith("imageArray") ?? false).First().InnerText.Trim();
-            var test = imagesJson.Replace("\\", "").Replace("imageArray =", "")[1..^2].Trim();
-            var imagesDynamic = JsonConvert.DeserializeObject<ImagesArray>(test);
-            var images = imagesDynamic.Images;
-            foreach (var image in images)
+            return await _cacheHelper.GetOrSetCache(CacheHelper.CacheKey.CUSTOM, async _ => 
             {
-                imagesUrls.Add(image.Trim());
-            }
-            return imagesUrls;
+                var client = _httpClientFactory.CreateClient();
+                client.DefaultRequestHeaders.Add("Host", "cdn.plaquiz.xyz");
+                client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36");
+
+                string pattern = @"^(?<name>[\w-]+?)-(?<chapter>(?:\d+-)?\d+(?:\.\d+)?)-?online/$";
+
+                Match match = Regex.Match(urlPart, pattern);
+
+                string name = match.Groups["name"].Value.Trim();
+                string chapter = match.Groups["chapter"].Value.Replace("-", ".");
+
+                List<string> imagesUrls = new();
+                var lastFound = true;
+                var i = 1;
+                var extensions = new List<string> { "jpg", "png" };
+                while (lastFound)
+                {
+                    lastFound = false;
+                    for (int j = 0; j < extensions.Count && !lastFound; j++)
+                    {
+                        var url = $"https://cdn.plaquiz.xyz/uploads/{name.First()}/{name}/{chapter}/{i}.{extensions[j]}";
+                        try
+                        {
+                            HttpResponseMessage response = await client.GetAsync(url);
+                            if (response.IsSuccessStatusCode)
+                            {
+                                imagesUrls.Add(url);
+                                lastFound = true;
+                            }
+                        }
+                        catch { }
+                    }
+
+                    i++;
+                }
+                return imagesUrls;
+            }, urlPart) ?? new List<string>();
         }
 
-        private class ImagesArray
-        {
-            public List<string> Images { get; set; }
-        }
         public MangaTranslationEnumDTO GetLanguage()
         {
             return MangaTranslationEnumDTO.PT;

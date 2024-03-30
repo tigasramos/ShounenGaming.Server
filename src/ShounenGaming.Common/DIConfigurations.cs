@@ -12,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
 using Prometheus;
 using Serilog;
@@ -46,7 +47,15 @@ namespace ShounenGaming.Common
     {
         public static void ConfigureServices(this IServiceCollection services, ConfigurationManager configuration, IWebHostEnvironment environment, string assemblyName)
         {
+            var fileServerSettings = configuration.GetRequiredSection("fileServer").Get<FileServerSettings>();
             services.AddHttpClient();
+            services.AddHttpClient("FileServer", httpClient =>
+            {
+                httpClient.BaseAddress = new Uri(fileServerSettings!.Url);
+
+                httpClient.DefaultRequestHeaders.Add(
+                    HeaderNames.Authorization, $"Bearer {fileServerSettings.JwtToken}");
+            });
 
             services.AddJwt(configuration);
             services.AddSwagger(assemblyName);
@@ -125,9 +134,11 @@ namespace ShounenGaming.Common
                     // Fetch Manga Metadata
                     scheduler.OnWorker("Mangas");
                     scheduler.Schedule<AddOrUpdateMangasMetadataJob>().DailyAt(1, 30).PreventOverlapping("MangasMetadata");
-                    scheduler.Schedule<FetchAllMangasChaptersJob>().Monthly();
+                    scheduler.Schedule<FetchAllMangasChaptersJob>().Monthly().RunOnceAtStart();
                     scheduler.Schedule<FetchSeasonMangasJob>().DailyAt(3, 0);
-                    //scheduler.Schedule<DownloadChapterImagesJob>().DailyAt(5, 0).RunOnceAtStart();
+
+                    scheduler.OnWorker("Downloader");
+                    scheduler.Schedule<DownloadChapterImagesJob>().DailyAt(00, 50).PreventOverlapping("DownloadImages");
                 }
                 
 
@@ -287,10 +298,15 @@ namespace ShounenGaming.Common
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<ITierlistService, TierlistService>();
             services.AddTransient<IMangaService, MangaService>();
+            services.AddTransient<IMangaJobsService, MangaJobsService>();
             services.AddTransient<IImageService, ImageService>();
             services.AddTransient<IMangaUserDataService, MangaUserDataService>();
             services.AddTransient<IMangaUserStatsService, MangaUserStatsService>();
             services.AddTransient<IJikan, Jikan>();
+
+            //Helpers
+            services.AddTransient<CacheHelper>();
+            services.AddTransient<MangasHelper>();
 
             //Scrappers
             services.AddTransient<IBaseMangaScrapper, ManganatoScrapper>();

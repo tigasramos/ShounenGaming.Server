@@ -128,7 +128,7 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
                 await Task.Delay(500);
             } while (total > chapters.Count);
 
-            scrappedManga.Chapters = chapters.DistinctBy(c => c.Name).ToList();
+            scrappedManga.Chapters = chapters.Where(c => c.Name != null).DistinctBy(c => c.Name).ToList();
 
             return scrappedManga;
         }

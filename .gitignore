@@ -415,4 +415,4 @@ files/
 /src/ShounenGaming.API/mangas
 Build&Push.bat
 appsettings.*.json
-/src/ShounenGaming.API/appsettings.Development.json
+/docker-compose.yml

@@ -25,7 +25,7 @@ namespace ShounenGaming.Business.Schedules
                 var queue = scope.ServiceProvider.GetRequiredService<IFetchMangasQueue>();
                 var mangaId = queue.Dequeue();
 
-                var mangaService = scope.ServiceProvider.GetRequiredService<IMangaService>();
+                var mangaService = scope.ServiceProvider.GetRequiredService<IMangaJobsService>();
                 await mangaService.UpdateMangaChapters(mangaId);
 
             }

@@ -254,9 +254,9 @@ namespace ShounenGaming.API.Controllers.Mangas
         /// </summary>
         /// <returns></returns>
         [HttpGet("queue")]
-        public IActionResult GetQueueStatus()
+        public async Task<IActionResult> GetQueueStatus()
         {
-            var queue = _service.GetQueueStatus();
+            var queue = await _service.GetQueueStatus();
             return Ok(queue);
         }
 
@@ -288,15 +288,5 @@ namespace ShounenGaming.API.Controllers.Mangas
         }
         #endregion
 
-        /// <summary>
-        /// For Absurd Cases Purposes
-        /// </summary>
-        /// <returns></returns>
-        [HttpPut("download/images")]
-        public async Task<IActionResult> DownloadImages()
-        {
-            await _service.DownloadImages();
-            return Ok();
-        }
     }
 }

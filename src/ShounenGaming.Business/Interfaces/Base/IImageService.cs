@@ -1,16 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ShounenGaming.Business.Interfaces.Base
+﻿namespace ShounenGaming.Business.Interfaces.Base
 {
     public interface IImageService
     {
         Task SaveImage(byte[] image, string pathToSave);
-        Task<byte[]> GetImage(string imagePath);
-        List<string> GetFilesFromFolder(string folderPath);
+        Task DeleteFolder(string mangaName, string chapter, string translation);
+        Task<List<string>> GetChapterImages(string mangaName, string chapter, string translation);
+        Task<MangaFileData?> GetAllMangaChapters(string mangaName);
+    }
+    public class MangaFileData
+    {
+        public string Name { get; set; }
+        public List<ChapterFileData> Chapters { get; set; }
+    }
+    public class ChapterFileData
+    {
+        public string Name { get; set; }
+        public string Translation { get; set; }
     }
 }
 

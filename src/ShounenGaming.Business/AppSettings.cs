@@ -18,4 +18,9 @@ namespace ShounenGaming.Business
         public string DiscordId { get; set; }
         public string Password { get; set; }
     }
+    public class FileServerSettings
+    {
+        public string Url { get; set; }
+        public string JwtToken { get; set; }
+    }
 }

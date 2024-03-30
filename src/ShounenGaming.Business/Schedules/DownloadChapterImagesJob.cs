@@ -20,8 +20,8 @@ namespace ShounenGaming.Business.Schedules
             try
             {
                 using var scope = services.CreateScope();
-                var mangaService = scope.ServiceProvider.GetRequiredService<IMangaService>();
-                await mangaService.DownloadImages();
+                var mangaService = scope.ServiceProvider.GetRequiredService<IMangaJobsService>();
+                await mangaService.DownloadImagesAndUpdateChapters();
             }
             catch (Exception ex)
             {

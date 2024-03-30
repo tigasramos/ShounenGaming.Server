@@ -1,11 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ShounenGaming.Core.Entities.Mangas;
 using ShounenGaming.DataAccess.Interfaces.Mangas;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ShounenGaming.DataAccess.Repositories.Mangas
 {
@@ -14,6 +9,10 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
     {
         public AddedMangaActionRepository(DbContext context) : base(context)
         {
-        }  
+        }
+        public async Task<List<AddedMangaAction>> GetLastN(int count)
+        {
+            return await dbSet.OrderByDescending(c => c.CreatedAt).Take(count).ToListAsync();
+        }
     }
 }

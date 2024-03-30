@@ -8,7 +8,6 @@ using ShounenGaming.DataAccess.Interfaces.Mangas;
 using ShounenGaming.DTOs.Models.Base;
 using ShounenGaming.DTOs.Models.Mangas;
 using ShounenGaming.DTOs.Models.Mangas.Enums;
-using ZiggyCreatures.Caching.Fusion;
 
 namespace ShounenGaming.Business.Services.Mangas
 {
@@ -21,10 +20,10 @@ namespace ShounenGaming.Business.Services.Mangas
         private readonly IChangedChapterStateActionRepository _mangaChangedChapterStateActionRepo;
         private readonly IChangedMangaStatusActionRepository _mangaChangedStatusActionRepo;
 
-        private readonly IFusionCache _fusionCache;
         private readonly IMapper _mapper;
+        private readonly CacheHelper _cacheHelper;
 
-        public MangaUserDataService(IMangaUserDataRepository mangaUserDataRepo, IMapper mapper, IMangaRepository mangaRepository, IChangedChapterStateActionRepository mangaChangedChapterStateActionRepo, IChangedMangaStatusActionRepository mangaStatusActionRepo, IUserRepository userRepo, IAddedMangaActionRepository mangaAddedActionRepo, IFusionCache fusionCache)
+        public MangaUserDataService(IMangaUserDataRepository mangaUserDataRepo, IMapper mapper, IMangaRepository mangaRepository, IChangedChapterStateActionRepository mangaChangedChapterStateActionRepo, IChangedMangaStatusActionRepository mangaStatusActionRepo, IUserRepository userRepo, IAddedMangaActionRepository mangaAddedActionRepo, CacheHelper cacheHelper)
         {
             _mangaUserDataRepo = mangaUserDataRepo;
             _mapper = mapper;
@@ -33,7 +32,7 @@ namespace ShounenGaming.Business.Services.Mangas
             _mangaChangedStatusActionRepo = mangaStatusActionRepo;
             _userRepo = userRepo;
             _mangaAddedActionRepo = mangaAddedActionRepo;
-            _fusionCache = fusionCache;
+            _cacheHelper = cacheHelper;
         }
 
         public async Task<MangaUserDataDTO?> GetMangaDataByMangaByUser(int userId, int mangaId)
@@ -83,7 +82,7 @@ namespace ShounenGaming.Business.Services.Mangas
                     PreviousState = null,
                     NewState = mangaUserInfo.Status
                 });
-                await _fusionCache.ExpireAsync(CacheConstants.status_changed_action);
+                await _cacheHelper.DeleteCache(CacheHelper.CacheKey.STATUS_CHANGED_ACTION);
             }
 
             var actions = new List<Core.Entities.Mangas.ChangedChapterStateAction>();
@@ -107,7 +106,7 @@ namespace ShounenGaming.Business.Services.Mangas
 
             mangaUserInfo = await _mangaUserDataRepo.Update(mangaUserInfo);
             await _mangaChangedChapterStateActionRepo.CreateBulk(actions);
-            await _fusionCache.ExpireAsync(CacheConstants.chapters_changed_action);
+            await _cacheHelper.DeleteCache(CacheHelper.CacheKey.CHAPTERS_CHANGED_ACTION);
 
             return await MapMangaUserData(mangaUserInfo);
         }
@@ -138,7 +137,7 @@ namespace ShounenGaming.Business.Services.Mangas
 
             mangaUserInfo = await _mangaUserDataRepo.Update(mangaUserInfo);
             await _mangaChangedChapterStateActionRepo.CreateBulk(actions);
-            await _fusionCache.ExpireAsync(CacheConstants.chapters_changed_action);
+            await _cacheHelper.DeleteCache(CacheHelper.CacheKey.CHAPTERS_CHANGED_ACTION);
 
             return await MapMangaUserData(mangaUserInfo);
         }
@@ -170,7 +169,7 @@ namespace ShounenGaming.Business.Services.Mangas
                     PreviousState = null,
                     NewState = mangaUserInfo.Status
                 });
-                await _fusionCache.ExpireAsync(CacheConstants.status_changed_action);
+                await _cacheHelper.DeleteCache(CacheHelper.CacheKey.STATUS_CHANGED_ACTION);
 
                 return await MapMangaUserData(dbMangaUserInfo);
             } 
@@ -188,7 +187,7 @@ namespace ShounenGaming.Business.Services.Mangas
                             PreviousState = mangaUserInfo.Status,
                             NewState = null
                         });
-                        await _fusionCache.ExpireAsync(CacheConstants.status_changed_action);
+                        await _cacheHelper.DeleteCache(CacheHelper.CacheKey.STATUS_CHANGED_ACTION);
 
                         await _mangaUserDataRepo.Delete(mangaUserInfo.Id);
 
@@ -209,7 +208,7 @@ namespace ShounenGaming.Business.Services.Mangas
                     PreviousState = previousState,
                     NewState = mangaUserInfo.Status
                 });
-                await _fusionCache.ExpireAsync(CacheConstants.status_changed_action);
+                await _cacheHelper.DeleteCache(CacheHelper.CacheKey.STATUS_CHANGED_ACTION);
 
                 return await MapMangaUserData(dbMangaUserInfo);
             }
@@ -247,18 +246,18 @@ namespace ShounenGaming.Business.Services.Mangas
             }
         }
         
+        //TODO: Change this to Redis or Elastic Search
         public async Task<List<MangasUserActivityDTO>> GetLastUsersActivity()
         {
             var allActivities = new List<MangasUserActivityDTO>();
-            var cacheOptions = new FusionCacheEntryOptions
-            {
-                Duration = TimeSpan.FromDays(7)
-            };
+            int newMangasCount = 30;
+            int statusChangedCount = 50;
+            int readingChaptersCount = 500;
 
             // Add Mangas
-            var addedActivitiesDTOs = await _fusionCache.GetOrSetAsync(CacheConstants.added_mangas_action, async (_) =>
+            var addedActivitiesDTOs = await _cacheHelper.GetOrSetCache(CacheHelper.CacheKey.ADD_MANGA_ACTION, async (_) =>
             {
-                var addedActivities = await _mangaAddedActionRepo.GetAll();
+                var addedActivities = await _mangaAddedActionRepo.GetLastN(newMangasCount);
                 return addedActivities.Where(a => !a.Manga.IsNSFW).Select(a =>
                    new MangasUserActivityDTO
                    {
@@ -267,13 +266,13 @@ namespace ShounenGaming.Business.Services.Mangas
                        ActivityType = UserActivityTypeEnumDTO.ADD_MANGA,
                        MadeAt = a.CreatedAt,
                    });
-            }, cacheOptions);
+            });
             allActivities.AddRange(addedActivitiesDTOs!);
 
             // Status Changed
-            var statusChangedActivitiesDTOs = await _fusionCache.GetOrSetAsync(CacheConstants.status_changed_action, async (_) =>
+            var statusChangedActivitiesDTOs = await _cacheHelper.GetOrSetCache(CacheHelper.CacheKey.STATUS_CHANGED_ACTION, async (_) =>
             {
-                var statusChangedActivities = (await _mangaChangedStatusActionRepo.GetAll()).Where(c => !c.Manga.IsNSFW).OrderByDescending(c => c.CreatedAt).ToList();
+                var statusChangedActivities = (await _mangaChangedStatusActionRepo.GetLastN(statusChangedCount)).Where(c => !c.Manga.IsNSFW).OrderByDescending(c => c.CreatedAt).ToList();
                 var dtos = new List<MangasUserActivityDTO>();
                 for (int i = 0; i < statusChangedActivities.Count; i++)
                 {
@@ -333,15 +332,15 @@ namespace ShounenGaming.Business.Services.Mangas
                 }
 
                 return dtos;
-            }, cacheOptions);
+            });
             allActivities.AddRange(statusChangedActivitiesDTOs!);
 
 
             // Chapters Read/Unread
-            var chaptersReadActivitiesDTOs = await _fusionCache.GetOrSetAsync(CacheConstants.chapters_changed_action, async (_) =>
+            var chaptersReadActivitiesDTOs = await _cacheHelper.GetOrSetCache(CacheHelper.CacheKey.CHAPTERS_CHANGED_ACTION, async (_) =>
             {
                 var dtos = new List<MangasUserActivityDTO>();
-                var chaptersReadActivities = (await _mangaChangedChapterStateActionRepo.GetAll()).Where(c => !c.Chapter.Manga.IsNSFW).OrderByDescending(c => c.CreatedAt).ToList();
+                var chaptersReadActivities = (await _mangaChangedChapterStateActionRepo.GetLastN(readingChaptersCount)).Where(c => !c.Chapter.Manga.IsNSFW).OrderByDescending(c => c.CreatedAt).ToList();
                 for (int i = 0; i < chaptersReadActivities.Count; i++)
                 {
                     var current = chaptersReadActivities[i];
@@ -392,7 +391,7 @@ namespace ShounenGaming.Business.Services.Mangas
                     });
                 }
                 return dtos;
-            }, cacheOptions);
+            });
             allActivities.AddRange(chaptersReadActivitiesDTOs!);
 
             return allActivities.OrderByDescending(a => a.MadeAt).Take(50).ToList();
