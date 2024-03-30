@@ -55,45 +55,51 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
         }
         public async Task<List<string>> GetChapterImages(string urlPart)
         {
-            return await _cacheHelper.GetOrSetCache(CacheHelper.CacheKey.CUSTOM, async _ => 
+            var cache = await _cacheHelper.GetCache<List<string>>(CacheHelper.CacheKey.CUSTOM, urlPart);
+            if (cache != null && cache.Count > 0)
+                return cache;
+
+            var client = _httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Add("Host", "cdn.plaquiz.xyz");
+            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36");
+
+            string pattern = @"^(?<name>[\w-]+?)-(?<chapter>(?:\d+-)?\d+(?:\.\d+)?)-?online/$";
+
+            Match match = Regex.Match(urlPart, pattern);
+
+            string name = match.Groups["name"].Value.Trim();
+            string chapter = match.Groups["chapter"].Value.Replace("-", ".");
+
+            List<string> imagesUrls = new();
+            var lastFound = true;
+            var i = 1;
+            var extensions = new List<string> { "jpg", "png" };
+            while (lastFound)
             {
-                var client = _httpClientFactory.CreateClient();
-                client.DefaultRequestHeaders.Add("Host", "cdn.plaquiz.xyz");
-                client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36");
-
-                string pattern = @"^(?<name>[\w-]+?)-(?<chapter>(?:\d+-)?\d+(?:\.\d+)?)-?online/$";
-
-                Match match = Regex.Match(urlPart, pattern);
-
-                string name = match.Groups["name"].Value.Trim();
-                string chapter = match.Groups["chapter"].Value.Replace("-", ".");
-
-                List<string> imagesUrls = new();
-                var lastFound = true;
-                var i = 1;
-                var extensions = new List<string> { "jpg", "png" };
-                while (lastFound)
+                lastFound = false;
+                for (int j = 0; j < extensions.Count && !lastFound; j++)
                 {
-                    lastFound = false;
-                    for (int j = 0; j < extensions.Count && !lastFound; j++)
+                    var url = $"https://cdn.plaquiz.xyz/uploads/{name.First()}/{name}/{chapter}/{i}.{extensions[j]}";
+                    try
                     {
-                        var url = $"https://cdn.plaquiz.xyz/uploads/{name.First()}/{name}/{chapter}/{i}.{extensions[j]}";
-                        try
+                        HttpResponseMessage response = await client.GetAsync(url);
+                        if (response.IsSuccessStatusCode)
                         {
-                            HttpResponseMessage response = await client.GetAsync(url);
-                            if (response.IsSuccessStatusCode)
-                            {
-                                imagesUrls.Add(url);
-                                lastFound = true;
-                            }
+                            imagesUrls.Add(url);
+                            lastFound = true;
                         }
-                        catch { }
                     }
-
-                    i++;
+                    catch { }
                 }
-                return imagesUrls;
-            }, urlPart) ?? new List<string>();
+
+                i++;
+            }
+
+            if (imagesUrls.Count > 0) 
+                await _cacheHelper.SetCache(CacheHelper.CacheKey.CUSTOM, imagesUrls, urlPart);
+
+            return imagesUrls;
+
         }
 
         public MangaTranslationEnumDTO GetLanguage()
