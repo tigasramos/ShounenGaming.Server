@@ -12,5 +12,7 @@ namespace ShounenGaming.DataAccess.Interfaces.Mangas
         Task<List<ChangedChapterStateAction>> GetChapterHistoryFromUser(int userId);
         Task<ChangedChapterStateAction?> GetLastChapterUserReadFromManga(int userId, int mangaId);
         Task<ChangedChapterStateAction?> GetFirstChapterUserReadFromManga(int userId, int mangaId);
+
+        Task<List<ChangedChapterStateAction>> GetLastN(int count);
     }
 }

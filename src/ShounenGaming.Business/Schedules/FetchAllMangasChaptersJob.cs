@@ -22,8 +22,8 @@ namespace ShounenGaming.Business.Schedules
                 Log.Information($"Started Adding Mangas Chapters to Queue");
 
                 using var scope = services.CreateScope();
-                var mangaService = scope.ServiceProvider.GetRequiredService<IMangaService>();
-                await mangaService.UpdateMangasChapters();
+                var mangaService = scope.ServiceProvider.GetRequiredService<IMangaJobsService>();
+                await mangaService.AddAllMangasToChaptersQueue();
             }
             catch(Exception ex)
             {

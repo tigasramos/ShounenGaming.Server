@@ -36,7 +36,7 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
                 chapters.Add(new ScrappedChapter
                 {
                     Name = chapterNameTreated.Trim(),
-                    Link = chapterUrl.Replace("https://chapmanganato.com/manga-", "").Trim(),
+                    Link = chapterUrl.Replace("https://chapmanganato.com/manga-", "").Replace("https://chapmanganato.to/manga-", "").Trim(),
                     ReleasedAt = parsed ? chapterDate.AddHours(-8) : null
                 });
             }

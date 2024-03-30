@@ -1,36 +1,50 @@
 ﻿using ShounenGaming.Business.Interfaces.Base;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Net.Http.Json;
 
 namespace ShounenGaming.Business.Services.Base
 {
     public class ImageService : IImageService
     {
-        public async Task<byte[]> GetImage(string imagePath)
+        private readonly IHttpClientFactory _httpClientFactory;
+        public ImageService(IHttpClientFactory httpClientFactory) 
         {
-            return await File.ReadAllBytesAsync(imagePath);
+            _httpClientFactory = httpClientFactory;
         }
-
         public async Task SaveImage(byte[] image, string pathToSave)
         {
-            new FileInfo(pathToSave).Directory?.Create();
-            await File.WriteAllBytesAsync(pathToSave, image);
+            var client = _httpClientFactory.CreateClient("FileServer");
+            var response = await client.PostAsJsonAsync("mangas", 
+                new {
+                    Content = image,
+                    Path = pathToSave
+                });
+
+            response.EnsureSuccessStatusCode();
+        }
+        public async Task DeleteFolder(string mangaName, string chapter, string translation)
+        {
+            var client = _httpClientFactory.CreateClient("FileServer");
+            var response = await client.DeleteAsync($"mangas/{mangaName}/chapters/{chapter}/{translation}");
+
+            response.EnsureSuccessStatusCode();
         }
 
-        public List<string> GetFilesFromFolder(string folderPath)
+        public async Task<List<string>> GetChapterImages(string mangaName, string chapter, string translation)
         {
-            var files = new DirectoryInfo(folderPath).GetFiles();
-            if (files is null) return new List<string>();
-            return files
-                .OrderBy(f => Convert.ToInt16(f.Name.Split(".").First()))
-                .Select(f => $"{folderPath}/{f.Name}")
-                .ToList();
+            var client = _httpClientFactory.CreateClient("FileServer");
+            var response = await client.GetAsync($"mangas/{mangaName}/chapters/{chapter}/{translation}");
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadFromJsonAsync<List<string>>();
+            return result ?? throw new Exception();
+        }
+
+        public async Task<MangaFileData?> GetAllMangaChapters(string mangaName)
+        {
+            var client = _httpClientFactory.CreateClient("FileServer");
+            var response = await client.GetAsync($"mangas/{mangaName}/chapters");
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                return await response.Content.ReadFromJsonAsync<MangaFileData>();
+            return null;
         }
     }
 }

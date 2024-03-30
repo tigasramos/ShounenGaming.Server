@@ -20,5 +20,10 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
         {
             return await dbSet.Where(h => h.MangaId == mangaId && h.UserId == userId).OrderByDescending(o => o.CreatedAt).FirstOrDefaultAsync();
         }
+
+        public async Task<List<ChangedMangaStatusAction>> GetLastN(int count)
+        {
+            return await dbSet.OrderByDescending(c => c.CreatedAt).Take(count).ToListAsync();
+        }
     }
 }

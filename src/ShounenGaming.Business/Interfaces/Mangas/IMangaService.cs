@@ -165,39 +165,7 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// Gets the Status of the Queue that's fetching chapters
         /// </summary>
         /// <returns></returns>
-        List<QueuedMangaDTO> GetQueueStatus();
+        Task<List<QueuedMangaDTO>> GetQueueStatus();
 
-        #region Jobs
-        /// <summary>
-        /// Add more Popular Mangas & Updates all existing Mangas Metadata
-        /// </summary>
-        /// <returns></returns>
-        internal Task AddOrUpdateAllMangasMetadata();
-
-        /// <summary>
-        /// Adds all tracked Mangas to the Queue (fetches new chapters or translations)
-        /// </summary>
-        /// <returns></returns>
-        internal Task UpdateMangasChapters();
-
-        /// <summary>
-        /// Fetch Season Mangas
-        /// </summary>
-        /// <returns></returns>
-        internal Task FetchSeasonMangas();
-
-        /// <summary>
-        /// Downloads images for chapters that don't have
-        /// </summary>
-        /// <returns></returns>
-        public Task DownloadImages();
-
-        /// <summary>
-        /// Fetch new Chapters for a Manga
-        /// </summary>
-        /// <param name="mangaId"></param>
-        /// <returns></returns>
-        internal Task UpdateMangaChapters(QueuedManga queuedManga);
-        #endregion
     }
 }
