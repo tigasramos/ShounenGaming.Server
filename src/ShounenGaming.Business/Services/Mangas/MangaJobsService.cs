@@ -26,6 +26,7 @@ namespace ShounenGaming.Business.Services.Mangas
     {
         private readonly IUserRepository _userRepository;
         private readonly IMangaRepository _mangaRepo;
+        private readonly IMangaUserDataRepository _mangaUserDataRepo;
         private readonly IMangaTagRepository _mangaTagRepo;
 
         private readonly IJikan _jikan;
@@ -39,7 +40,7 @@ namespace ShounenGaming.Business.Services.Mangas
         private readonly CacheHelper _cacheHelper;
         private readonly MangasHelper _mangasHelper;
 
-        public MangaJobsService(IUserRepository userRepository, IMangaRepository mangaRepo, IMangaTagRepository mangaTagRepo, IJikan jikan, IImageService imageService, IMapper mapper, IEnumerable<IBaseMangaScrapper> scrappers, IHubContext<MangasHub, IMangasHubClient> mangasHub, IFetchMangasQueue queue, CacheHelper cacheHelper, MangasHelper mangasHelper)
+        public MangaJobsService(IUserRepository userRepository, IMangaRepository mangaRepo, IMangaTagRepository mangaTagRepo, IJikan jikan, IImageService imageService, IMapper mapper, IEnumerable<IBaseMangaScrapper> scrappers, IHubContext<MangasHub, IMangasHubClient> mangasHub, IFetchMangasQueue queue, CacheHelper cacheHelper, MangasHelper mangasHelper, IMangaUserDataRepository mangaUserDataRepo)
         {
             _userRepository = userRepository;
             _mangaRepo = mangaRepo;
@@ -52,6 +53,7 @@ namespace ShounenGaming.Business.Services.Mangas
             _queue = queue;
             _cacheHelper = cacheHelper;
             _mangasHelper = mangasHelper;
+            _mangaUserDataRepo = mangaUserDataRepo;
         }
 
         #region Top Mangas Job
@@ -588,10 +590,21 @@ namespace ShounenGaming.Business.Services.Mangas
 
             await StartFetchingMangaChapters(manga, queuedManga); // QUEUE
 
+            var addedChaptersNames = new List<double>();
             foreach (var source in manga.Sources)
             {
-                await UpdateChaptersFromMangaAndSource(manga, source, manga.Sources.Count);
+               addedChaptersNames.AddRange(await UpdateChaptersFromMangaAndSource(manga, source, manga.Sources.Count));
             }
+            addedChaptersNames = addedChaptersNames.Distinct().Order().ToList();
+
+            if (addedChaptersNames.Any())
+            {
+                var usersToNotify = (await _mangaUserDataRepo.GetUsersByStatusByManga(manga.Id, MangaUserStatusEnum.READING)).Where(s => s.User.ServerMember != null).Select(s => s.User.ServerMember!.DiscordId).ToList();
+                
+                if (usersToNotify.Any())
+                    await _mangasHub.Clients.All.ChaptersAdded(usersToNotify, manga.Name, addedChaptersNames);
+            }
+
 
             // With this here only adds all the chapters at the same time
             await _mangaRepo.Update(manga);
@@ -688,8 +701,9 @@ namespace ShounenGaming.Business.Services.Mangas
 
         }
 
-        private async Task UpdateChaptersFromMangaAndSource(Core.Entities.Mangas.Manga manga, MangaSource source, int maxSources)
+        private async Task<List<double>> UpdateChaptersFromMangaAndSource(Core.Entities.Mangas.Manga manga, MangaSource source, int maxSources)
         {
+            List<double> chaptersAdded = new();
             try
             {
                 Log.Information($"Source: {source.Source}");
@@ -702,10 +716,14 @@ namespace ShounenGaming.Business.Services.Mangas
                 var scrapperTranslation = _mapper.Map<TranslationLanguageEnum>(scrapper?.GetLanguage());
 
                 // Get (Cached) Manga Info
-                var mangaInfo = await _cacheHelper.GetOrSetCache<ScrappedManga?>(CacheKey.CUSTOM, async _ =>
+                var mangaInfo = await _cacheHelper.GetCache<ScrappedManga?>(CacheKey.CUSTOM, source.Url);
+                if (mangaInfo == null)
                 {
-                    return await scrapper!.GetManga(source.Url);
-                }, source.Url);
+                    mangaInfo = await scrapper!.GetManga(source.Url);
+                    if (mangaInfo == null) return new List<double>();
+
+                    await _cacheHelper.SetCache(CacheKey.CUSTOM, mangaInfo, source.Url);
+                }
 
                 int scrapperFailures = 0;
 
@@ -746,6 +764,8 @@ namespace ShounenGaming.Business.Services.Mangas
                             dbChapter.Translations.Add(translation);
                             manga.Chapters.Add(dbChapter);
                             scrapperFailures = 0;
+
+                            chaptersAdded.Add(number);
 
                             Log.Information($"Added Chapter: {dbChapter.Name} for {scrapperTranslation}");
 
@@ -792,6 +812,8 @@ namespace ShounenGaming.Business.Services.Mangas
             {
                 Log.Error($"Error Updating {manga.Name}: {ex.Message}\n{ex.StackTrace}");
             }
+
+            return chaptersAdded;
         }
 
         #endregion

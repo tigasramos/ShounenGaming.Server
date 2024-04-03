@@ -6,12 +6,9 @@ using ShounenGaming.DTOs.Models.Mangas.Enums;
 
 namespace ShounenGaming.Business.Hubs
 {
-
-    //TODO
     public interface IMangasHubClient
     {
-        Task MangaAdded();
-        Task ChapterAdded();
+        Task ChaptersAdded(List<string> discordIds, string mangaName, List<double> chapters);
         Task SendMangasQueue(List<QueuedMangaDTO> queuedMangas);
     }
 

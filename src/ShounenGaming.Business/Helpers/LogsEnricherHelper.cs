@@ -40,7 +40,7 @@ namespace ShounenGaming.Business.Helpers
             {
                 if (user.Claims.Any())
                 {
-                    return user.Claims.First(c => c.Type == "Id") + " " +  user.Claims.First(c => c.Type == "Username");
+                    return user.Claims.FirstOrDefault(c => c.Type == "Id") + " " +  user.Claims.FirstOrDefault(c => c.Type == "Username");
                 }
                 return Environment.UserName;
             }

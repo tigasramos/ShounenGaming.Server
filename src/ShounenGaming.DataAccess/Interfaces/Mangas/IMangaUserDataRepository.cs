@@ -14,5 +14,6 @@ namespace ShounenGaming.DataAccess.Interfaces.Mangas
         Task<List<MangaUserData>> GetByUser(int userId);
         Task<MangaUserData?> GetByUserAndManga(int userId, int mangaId);
         Task<List<MangaUserData>> GetMangasByStatusByUser(MangaUserStatusEnum status,int userId);
+        Task<List<MangaUserData>> GetUsersByStatusByManga(int mangaId, MangaUserStatusEnum status);
     }
 }
