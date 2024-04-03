@@ -322,6 +322,7 @@ namespace ShounenGaming.Common
             services.AddTransient<IBaseMangaScrapper, BRMangasScrapper>();
             services.AddTransient<IBaseMangaScrapper, RandomScanScrapper>();
             services.AddTransient<IBaseMangaScrapper, SaikaiScansScrapper>();
+            services.AddTransient<IBaseMangaScrapper, HentaiTecaScrapper>();
             
             services.AddHttpContextAccessor();
         }

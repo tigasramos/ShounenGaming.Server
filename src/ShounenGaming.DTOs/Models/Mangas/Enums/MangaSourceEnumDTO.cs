@@ -20,6 +20,7 @@ namespace ShounenGaming.DTOs.Models.Mangas.Enums
         MANGA_CLASH = 12,
         RANDOM_SCAN = 13,
         SAIKAI_SCANS = 14,
+        HENTAI_TECA = 15,
     }
 
 }

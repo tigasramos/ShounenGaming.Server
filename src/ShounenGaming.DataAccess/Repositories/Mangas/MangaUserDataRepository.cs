@@ -2,11 +2,6 @@
 using ShounenGaming.Core.Entities.Mangas;
 using ShounenGaming.Core.Entities.Mangas.Enums;
 using ShounenGaming.DataAccess.Interfaces.Mangas;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ShounenGaming.DataAccess.Repositories.Mangas
 {
@@ -36,6 +31,9 @@ namespace ShounenGaming.DataAccess.Repositories.Mangas
             return await dbSet.FirstOrDefaultAsync(m => m.User.Id == userId && m.Manga.Id == mangaId);
         }
 
-       
+        public async Task<List<MangaUserData>> GetUsersByStatusByManga(int mangaId, MangaUserStatusEnum status)
+        {
+            return await dbSet.Where(m => m.Manga.Id == mangaId && m.Status == status).ToListAsync();
+        }
     }
 }

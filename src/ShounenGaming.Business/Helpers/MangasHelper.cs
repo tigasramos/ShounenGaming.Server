@@ -75,10 +75,17 @@ namespace ShounenGaming.Business.Helpers
         private readonly IImageService _imageService;
         private readonly CacheHelper _cacheHelper;
 
-        public MangasHelper(IEnumerable<IBaseMangaScrapper> scrappers, IMapper mapper)
+        public MangasHelper(IEnumerable<IBaseMangaScrapper> scrappers, IMapper mapper, IJikan jikan, IMangaRepository mangaRepo, IMangaWriterRepository mangaWriterRepo, IMangaTagRepository mangaTagRepo, IAddedMangaActionRepository addedMangaRepo, IImageService imageService, CacheHelper cacheHelper)
         {
-            this._scrappers = scrappers;
-            this._mapper = mapper;
+            _scrappers = scrappers;
+            _mapper = mapper;
+            _jikan = jikan;
+            _mangaRepo = mangaRepo;
+            _mangaWriterRepo = mangaWriterRepo;
+            _mangaTagRepo = mangaTagRepo;
+            _addedMangaRepo = addedMangaRepo;
+            _imageService = imageService;
+            _cacheHelper = cacheHelper;
         }
 
         #region Add Manga
