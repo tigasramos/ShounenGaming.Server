@@ -10,16 +10,10 @@ using System.Threading.Tasks;
 namespace ShounenGaming.DataAccess.Repositories.Mangas
 {
 
-    public class MangaTagRepository : BaseRepository<MangaTag>, IMangaTagRepository
+    public class MangaTranslationRepository : BaseRepository<MangaTranslation>, IMangaTranslationRepository
     {
-        public MangaTagRepository(DbContext context) : base(context)
+        public MangaTranslationRepository(DbContext context) : base(context)
         {
-        }
-
-
-        public async Task<MangaTag?> GetTagByName(string name)
-        {
-            return await dbSet.FirstOrDefaultAsync(x => x.Name == name);
         }
     }
 }
