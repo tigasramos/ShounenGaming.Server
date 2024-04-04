@@ -113,8 +113,8 @@ namespace ShounenGaming.Common
                 if (app.Environment.IsProduction())
                 {
                     // Background Job that will listen the queue to Fetch New Chapters
-                    scheduler.OnWorker("MangasChapters_Listener");
-                    scheduler.Schedule<FetchMangaChaptersJobListener>().Monthly().RunOnceAtStart().PreventOverlapping("MangasChapters_Listener");
+                    //scheduler.OnWorker("MangasChapters_Listener");
+                    //scheduler.Schedule<FetchMangaChaptersJobListener>().Monthly().RunOnceAtStart().PreventOverlapping("MangasChapters_Listener");
 
                     scheduler.OnWorker("Mangas");
                     scheduler.Schedule<AddOrUpdateMangasMetadataJob>().DailyAt(0, 0).RunOnceAtStart(); // 0
@@ -134,7 +134,7 @@ namespace ShounenGaming.Common
                     // Fetch Manga Metadata
                     scheduler.OnWorker("Mangas");
                     scheduler.Schedule<AddOrUpdateMangasMetadataJob>().DailyAt(1, 30).PreventOverlapping("MangasMetadata");
-                    scheduler.Schedule<FetchAllMangasChaptersJob>().Monthly().RunOnceAtStart();
+                    scheduler.Schedule<FetchAllMangasChaptersJob>().Monthly();
                     scheduler.Schedule<FetchSeasonMangasJob>().DailyAt(3, 0);
 
                     scheduler.OnWorker("Downloader");
@@ -323,7 +323,7 @@ namespace ShounenGaming.Common
             services.AddTransient<IBaseMangaScrapper, RandomScanScrapper>();
             services.AddTransient<IBaseMangaScrapper, SaikaiScansScrapper>();
             services.AddTransient<IBaseMangaScrapper, HentaiTecaScrapper>();
-            
+
             services.AddHttpContextAccessor();
         }
         private static void AddRepositories(this IServiceCollection services)

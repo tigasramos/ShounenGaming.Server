@@ -740,7 +740,7 @@ namespace ShounenGaming.Business.Services.Mangas
                         continue;
 
                     // Get Chapter Translation from db if exists (change all Translations to not work)
-                    var dbChapter = manga.Chapters.FirstOrDefault(c => c.Name == number);
+                    var dbChapter = manga.Chapters.FirstOrDefault(c => c.Name.ToString() == number.ToString());
                     dbChapter ??= new MangaChapter
                     {
                         Name = number,

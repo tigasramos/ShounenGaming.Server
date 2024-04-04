@@ -167,5 +167,6 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// <returns></returns>
         Task<List<QueuedMangaDTO>> GetQueueStatus();
 
+        Task FixDuplicatedChapters();
     }
 }

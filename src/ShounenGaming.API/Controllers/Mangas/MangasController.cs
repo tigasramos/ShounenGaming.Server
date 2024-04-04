@@ -288,5 +288,12 @@ namespace ShounenGaming.API.Controllers.Mangas
         }
         #endregion
 
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<IActionResult> DeleteDuplicated()
+        {
+            await _service.FixDuplicatedChapters();
+            return Ok();
+        }
     }
 }
