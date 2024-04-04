@@ -436,7 +436,7 @@ namespace ShounenGaming.Business.Services.Mangas
 
             foreach (var chapterStatus in mangaImagesStatus.Chapters)
             {
-                var chapter = manga.Chapters.SingleOrDefault(c => chapterStatus.Name == c.Name.ToString());
+                var chapter = manga.Chapters.SingleOrDefault(c => chapterStatus.Name.Replace("-", ".").Trim() == c.Name.ToString().Trim());
                 if (chapter == null)
                 {
                     if (!double.TryParse(chapterStatus.Name.Replace("-", "."), NumberStyles.Any, NumberFormatInfo.InvariantInfo, out var number))
