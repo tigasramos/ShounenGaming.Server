@@ -116,13 +116,13 @@ namespace ShounenGaming.Common
                     //scheduler.OnWorker("MangasChapters_Listener");
                     //scheduler.Schedule<FetchMangaChaptersJobListener>().Monthly().RunOnceAtStart().PreventOverlapping("MangasChapters_Listener");
 
-                    scheduler.OnWorker("Mangas");
-                    scheduler.Schedule<AddOrUpdateMangasMetadataJob>().DailyAt(0, 0).RunOnceAtStart(); // 0
-                    scheduler.Schedule<FetchAllMangasChaptersJob>().Cron("0 4,12,20 * * *").RunOnceAtStart(); // 4, 12, 20
-                    scheduler.Schedule<FetchSeasonMangasJob>().DailyAt(8, 0).RunOnceAtStart(); // 8
+                    //scheduler.OnWorker("Mangas");
+                    //scheduler.Schedule<AddOrUpdateMangasMetadataJob>().DailyAt(0, 0).RunOnceAtStart(); // 0
+                    //scheduler.Schedule<FetchAllMangasChaptersJob>().Cron("0 4,12,20 * * *").RunOnceAtStart(); // 4, 12, 20
+                    //scheduler.Schedule<FetchSeasonMangasJob>().DailyAt(8, 0).RunOnceAtStart(); // 8
 
-                    scheduler.OnWorker("Downloader");
-                    scheduler.Schedule<DownloadChapterImagesJob>().DailyAt(6, 0).RunOnceAtStart().PreventOverlapping("DownloadImages"); // 6
+                    //scheduler.OnWorker("Downloader");
+                    //scheduler.Schedule<DownloadChapterImagesJob>().DailyAt(6, 0).RunOnceAtStart().PreventOverlapping("DownloadImages"); // 6
 
                 } 
                 else
