@@ -677,5 +677,32 @@ namespace ShounenGaming.Business.Services.Mangas
             return queue ?? new List<QueuedMangaDTO>();
         }
 
+        public async Task FixDuplicatedChapters()
+        {
+            var mangas = await _mangaRepo.GetAll();
+
+            foreach(var manga in mangas)
+            {
+                var duplicatedChapterNumbers = new List<double>();
+                foreach(var chapter in manga.Chapters)
+                {
+                    var chaptersCount = manga.Chapters.Count(c => c.Name.ToString() == chapter.Name.ToString());
+                    if (chaptersCount > 1)
+                        duplicatedChapterNumbers.Add(chapter.Name);
+                }
+                duplicatedChapterNumbers = duplicatedChapterNumbers.Distinct().ToList();
+                Log.Information($"Found {duplicatedChapterNumbers} duplicated in {manga.Name}");
+                foreach(var duplicatedNumber in duplicatedChapterNumbers)
+                {
+                    var chapters = manga.Chapters.Where(c => c.Name.ToString() == duplicatedNumber.ToString()).OrderBy(c => c.CreatedAt).ToList();
+                    for(int i = 1; i < chapters.Count; i++)
+                    {
+                        await _mangaRepo.Delete(chapters[i].Id);
+                    }
+                    Log.Information($"Deleted {chapters.Count - 1} {duplicatedNumber} duplicated in {manga.Name}");
+                }
+            }
+        }
+
     }
 }
