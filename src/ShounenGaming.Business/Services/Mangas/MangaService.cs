@@ -691,13 +691,13 @@ namespace ShounenGaming.Business.Services.Mangas
                         duplicatedChapterNumbers.Add(chapter.Name);
                 }
                 duplicatedChapterNumbers = duplicatedChapterNumbers.Distinct().ToList();
-                Log.Information($"Found {duplicatedChapterNumbers} duplicated in {manga.Name}");
+                Log.Information($"Found {duplicatedChapterNumbers.Count} duplicated in {manga.Name}");
                 foreach(var duplicatedNumber in duplicatedChapterNumbers)
                 {
                     var chapters = manga.Chapters.Where(c => c.Name.ToString() == duplicatedNumber.ToString()).OrderBy(c => c.CreatedAt).ToList();
                     for(int i = 1; i < chapters.Count; i++)
                     {
-                        await _mangaRepo.Delete(chapters[i].Id);
+                        Log.Information((await _mangaRepo.Delete(chapters[i].Id)).ToString());
                     }
                     Log.Information($"Deleted {chapters.Count - 1} {duplicatedNumber} duplicated in {manga.Name}");
                 }
