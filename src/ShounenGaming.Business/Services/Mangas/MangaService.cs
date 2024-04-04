@@ -24,6 +24,7 @@ namespace ShounenGaming.Business.Services.Mangas
 
         private readonly IUserRepository _userRepository;
         private readonly IMangaRepository _mangaRepo;
+        private readonly IMangaChapterRepository _mangaChapterRepo;
         private readonly IMangaUserDataRepository _mangaUserDataRepo;
         private readonly IMangaWriterRepository _mangaWriterRepo;
         private readonly IMangaTagRepository _mangaTagRepo;
@@ -37,7 +38,7 @@ namespace ShounenGaming.Business.Services.Mangas
 
         private readonly IEnumerable<IBaseMangaScrapper> _scrappers;
 
-        public MangaService(IMangaRepository mangaRepo, IMangaWriterRepository mangaWriterRepo, IMangaTagRepository mangaTagRepo, IMapper mapper, IImageService imageService, IJikan jikan, IUserRepository userRepository, IFetchMangasQueue queue, IEnumerable<IBaseMangaScrapper> scrappers, IMangaUserDataRepository mangaUserDataRepo, CacheHelper cacheHelper, MangasHelper mangasHelper)
+        public MangaService(IMangaRepository mangaRepo, IMangaWriterRepository mangaWriterRepo, IMangaTagRepository mangaTagRepo, IMapper mapper, IImageService imageService, IJikan jikan, IUserRepository userRepository, IFetchMangasQueue queue, IEnumerable<IBaseMangaScrapper> scrappers, IMangaUserDataRepository mangaUserDataRepo, CacheHelper cacheHelper, MangasHelper mangasHelper, IMangaChapterRepository mangaChapterRepo)
         {
             _mangaRepo = mangaRepo;
             _mangaWriterRepo = mangaWriterRepo;
@@ -51,6 +52,7 @@ namespace ShounenGaming.Business.Services.Mangas
             _mangaUserDataRepo = mangaUserDataRepo;
             _cacheHelper = cacheHelper;
             _mangasHelper = mangasHelper;
+            _mangaChapterRepo = mangaChapterRepo;
         }
 
 
@@ -697,7 +699,11 @@ namespace ShounenGaming.Business.Services.Mangas
                     var chapters = manga.Chapters.Where(c => c.Name.ToString() == duplicatedNumber.ToString()).OrderBy(c => c.CreatedAt).ToList();
                     for(int i = 1; i < chapters.Count; i++)
                     {
-                        Log.Information((await _mangaRepo.Delete(chapters[i].Id)).ToString());
+                        //foreach(var translation in chapters[i].Translations)
+                        //{
+                        //    Log.Information((await _ma.Delete(chapters[i].Id)).ToString());
+                        //}
+                        Log.Information((await _mangaChapterRepo.Delete(chapters[i].Id)).ToString());
                     }
                     Log.Information($"Deleted {chapters.Count - 1} {duplicatedNumber} duplicated in {manga.Name}");
                 }
