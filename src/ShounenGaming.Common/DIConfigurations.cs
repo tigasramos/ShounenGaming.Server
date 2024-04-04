@@ -339,6 +339,7 @@ namespace ShounenGaming.Common
             services.AddTransient<IMangaUserDataRepository, MangaUserDataRepository>();
             services.AddTransient<IMangaWriterRepository, MangaWriterRepository>();
             services.AddTransient<IMangaTagRepository, MangaTagRepository>();
+            services.AddTransient<IMangaChapterRepository, MangaChapterRepository>();
             services.AddTransient<IAddedMangaActionRepository, AddedMangaActionRepository>();
             services.AddTransient<IChangedChapterStateActionRepository, ChangedChapterStateActionRepository>();
             services.AddTransient<IChangedMangaStatusActionRepository, ChangedMangaStatusActionRepository>();
