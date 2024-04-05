@@ -35,7 +35,7 @@ namespace ShounenGaming.Business.Services.Base
             var response = await client.GetAsync($"mangas/{mangaName}/chapters/{chapter}/{translation}");
             response.EnsureSuccessStatusCode();
             var result = await response.Content.ReadFromJsonAsync<List<string>>();
-            return result?.Select(r => r.Replace("http", "https")).ToList() ?? throw new Exception();
+            return result ?? throw new Exception();
         }
 
         public async Task<MangaFileData?> GetAllMangaChapters(string mangaName)
