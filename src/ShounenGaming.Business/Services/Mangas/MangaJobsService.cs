@@ -33,14 +33,12 @@ namespace ShounenGaming.Business.Services.Mangas
         private readonly IImageService _imageService;
         private readonly IMapper _mapper;
 
-        private readonly IEnumerable<IBaseMangaScrapper> _scrappers;
-
         private readonly IHubContext<MangasHub, IMangasHubClient> _mangasHub;
         private readonly IFetchMangasQueue _queue;
         private readonly CacheHelper _cacheHelper;
         private readonly MangasHelper _mangasHelper;
 
-        public MangaJobsService(IUserRepository userRepository, IMangaRepository mangaRepo, IMangaTagRepository mangaTagRepo, IJikan jikan, IImageService imageService, IMapper mapper, IEnumerable<IBaseMangaScrapper> scrappers, IHubContext<MangasHub, IMangasHubClient> mangasHub, IFetchMangasQueue queue, CacheHelper cacheHelper, MangasHelper mangasHelper, IMangaUserDataRepository mangaUserDataRepo)
+        public MangaJobsService(IUserRepository userRepository, IMangaRepository mangaRepo, IMangaTagRepository mangaTagRepo, IJikan jikan, IImageService imageService, IMapper mapper, IHubContext<MangasHub, IMangasHubClient> mangasHub, IFetchMangasQueue queue, CacheHelper cacheHelper, MangasHelper mangasHelper, IMangaUserDataRepository mangaUserDataRepo)
         {
             _userRepository = userRepository;
             _mangaRepo = mangaRepo;
@@ -48,7 +46,6 @@ namespace ShounenGaming.Business.Services.Mangas
             _jikan = jikan;
             _imageService = imageService;
             _mapper = mapper;
-            _scrappers = scrappers;
             _mangasHub = mangasHub;
             _queue = queue;
             _cacheHelper = cacheHelper;
@@ -419,7 +416,7 @@ namespace ShounenGaming.Business.Services.Mangas
                 Log.Information($"Updating Images for: {manga.Name}");
 
                 var chaptersSavedIds = await CheckImagesSavedInFileServer(manga);
-                await DownloadImagesFromMangaChapters(manga, chaptersSavedIds);
+                await _mangasHelper.DownloadImagesFromMangaChapters(manga);
 
                 await _mangaRepo.Update(manga);
                 Log.Information($"Done Downloading Images for: {manga.Name}");
@@ -484,80 +481,6 @@ namespace ShounenGaming.Business.Services.Mangas
                 }
             }
             return chaptersSavedIds;
-        }
-        private async Task DownloadImagesFromMangaChapters(Core.Entities.Mangas.Manga manga, List<int> chaptersSavedIds)
-        {
-            // Download Images per sources
-            foreach (var source in manga.Sources)
-            {
-                try
-                {
-                    // Save PT only
-                    var scrapperEnum = (MangaSourceEnumDTO)Enum.Parse(typeof(MangaSourceEnumDTO), source.Source);
-                    var scrapper = _scrappers.First(s => s.GetMangaSourceEnumDTO() == scrapperEnum);
-                    if (scrapper.GetLanguage() != MangaTranslationEnumDTO.PT) continue;
-
-                    var fetchedManga = await scrapper.GetManga(source.Url);
-                    if (fetchedManga.Chapters == null || fetchedManga.Chapters.Count == 0) continue;
-                    var chapters = manga.Chapters.Where(c => c.Translations.Any(t => t.Language == TranslationLanguageEnum.PT && !t.Downloaded));
-                    foreach (var chapter in chapters)
-                    {
-                        try
-                        {
-                            var fetchedChapter = fetchedManga.Chapters
-                                .First(c => c.Name.Split(":").First().Split("-").First().Split(" ").First().Replace(",", ".").Trim() ==
-                                chapter.Name.ToString().Replace(",", "."));
-
-
-                            var translation = chapter.Translations.First(t => t.Language == TranslationLanguageEnum.PT && !t.Downloaded);
-                            if (await SaveImage(scrapper, TranslationLanguageEnum.PT, manga.Name, chapter.Name.ToString(), fetchedChapter.Link))
-                            {
-                                await Task.Delay(2000);
-                            }
-
-                            translation.Downloaded = true;
-
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(ex, "Problem saving Image");
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    Log.Error(e, "Problem saving Image with Source");
-                }
-            }
-
-        }
-        private async Task<bool> SaveImage(IBaseMangaScrapper scrapper, TranslationLanguageEnum scrapperTranslation, string mangaName, string chapterName, string chapterLink, bool replace = false)
-        {
-            try
-            {
-                var mangaNameSimplified = mangaName.NormalizeStringToDirectory();
-                var folderPath = MangasHelper.BuildTranslationFolderPath(mangaNameSimplified, scrapperTranslation.ToString().ToLower(), chapterName.NormalizeStringToDirectory());
-                if (Directory.Exists(folderPath) && !replace)
-                    return false;
-
-
-                var chapterPages = await scrapper.GetChapterImages(chapterLink);
-                for (int i = 0; i < chapterPages.Count; i++)
-                {
-                    using WebClient webClient = new();
-                    webClient.Headers.Add("user-agent", "User Agent");
-                    var page = chapterPages[i];
-                    webClient.Headers.Add("referer", $"{scrapper.GetBaseURLForManga()}/{chapterLink}");
-
-                    var data = webClient.DownloadData(page);
-                    await _imageService.SaveImage(data, $"{folderPath}/{i}.{page.Split(".").Last()}");
-                }
-                return true;
-            }
-            catch (Exception ex)
-            {
-                throw new SavingImageException(ex.Message);
-            }
         }
         #endregion
 

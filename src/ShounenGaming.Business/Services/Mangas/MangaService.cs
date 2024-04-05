@@ -646,6 +646,14 @@ namespace ShounenGaming.Business.Services.Mangas
             return result!;
         }
 
+        public async Task DownloadImages(int id)
+        {
+            var manga = await _mangaRepo.GetById(id);
+            if (manga is null)
+                throw new EntityNotFoundException("Manga");
+
+            await _mangasHelper.DownloadImagesFromMangaChapters(manga);
+        }
 
         public async Task<MangaDTO> AddManga(MangaMetadataSourceEnumDTO source, long mangaId, int userId)
         {
