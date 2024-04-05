@@ -4,6 +4,7 @@ using ShounenGaming.DTOs.Models.Mangas.Enums;
 using ShounenGaming.DTOs.Models.Mangas;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using ShounenGaming.Business.Helpers;
 
 namespace ShounenGaming.API.Controllers.Mangas
 {
@@ -293,6 +294,14 @@ namespace ShounenGaming.API.Controllers.Mangas
         public async Task<IActionResult> DeleteDuplicated()
         {
             await _service.FixDuplicatedChapters();
+            return Ok();
+        }
+
+        [AllowAnonymous]
+        [HttpGet("download/{id}")]
+        public async Task<IActionResult> DownloadImages(int id)
+        {
+            await _service.DownloadImages(id);
             return Ok();
         }
     }
