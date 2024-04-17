@@ -74,22 +74,26 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
             var lastFound = true;
             var i = 1;
             var extensions = new List<string> { "jpg", "png" };
+            var urls = new List<string> { "https://cdn.plaquiz.xyz/uploads/", "https://neogoog.xyz/uploads/" };
             while (lastFound)
             {
                 lastFound = false;
                 for (int j = 0; j < extensions.Count && !lastFound; j++)
                 {
-                    var url = $"https://cdn.plaquiz.xyz/uploads/{name.First()}/{name}/{chapter}/{i}.{extensions[j]}";
-                    try
+                    foreach (var url in urls)
                     {
-                        HttpResponseMessage response = await client.GetAsync(url);
-                        if (response.IsSuccessStatusCode)
+                        var builtUrl = $"{url}{name.First()}/{name}/{chapter}/{i}.{extensions[j]}";
+                        try
                         {
-                            imagesUrls.Add(url);
-                            lastFound = true;
+                            HttpResponseMessage response = await client.GetAsync(builtUrl);
+                            if (response.IsSuccessStatusCode)
+                            {
+                                imagesUrls.Add(builtUrl);
+                                lastFound = true;
+                            }
                         }
+                        catch { }
                     }
-                    catch { }
                 }
 
                 i++;
