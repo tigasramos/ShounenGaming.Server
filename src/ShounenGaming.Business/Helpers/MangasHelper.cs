@@ -116,10 +116,9 @@ namespace ShounenGaming.Business.Helpers
                             var translation = chapter.Translations.First(t => t.Language == TranslationLanguageEnum.PT && !t.Downloaded);
                             if (await SaveImage(scrapper, TranslationLanguageEnum.PT, manga.Name, chapter.Name.ToString(), fetchedChapter.Link))
                             {
+                                translation.Downloaded = true;
                                 await Task.Delay(2000);
                             }
-
-                            translation.Downloaded = true;
 
                         }
                         catch (Exception ex)
@@ -141,10 +140,7 @@ namespace ShounenGaming.Business.Helpers
             {
                 var mangaNameSimplified = mangaName.NormalizeStringToDirectory();
                 var folderPath = MangasHelper.BuildTranslationFolderPath(mangaNameSimplified, scrapperTranslation.ToString().ToLower(), chapterName.NormalizeStringToDirectory());
-                if (Directory.Exists(folderPath) && !replace)
-                    return false;
-
-
+                
                 var chapterPages = await scrapper.GetChapterImages(chapterLink);
                 for (int i = 0; i < chapterPages.Count; i++)
                 {

@@ -97,14 +97,18 @@ namespace ShounenGaming.Business.Services.Mangas
 
             // ----- Fetch Images -----
             // Saved in File Server
-            if (mangaTranslation.Downloaded)
+            try
             {
                 var mangaNameSimplified = manga.Name.NormalizeStringToDirectory();
-                var files = await _imageService.GetChapterImages(mangaNameSimplified, 
-                    mangaChapter.Name.ToString().NormalizeStringToDirectory(), 
+                var files = await _imageService.GetChapterImages(mangaNameSimplified,
+                    mangaChapter.Name.ToString().NormalizeStringToDirectory(),
                     mangaTranslation.Language.ToString().ToLower());
-                
+
                 return _mangasHelper.MapMangaTranslation(mangaTranslation, selectedSource, files, user.MangasConfigurations.SkipChapterToAnotherTranslation);
+            } 
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error Fetching Manga Images from Server");
             }
 
             // Not Saved (Fetch from Websites)
@@ -125,7 +129,7 @@ namespace ShounenGaming.Business.Services.Mangas
                     var mangaInfo = await _cacheHelper.GetOrSetCache(CacheHelper.CacheKey.SCRAPPED_MANGA, async _ =>
                     {
                         return await scrapper!.GetManga(source.Url);
-                    }, mangaId.ToString());
+                    }, mangaId.ToString() + "_" + source.Source);
 
                     foreach (var c in mangaInfo!.Chapters)
                     {
@@ -141,7 +145,6 @@ namespace ShounenGaming.Business.Services.Mangas
                             return _mangasHelper.MapMangaTranslation(mangaTranslation, selectedSource, pages, user.MangasConfigurations.SkipChapterToAnotherTranslation);
                         }
                     }
-                    
                 }
                 catch (Exception ex)
                 {
