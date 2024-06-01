@@ -13,7 +13,6 @@ namespace ShounenGaming.Core.Entities.Mangas
         public DateTime? ReleasedDate { get; set; }
 
         public bool IsWorking { get; set; }
-        public bool Downloaded { get; set; }
 
         public int MangaChapterId { get; set; }
         public virtual MangaChapter MangaChapter { get; set; }

@@ -4,7 +4,9 @@ using ShounenGaming.Business.Services.Mangas_Scrappers.Models;
 using ShounenGaming.DTOs.Models.Mangas;
 using ShounenGaming.DTOs.Models.Mangas.Enums;
 using System.Globalization;
+using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Web;
 
 namespace ShounenGaming.Business.Services.Mangas_Scrappers
@@ -88,13 +90,19 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
 
         public async Task<List<MangaSourceDTO>> SearchManga(string name)
         {
-            var web = new HtmlWeb();
             var mangasList = new List<MangaSourceDTO>();
             var currentPage = 1;
 
             try
             {
-                var htmlDoc = await web.LoadFromWebAsync($"https://huntersscan.xyz/page/{currentPage}/?s={name.Replace(" ", "+")}&post_type=wp-manga&op&author&artist&release&adult");
+                using var client = _httpClientFactory.CreateClient();
+                var message = new HttpRequestMessage(HttpMethod.Get, $"https://huntersscan.xyz/page/{currentPage}/?s={name.Replace(" ", "+")}&post_type=wp-manga&op&author&artist&release&adult");
+                message.Headers.Add("Cookie", "visited=true; cookielawinfo-checkbox-necessary=yes; cookielawinfo-checkbox-functional=no; cookielawinfo-checkbox-performance=no; cookielawinfo-checkbox-analytics=no; cookielawinfo-checkbox-advertisement=no; cookielawinfo-checkbox-others=no");
+                var result = await client.SendAsync(message);
+
+                var htmlDoc = new HtmlDocument();
+                htmlDoc.LoadHtml(await result.Content.ReadAsStringAsync());
+
                 var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//div[@class='row c-tabs-item__content']");
                 if (mangasFetched == null || !mangasFetched.Any())
                     return mangasList;

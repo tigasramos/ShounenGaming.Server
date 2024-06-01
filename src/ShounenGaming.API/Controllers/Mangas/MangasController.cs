@@ -289,7 +289,6 @@ namespace ShounenGaming.API.Controllers.Mangas
         }
         #endregion
 
-        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> DeleteDuplicated()
         {
@@ -297,11 +296,28 @@ namespace ShounenGaming.API.Controllers.Mangas
             return Ok();
         }
 
-        [AllowAnonymous]
-        [HttpGet("download/{id}")]
-        public async Task<IActionResult> DownloadImages(int id)
+        /// <summary>
+        /// Starts downloading all images for current manga
+        /// </summary>
+        /// <param name="mangaId"></param>
+        /// <param name="force">Forces replacement or just adds</param>
+        /// <returns></returns>
+        [HttpPatch("{id}/download")]
+        public async Task<IActionResult> DownloadImagesFromManga(int mangaId, [FromQuery] bool force = false)
         {
-            await _service.DownloadImages(id);
+            await _service.DownloadImagesFromManga(mangaId);
+            return Ok();
+        }
+
+        /// <summary>
+        /// Starts download all images for current chapter and forces replacement
+        /// </summary>
+        /// <param name="chapterId"></param>
+        /// <returns></returns>
+        [HttpPatch("chapter/download/{id}")]
+        public async Task<IActionResult> DownloadImagesFromMangaChapter(int chapterId)
+        {
+            await _service.DownloadImagesFromMangaChapter(chapterId);
             return Ok();
         }
     }

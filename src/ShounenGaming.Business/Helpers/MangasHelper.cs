@@ -89,21 +89,26 @@ namespace ShounenGaming.Business.Helpers
             _cacheHelper = cacheHelper;
         }
 
-        public async Task DownloadImagesFromMangaChapters(Core.Entities.Mangas.Manga manga)
+        public async Task DownloadImagesFromManga(Core.Entities.Mangas.Manga manga, bool force = false)
         {
+            var downloadedManga = await _imageService.GetAllMangaChapters(manga.Name.NormalizeStringToDirectory());
+
             // Download Images per sources
             foreach (var source in manga.Sources)
             {
                 try
                 {
-                    // Save PT only
+                    // Get Scrapper
                     var scrapperEnum = (MangaSourceEnumDTO)Enum.Parse(typeof(MangaSourceEnumDTO), source.Source);
                     var scrapper = _scrappers.First(s => s.GetMangaSourceEnumDTO() == scrapperEnum);
                     if (scrapper.GetLanguage() != MangaTranslationEnumDTO.PT) continue;
 
+                    // Search Manga from Scrapper
                     var fetchedManga = await scrapper.GetManga(source.Url);
                     if (fetchedManga.Chapters == null || fetchedManga.Chapters.Count == 0) continue;
-                    var chapters = manga.Chapters.Where(c => c.Translations.Any(t => t.Language == TranslationLanguageEnum.PT && !t.Downloaded));
+
+                    // Select Chapters to Download
+                    var chapters = manga.Chapters.Where(c => c.Translations.Any(t => t.Language == TranslationLanguageEnum.PT));
                     foreach (var chapter in chapters)
                     {
                         try
@@ -112,11 +117,15 @@ namespace ShounenGaming.Business.Helpers
                                 .First(c => c.Name.Split(":").First().Split("-").First().Split(" ").First().Replace(",", ".").Trim() ==
                                 chapter.Name.ToString().Replace(",", "."));
 
+                            // Filter out already downloaded (if not forced)
+                            if ((downloadedManga?.Chapters.Any(c => c.Name == fetchedChapter.Name) ?? false) && !force)
+                                continue;
+                            
 
-                            var translation = chapter.Translations.First(t => t.Language == TranslationLanguageEnum.PT && !t.Downloaded);
+                            var translation = chapter.Translations.First(t => t.Language == TranslationLanguageEnum.PT);
                             if (await SaveImage(scrapper, TranslationLanguageEnum.PT, manga.Name, chapter.Name.ToString(), fetchedChapter.Link))
                             {
-                                translation.Downloaded = true;
+                                translation.IsWorking = true;
                                 await Task.Delay(2000);
                             }
 
@@ -133,6 +142,7 @@ namespace ShounenGaming.Business.Helpers
                 }
             }
 
+            await _mangaRepo.Update(manga);
         }
         private async Task<bool> SaveImage(IBaseMangaScrapper scrapper, TranslationLanguageEnum scrapperTranslation, string mangaName, string chapterName, string chapterLink, bool replace = false)
         {
@@ -151,6 +161,7 @@ namespace ShounenGaming.Business.Helpers
 
                     var data = webClient.DownloadData(page);
                     await _imageService.SaveImage(data, $"{folderPath}/{i}.{page.Split(".").Last()}");
+                    await Task.Delay(200);
                 }
                 return true;
             }
@@ -160,6 +171,48 @@ namespace ShounenGaming.Business.Helpers
             }
         }
 
+        public async Task DownloadImagesFromMangaChapter(Core.Entities.Mangas.MangaChapter chapter, bool force = false)
+        {
+            foreach (var source in chapter.Manga.Sources)
+            {
+                try
+                {
+                    // Get Scrapper
+                    var scrapperEnum = (MangaSourceEnumDTO)Enum.Parse(typeof(MangaSourceEnumDTO), source.Source);
+                    var scrapper = _scrappers.First(s => s.GetMangaSourceEnumDTO() == scrapperEnum);
+                    if (scrapper.GetLanguage() != MangaTranslationEnumDTO.PT) continue;
+
+                    // Search Manga from Scrapper
+                    var fetchedManga = await scrapper.GetManga(source.Url);
+                    if (fetchedManga.Chapters == null || fetchedManga.Chapters.Count == 0) throw new Exception("Chapter Not Found");
+                    try
+                    {
+                        var fetchedChapter = fetchedManga.Chapters
+                            .First(c => c.Name.Split(":").First().Split("-").First().Split(" ").First().Replace(",", ".").Trim() ==
+                            chapter.Name.ToString().Replace(",", "."));
+
+
+                        var translation = chapter.Translations.First(t => t.Language == TranslationLanguageEnum.PT);
+                        if (await SaveImage(scrapper, TranslationLanguageEnum.PT, chapter.Manga.Name, chapter.Name.ToString(), fetchedChapter.Link))
+                        {
+                            translation.IsWorking = true;
+                            await Task.Delay(2000);
+                        }
+
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Problem saving Image");
+                    }
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, "Problem saving Image with Source");
+                }
+            }
+
+            await _mangaRepo.Update(chapter.Manga);
+        }
 
         #region Add Manga
 

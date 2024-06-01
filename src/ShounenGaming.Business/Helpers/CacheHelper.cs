@@ -87,6 +87,10 @@ namespace ShounenGaming.Business.Helpers
             else if (new List<CacheKey> { CacheKey.SEARCHED_MAL, CacheKey.SEARCHED_AL }.Contains(key))
             {
                 options = new FusionCacheEntryOptions(TimeSpan.FromDays(1));
+            } 
+            else
+            {
+                options = new FusionCacheEntryOptions(TimeSpan.FromMinutes(30));
             }
 
             var result = await _fusionCache.GetOrSetAsync<T>(keyString + (keyExtra != null ? "_" + keyExtra : ""), factory, options);

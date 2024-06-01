@@ -97,18 +97,21 @@ namespace ShounenGaming.Business.Services.Mangas
 
             // ----- Fetch Images -----
             // Saved in File Server
-            try
+            if (translation == MangaTranslationEnumDTO.PT)
             {
-                var mangaNameSimplified = manga.Name.NormalizeStringToDirectory();
-                var files = await _imageService.GetChapterImages(mangaNameSimplified,
-                    mangaChapter.Name.ToString().NormalizeStringToDirectory(),
-                    mangaTranslation.Language.ToString().ToLower());
+                try
+                {
+                    var mangaNameSimplified = manga.Name.NormalizeStringToDirectory();
+                    var files = await _imageService.GetChapterImages(mangaNameSimplified,
+                        mangaChapter.Name.ToString().NormalizeStringToDirectory(),
+                        mangaTranslation.Language.ToString().ToLower());
 
-                return _mangasHelper.MapMangaTranslation(mangaTranslation, selectedSource, files, user.MangasConfigurations.SkipChapterToAnotherTranslation);
-            } 
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Error Fetching Manga Images from Server");
+                    return _mangasHelper.MapMangaTranslation(mangaTranslation, selectedSource, files, user.MangasConfigurations.SkipChapterToAnotherTranslation);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Error Fetching Manga Images from Server");
+                }
             }
 
             // Not Saved (Fetch from Websites)
@@ -649,15 +652,6 @@ namespace ShounenGaming.Business.Services.Mangas
             return result!;
         }
 
-        public async Task DownloadImages(int id)
-        {
-            var manga = await _mangaRepo.GetById(id);
-            if (manga is null)
-                throw new EntityNotFoundException("Manga");
-
-            await _mangasHelper.DownloadImagesFromMangaChapters(manga);
-        }
-
         public async Task<MangaDTO> AddManga(MangaMetadataSourceEnumDTO source, long mangaId, int userId)
         {
             var user = await _userRepository.GetById(userId) ?? throw new EntityNotFoundException("User");
@@ -721,5 +715,22 @@ namespace ShounenGaming.Business.Services.Mangas
             }
         }
 
+        public async Task DownloadImagesFromManga(int mangaId, bool force = false)
+        {
+            var manga = await _mangaRepo.GetById(mangaId);
+            if (manga is null)
+                throw new EntityNotFoundException("Manga");
+
+            await _mangasHelper.DownloadImagesFromManga(manga, force);
+        }
+
+        public async Task DownloadImagesFromMangaChapter(int chapterId, bool force = false)
+        {
+            var chapter = await _mangaChapterRepo.GetById(chapterId);
+            if (chapter is null)
+                throw new EntityNotFoundException("MangaChapter");
+
+            await _mangasHelper.DownloadImagesFromMangaChapter(chapter, force);
+        }
     }
 }

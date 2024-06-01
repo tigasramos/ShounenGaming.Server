@@ -169,6 +169,18 @@ namespace ShounenGaming.Business.Interfaces.Mangas
 
         Task FixDuplicatedChapters();
 
-        Task DownloadImages(int id);
+        /// <summary>
+        /// Downloads the images for a certain manga
+        /// </summary>
+        /// <param name="mangaId"></param>
+        /// <returns></returns>
+        Task DownloadImagesFromManga(int mangaId, bool force = false);
+
+        /// <summary>
+        /// Downloads the images for a certain chapter
+        /// </summary>
+        /// <param name="chapterId"></param>
+        /// <returns></returns>
+        Task DownloadImagesFromMangaChapter(int chapterId, bool force = false);
     }
 }

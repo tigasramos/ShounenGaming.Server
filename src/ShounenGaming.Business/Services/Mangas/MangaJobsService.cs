@@ -9,9 +9,7 @@ using ShounenGaming.DataAccess.Interfaces.Base;
 using ShounenGaming.DataAccess.Interfaces.Mangas;
 using ShounenGaming.DTOs.Models.Mangas.Enums;
 using System.Globalization;
-using ShounenGaming.Business.Services.Mangas_Scrappers;
 using ShounenGaming.Business.Exceptions;
-using System.Net;
 using ShounenGaming.DTOs.Models.Base;
 using ShounenGaming.DTOs.Models.Mangas;
 using ShounenGaming.Business.Services.Mangas_Scrappers.Models;
@@ -408,80 +406,81 @@ namespace ShounenGaming.Business.Services.Mangas
         #endregion
 
         #region Download & Get Images
-        public async Task DownloadImagesAndUpdateChapters()
-        {
-            var mangas = await _mangaRepo.GetAll();
-            foreach (var manga in mangas)
-            {
-                Log.Information($"Updating Images for: {manga.Name}");
+        //public async Task DownloadImagesAndUpdateChapters()
+        //{
+        //    var mangas = await _mangaRepo.GetAll();
+        //    foreach (var manga in mangas)
+        //    {
+        //        Log.Information($"Updating Images for: {manga.Name}");
 
-                var chaptersSavedIds = await CheckImagesSavedInFileServer(manga);
-                await _mangasHelper.DownloadImagesFromMangaChapters(manga);
+        //        var chaptersSavedIds = await CheckImagesSavedInFileServer(manga);
+        //        await _mangasHelper.DownloadImagesFromMangaChapters(manga);
 
-                await _mangaRepo.Update(manga);
-                Log.Information($"Done Downloading Images for: {manga.Name}");
-            }
-        }
-        private async Task<List<int>> CheckImagesSavedInFileServer(Core.Entities.Mangas.Manga manga)
-        {
-            var chaptersSavedIds = new List<int>();
+        //        await _mangaRepo.Update(manga);
+        //        Log.Information($"Done Downloading Images for: {manga.Name}");
+        //    }
+        //}
+        //private async Task<List<int>> CheckImagesSavedInFileServer(Core.Entities.Mangas.Manga manga)
+        //{
+        //    var chaptersSavedIds = new List<int>();
 
-            // Check Already Saved Images
-            var mangaImagesStatus = await _imageService.GetAllMangaChapters(manga.Name.NormalizeStringToDirectory());
-            if (mangaImagesStatus is null)
-                return new List<int>();
+        //    // Check Already Saved Images
+        //    var mangaImagesStatus = await _imageService.GetAllMangaChapters(manga.Name.NormalizeStringToDirectory());
+        //    if (mangaImagesStatus is null)
+        //        return new List<int>();
 
-            foreach (var chapterStatus in mangaImagesStatus.Chapters)
-            {
-                var chapter = manga.Chapters.SingleOrDefault(c => chapterStatus.Name.Replace("-", ".").Trim() == c.Name.ToString().Trim());
-                if (chapter == null)
-                {
-                    if (!double.TryParse(chapterStatus.Name.Replace("-", "."), NumberStyles.Any, NumberFormatInfo.InvariantInfo, out var number))
-                        continue;
+        //    foreach (var chapterStatus in mangaImagesStatus.Chapters)
+        //    {
+        //        var chapter = manga.Chapters.SingleOrDefault(c => chapterStatus.Name.Replace("-", ".").Trim() == c.Name.ToString().Trim());
+        //        if (chapter == null)
+        //        {
+        //            if (!double.TryParse(chapterStatus.Name.Replace("-", "."), NumberStyles.Any, NumberFormatInfo.InvariantInfo, out var number))
+        //                continue;
 
-                    var translationEnum = chapterStatus.Translation == "pt" ? TranslationLanguageEnum.PT : TranslationLanguageEnum.EN;
+        //            var translationEnum = chapterStatus.Translation == "pt" ? TranslationLanguageEnum.PT : TranslationLanguageEnum.EN;
 
-                    manga.Chapters.Add(new MangaChapter
-                    {
-                        Name = number,
-                        Translations = new List<MangaTranslation>
-                        {
-                            new MangaTranslation
-                            {
-                                Language = translationEnum,
-                                Downloaded = true,
-                                IsWorking = true,
-                                ReleasedDate = DateTime.UtcNow,
-                            }
-                        }
-                    });
-                }
-                else
-                {
-                    // Add only translation
-                    if (!chapter.Translations.Any(t => t.Language.ToString().ToLower() == chapterStatus.Translation))
-                    {
-                        chapter.Translations.Add(new MangaTranslation 
-                        {
-                            Downloaded = true,
-                            IsWorking = true,
-                            Language = chapterStatus.Translation == "pt" ? TranslationLanguageEnum.PT : TranslationLanguageEnum.EN,
-                            ReleasedDate = DateTime.UtcNow,
-                            MangaChapterId = chapter.Id
-                        });
-                    }
+        //            manga.Chapters.Add(new MangaChapter
+        //            {
+        //                Name = number,
+        //                Translations = new List<MangaTranslation>
+        //                {
+        //                    new MangaTranslation
+        //                    {
+        //                        Language = translationEnum,
+        //                        Downloaded = true,
+        //                        IsWorking = true,
+        //                        ReleasedDate = DateTime.UtcNow,
+        //                    }
+        //                }
+        //            });
+        //        }
+        //        else
+        //        {
+        //            // Add only translation
+        //            if (!chapter.Translations.Any(t => t.Language.ToString().ToLower() == chapterStatus.Translation))
+        //            {
+        //                chapter.Translations.Add(new MangaTranslation 
+        //                {
+        //                    Downloaded = true,
+        //                    IsWorking = true,
+        //                    Language = chapterStatus.Translation == "pt" ? TranslationLanguageEnum.PT : TranslationLanguageEnum.EN,
+        //                    ReleasedDate = DateTime.UtcNow,
+        //                    MangaChapterId = chapter.Id
+        //                });
+        //            }
 
-                    foreach (var translation in chapter.Translations)
-                    {
-                        translation.Downloaded = translation.Language.ToString().ToLower() == chapterStatus.Translation;
-                        if (translation.Downloaded)
-                            translation.IsWorking = true;
-                    }
-                    chaptersSavedIds.Add(chapter.Id);
-                }
-            }
-            return chaptersSavedIds;
-        }
+        //            foreach (var translation in chapter.Translations)
+        //            {
+        //                translation.Downloaded = translation.Language.ToString().ToLower() == chapterStatus.Translation;
+        //                if (translation.Downloaded)
+        //                    translation.IsWorking = true;
+        //            }
+        //            chaptersSavedIds.Add(chapter.Id);
+        //        }
+        //    }
+        //    return chaptersSavedIds;
+        //}
+        
         #endregion
 
         #region New Chapters
@@ -501,12 +500,14 @@ namespace ShounenGaming.Business.Services.Mangas
             var manga = await _mangaRepo.GetById(queuedManga.MangaId);
             Log.Information($"Started Updating Chapters for {manga!.Name}");
 
+            var downloadedData = await _imageService.GetAllMangaChapters(manga.Name.NormalizeStringToDirectory());
             // Reset IsWorking Status
             foreach (var chapter in manga.Chapters)
             {
                 foreach (var translation in chapter.Translations)
                 {
-                    if (!translation.Downloaded)
+                    if (!downloadedData?.Chapters.Any(c => c.Translation == translation.Language.ToString().ToLower()
+                        && c.Name == chapter.Name.ToString()) ?? true)
                         translation.IsWorking = false;
                 }
             }
@@ -681,7 +682,6 @@ namespace ShounenGaming.Business.Services.Mangas
                                 ReleasedDate = chapter.ReleasedAt is not null ? DateTime.SpecifyKind(chapter.ReleasedAt.Value, DateTimeKind.Utc) : null,
                                 Language = scrapperTranslation,
                                 IsWorking = true,
-                                Downloaded = false
                             };
 
                             dbChapter.Translations.Add(translation);
@@ -713,7 +713,7 @@ namespace ShounenGaming.Business.Services.Mangas
                             await Task.Delay(1500);
                         }
                     }
-                    else if (dbTranslation.IsWorking || dbTranslation.Downloaded)
+                    else if (dbTranslation.IsWorking)
                     {
                         //Avoid rewriting a chapter already working
                         continue;
