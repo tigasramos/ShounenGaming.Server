@@ -12,13 +12,13 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
 
         public string GetBaseURLForManga()
         {
-            return "https://mangaclash.com/manga/";
+            return "https://toonclash.com/manga/";
         }
 
         public async Task<List<string>> GetChapterImages(string urlPart)
         {
             var web = new HtmlWeb();
-            var htmlDoc = await web.LoadFromWebAsync($"https://mangaclash.com/manga/{urlPart}");
+            var htmlDoc = await web.LoadFromWebAsync($"https://toonclash.com/manga/{urlPart}");
 
             List<string> imagesUrls = new();
             var images = htmlDoc.DocumentNode.SelectNodes("//div[@class='page-break ']/img");
@@ -40,7 +40,7 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
         public async Task<ScrappedManga> GetManga(string urlPart)
         {
             var web = new HtmlWeb();
-            var htmlDoc = await web.LoadFromWebAsync($"https://mangaclash.com/manga/{urlPart}");
+            var htmlDoc = await web.LoadFromWebAsync($"https://toonclash.com/manga/{urlPart}");
             var mangaName = htmlDoc.DocumentNode.SelectSingleNode("//div[@class='post-title']/h1")?.InnerText.Trim() ?? "";
             var mangaDescription = htmlDoc.DocumentNode.SelectNodes("//div[@class='summary__content show-more']/p").Select(n => n.InnerText.Trim()).Aggregate((a, b) => a + b) ?? "";
             var imageUrl = htmlDoc.DocumentNode.SelectSingleNode("//div[@class='summary_image']/a/img")?.GetAttributeValue("data-src", "") ?? "";
@@ -54,7 +54,7 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
                 chapters.Add(new ScrappedChapter
                 {
                     Name = chapterName.Trim(),
-                    Link = chapterUrl.Replace("https://mangaclash.com/manga/", ""),
+                    Link = chapterUrl.Replace("https://toonclash.com/manga/", ""),
                 });
             }
             chapters.Reverse();
@@ -80,7 +80,7 @@ namespace ShounenGaming.Business.Services.Mangas_Scrappers
             try
             {
 
-                var htmlDoc = await web.LoadFromWebAsync($"https://mangaclash.com/?s={name.Replace(" ", "+")}&post_type=wp-manga");
+                var htmlDoc = await web.LoadFromWebAsync($"https://toonclash.com/?s={name.Replace(" ", "+")}&post_type=wp-manga");
                 var mangasFetched = htmlDoc.DocumentNode.SelectNodes("//div[@class='row c-tabs-item__content']");
                 if (mangasFetched == null || !mangasFetched.Any()) return mangasList;
 

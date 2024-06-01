@@ -117,13 +117,12 @@ namespace ShounenGaming.Common
                     scheduler.Schedule<FetchMangaChaptersJobListener>().Monthly().RunOnceAtStart().PreventOverlapping("MangasChapters_Listener");
 
                     scheduler.OnWorker("Mangas");
-                    scheduler.Schedule<AddOrUpdateMangasMetadataJob>().DailyAt(0, 0).RunOnceAtStart(); // 0
+                    scheduler.Schedule<AddOrUpdateMangasMetadataJob>().DailyAt(2, 0).RunOnceAtStart(); // 0
                     scheduler.Schedule<FetchAllMangasChaptersJob>().Cron("0 4,12,20 * * *").RunOnceAtStart(); // 4, 12, 20
                     scheduler.Schedule<FetchSeasonMangasJob>().DailyAt(8, 0).RunOnceAtStart(); // 8
 
-                    scheduler.OnWorker("Downloader");
-                    scheduler.Schedule<DownloadChapterImagesJob>().DailyAt(6, 0).RunOnceAtStart().PreventOverlapping("DownloadImages"); // 6
-
+                    scheduler.OnWorker("TestScrappers");
+                    scheduler.Schedule<TestScrappersJob>().DailyAt(0, 0).RunOnceAtStart();
                 } 
                 else
                 {
@@ -137,8 +136,8 @@ namespace ShounenGaming.Common
                     scheduler.Schedule<FetchAllMangasChaptersJob>().Monthly();
                     scheduler.Schedule<FetchSeasonMangasJob>().DailyAt(3, 0);
 
-                    scheduler.OnWorker("Downloader");
-                    scheduler.Schedule<DownloadChapterImagesJob>().DailyAt(00, 50).PreventOverlapping("DownloadImages");
+                    scheduler.OnWorker("TestScrappers");
+                    scheduler.Schedule<TestScrappersJob>().DailyAt(0, 0).RunOnceAtStart();
                 }
                 
 
@@ -288,10 +287,10 @@ namespace ShounenGaming.Common
 
             //Schedules
             services.AddTransient<FetchAllMangasChaptersJob>();
-            services.AddTransient<DownloadChapterImagesJob>();
             services.AddTransient<FetchMangaChaptersJobListener>();
             services.AddTransient<AddOrUpdateMangasMetadataJob>();
             services.AddTransient<FetchSeasonMangasJob>();
+            services.AddTransient<TestScrappersJob>();
 
             //Services
             services.AddTransient<IAuthService, AuthService>();
@@ -311,16 +310,16 @@ namespace ShounenGaming.Common
             //Scrappers
             services.AddTransient<IBaseMangaScrapper, ManganatoScrapper>();
             //services.AddTransient<IBaseMangaScrapper, GekkouScansScrapper>();
-            services.AddTransient<IBaseMangaScrapper, HuntersScansScrapper>();
-            services.AddTransient<IBaseMangaScrapper, NeoXScansScrapper>();
+            //services.AddTransient<IBaseMangaScrapper, HuntersScansScrapper>();
+            //services.AddTransient<IBaseMangaScrapper, NeoXScansScrapper>();
             services.AddTransient<IBaseMangaScrapper, SilenceScansScrapper>();
-            services.AddTransient<IBaseMangaScrapper, DiskusScanScrapper>();
+            //services.AddTransient<IBaseMangaScrapper, DiskusScanScrapper>();
             //services.AddTransient<IBaseMangaScrapper, YesMangasScrapper>();
             services.AddTransient<IBaseMangaScrapper, MangaDexPTScrapper>();
             services.AddTransient<IBaseMangaScrapper, MangaDexENScrapper>();
             services.AddTransient<IBaseMangaScrapper, MangaClashScrapper>();
-            services.AddTransient<IBaseMangaScrapper, BRMangasScrapper>();
-            services.AddTransient<IBaseMangaScrapper, RandomScanScrapper>();
+            //services.AddTransient<IBaseMangaScrapper, BRMangasScrapper>();
+            //services.AddTransient<IBaseMangaScrapper, RandomScanScrapper>();
             services.AddTransient<IBaseMangaScrapper, SaikaiScansScrapper>();
             services.AddTransient<IBaseMangaScrapper, HentaiTecaScrapper>();
 

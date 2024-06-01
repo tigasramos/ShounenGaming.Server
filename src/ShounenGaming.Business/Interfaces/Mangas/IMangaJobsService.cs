@@ -1,10 +1,4 @@
 ﻿using ShounenGaming.Business.Helpers;
-using ShounenGaming.DTOs.Models.Mangas;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ShounenGaming.Business.Interfaces.Mangas
 {
@@ -15,8 +9,6 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         Task AddNewSeasonMangas();
 
         Task<int> UpdateAllMangasMetadata();
-
-        Task DownloadImagesAndUpdateChapters();
 
         Task AddAllMangasToChaptersQueue(); 
         Task UpdateMangaChapters(QueuedManga queuedManga);
