@@ -92,10 +92,12 @@ namespace ShounenGaming.Business.Helpers
         public async Task DownloadImagesFromManga(Core.Entities.Mangas.Manga manga, bool force = false)
         {
             var downloadedManga = await _imageService.GetAllMangaChapters(manga.Name.NormalizeStringToDirectory());
+            var downloadedChapters = new List<string>();
 
             // Download Images per sources
             foreach (var source in manga.Sources)
             {
+                Log.Information($"Downloading Images for Source: {source.Name}");
                 try
                 {
                     // Get Scrapper
@@ -117,11 +119,16 @@ namespace ShounenGaming.Business.Helpers
                                 .First(c => c.Name.Split(":").First().Split("-").First().Split(" ").First().Replace(",", ".").Trim() ==
                                 chapter.Name.ToString().Replace(",", "."));
 
-                            // Filter out already downloaded (if not forced)
-                            if ((downloadedManga?.Chapters.Any(c => c.Name == fetchedChapter.Name) ?? false) && !force)
-                                continue;
-                            
+                            Log.Information($"Checking Chapter: {fetchedChapter.Name}");
 
+                            // Filter out already downloaded (if not forced)
+                            if ((downloadedManga?.Chapters.Any(c => c.Name == fetchedChapter.Name) ?? false) && !force 
+                                || downloadedChapters.Contains(fetchedChapter.Name))
+                                continue;
+
+                            Log.Information($"Downloading Chapter: {fetchedChapter.Name}");
+
+                            downloadedChapters.Add(fetchedChapter.Name);
                             var translation = chapter.Translations.First(t => t.Language == TranslationLanguageEnum.PT);
                             if (await SaveImage(scrapper, TranslationLanguageEnum.PT, manga.Name, chapter.Name.ToString(), fetchedChapter.Link))
                             {
@@ -197,6 +204,7 @@ namespace ShounenGaming.Business.Helpers
                         {
                             translation.IsWorking = true;
                             await Task.Delay(2000);
+                            break;
                         }
 
                     }
