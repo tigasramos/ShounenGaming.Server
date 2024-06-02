@@ -137,7 +137,7 @@ namespace ShounenGaming.Common
                     scheduler.Schedule<FetchSeasonMangasJob>().DailyAt(3, 0);
 
                     scheduler.OnWorker("TestScrappers");
-                    scheduler.Schedule<TestScrappersJob>().DailyAt(0, 0).RunOnceAtStart();
+                    scheduler.Schedule<TestScrappersJob>().DailyAt(0, 0);
                 }
                 
 
