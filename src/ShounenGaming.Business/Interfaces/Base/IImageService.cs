@@ -16,6 +16,7 @@
     {
         public string Name { get; set; }
         public string Translation { get; set; }
+        public int Pages { get; set; }
     }
 }
 

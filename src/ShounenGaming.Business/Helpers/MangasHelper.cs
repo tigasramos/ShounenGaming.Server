@@ -122,7 +122,8 @@ namespace ShounenGaming.Business.Helpers
                             Log.Information($"Checking Chapter: {fetchedChapter.Name}");
 
                             // Filter out already downloaded (if not forced)
-                            if ((downloadedManga?.Chapters.Any(c => c.Name == fetchedChapter.Name) ?? false) && !force 
+                            var downloadedChapterData = downloadedManga?.Chapters.FirstOrDefault(c => c.Name == fetchedChapter.Name);
+                            if ((downloadedChapterData != null && !force && ((downloadedManga?.Chapters.Select(c => c.Pages).Average() / 2) - 3) < downloadedChapterData.Pages) 
                                 || downloadedChapters.Contains(fetchedChapter.Name))
                                 continue;
 
