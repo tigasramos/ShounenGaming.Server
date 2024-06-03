@@ -715,6 +715,16 @@ namespace ShounenGaming.Business.Services.Mangas
             }
         }
 
+        public async Task DownloadImagesFromAllMangas()
+        {
+            var mangas = await _mangaRepo.GetAll();
+            foreach (var manga in mangas)
+            {
+                await _mangasHelper.DownloadImagesFromManga(manga);
+                await Task.Delay(2000);
+            }
+        }
+
         public async Task DownloadImagesFromManga(int mangaId, bool force = false)
         {
             var manga = await _mangaRepo.GetById(mangaId);

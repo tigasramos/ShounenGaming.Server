@@ -121,6 +121,9 @@ namespace ShounenGaming.Common
                     scheduler.Schedule<FetchAllMangasChaptersJob>().Cron("0 4,12,20 * * *").RunOnceAtStart(); // 4, 12, 20
                     scheduler.Schedule<FetchSeasonMangasJob>().DailyAt(8, 0).RunOnceAtStart(); // 8
 
+                    scheduler.OnWorker("Downloader");
+                    scheduler.Schedule<DownloadChaptersImagesJob>().Weekly().Wednesday().RunOnceAtStart();
+
                     scheduler.OnWorker("TestScrappers");
                     scheduler.Schedule<TestScrappersJob>().DailyAt(0, 0).RunOnceAtStart();
                 } 
