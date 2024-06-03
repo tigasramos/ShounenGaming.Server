@@ -294,6 +294,7 @@ namespace ShounenGaming.Common
             services.AddTransient<AddOrUpdateMangasMetadataJob>();
             services.AddTransient<FetchSeasonMangasJob>();
             services.AddTransient<TestScrappersJob>();
+            services.AddTransient<DownloadChaptersImagesJob>();
 
             //Services
             services.AddTransient<IAuthService, AuthService>();
