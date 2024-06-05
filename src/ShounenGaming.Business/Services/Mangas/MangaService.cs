@@ -725,22 +725,22 @@ namespace ShounenGaming.Business.Services.Mangas
             }
         }
 
-        public async Task DownloadImagesFromManga(int mangaId, bool force = false)
+        public async Task DownloadImagesFromManga(int mangaId)
         {
             var manga = await _mangaRepo.GetById(mangaId);
             if (manga is null)
                 throw new EntityNotFoundException("Manga");
 
-            await _mangasHelper.DownloadImagesFromManga(manga, force);
+            await _mangasHelper.DownloadImagesFromManga(manga);
         }
 
-        public async Task DownloadImagesFromMangaChapter(int chapterId, bool force = false)
+        public async Task DownloadImagesFromMangaChapter(int chapterId)
         {
             var chapter = await _mangaChapterRepo.GetById(chapterId);
             if (chapter is null)
                 throw new EntityNotFoundException("MangaChapter");
 
-            await _mangasHelper.DownloadImagesFromMangaChapter(chapter, force);
+            await _mangasHelper.DownloadImagesFromMangaChapter(chapter);
         }
     }
 }

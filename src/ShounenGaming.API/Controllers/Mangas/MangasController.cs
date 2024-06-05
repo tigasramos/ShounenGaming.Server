@@ -300,12 +300,11 @@ namespace ShounenGaming.API.Controllers.Mangas
         /// Starts downloading all images for current manga
         /// </summary>
         /// <param name="mangaId"></param>
-        /// <param name="force">Forces replacement or just adds</param>
         /// <returns></returns>
         [HttpPatch("{mangaId}/download")]
-        public async Task<IActionResult> DownloadImagesFromManga(int mangaId, [FromQuery] bool force = false)
+        public async Task<IActionResult> DownloadImagesFromManga(int mangaId)
         {
-            await _service.DownloadImagesFromManga(mangaId, force);
+            await _service.DownloadImagesFromManga(mangaId);
             return Ok();
         }
 
@@ -313,12 +312,11 @@ namespace ShounenGaming.API.Controllers.Mangas
         /// Starts download all images for current chapter and forces replacement
         /// </summary>
         /// <param name="chapterId"></param>
-        /// <param name="force">Forces replacement or just adds</param>
         /// <returns></returns>
         [HttpPatch("chapter/download/{chapterId}")]
-        public async Task<IActionResult> DownloadImagesFromMangaChapter(int chapterId, [FromQuery] bool force = false)
+        public async Task<IActionResult> DownloadImagesFromMangaChapter(int chapterId)
         {
-            await _service.DownloadImagesFromMangaChapter(chapterId, force);
+            await _service.DownloadImagesFromMangaChapter(chapterId);
             return Ok();
         }
     }

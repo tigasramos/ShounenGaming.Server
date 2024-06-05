@@ -180,13 +180,13 @@ namespace ShounenGaming.Business.Interfaces.Mangas
         /// </summary>
         /// <param name="mangaId"></param>
         /// <returns></returns>
-        Task DownloadImagesFromManga(int mangaId, bool force = false);
+        Task DownloadImagesFromManga(int mangaId);
 
         /// <summary>
         /// Downloads the images for a certain chapter
         /// </summary>
         /// <param name="chapterId"></param>
         /// <returns></returns>
-        Task DownloadImagesFromMangaChapter(int chapterId, bool force = false);
+        Task DownloadImagesFromMangaChapter(int chapterId);
     }
 }
