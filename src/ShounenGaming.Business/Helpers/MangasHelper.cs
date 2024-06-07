@@ -89,7 +89,7 @@ namespace ShounenGaming.Business.Helpers
             _cacheHelper = cacheHelper;
         }
 
-        public async Task DownloadImagesFromManga(Core.Entities.Mangas.Manga manga, bool force = false)
+        public async Task DownloadImagesFromManga(Core.Entities.Mangas.Manga manga)
         {
             var downloadedManga = await _imageService.GetAllMangaChapters(manga.Name.NormalizeStringToDirectory());
             var downloadedChapters = new List<string>();
@@ -123,15 +123,14 @@ namespace ShounenGaming.Business.Helpers
 
                             // Filter out already downloaded (if not forced)
                             var downloadedChapterData = downloadedManga?.Chapters.FirstOrDefault(c => c.Name == fetchedChapter.Name);
-                            if ((downloadedChapterData != null && !force && ((downloadedManga?.Chapters.Select(c => c.Pages).Average() / 2) - 3) < downloadedChapterData.Pages) 
-                                || downloadedChapters.Contains(fetchedChapter.Name))
+                            if (downloadedChapters.Contains(fetchedChapter.Name))
                                 continue;
 
                             Log.Information($"Downloading Chapter: {fetchedChapter.Name}");
 
                             downloadedChapters.Add(fetchedChapter.Name);
                             var translation = chapter.Translations.First(t => t.Language == TranslationLanguageEnum.PT);
-                            if (await SaveImage(scrapper, TranslationLanguageEnum.PT, manga.Name, chapter.Name.ToString(), fetchedChapter.Link))
+                            if (await SaveImage(scrapper, TranslationLanguageEnum.PT, manga.Name, chapter.Name.ToString(), fetchedChapter.Link, downloadedChapterData?.Pages))
                             {
                                 translation.IsWorking = true;
                                 await Task.Delay(2000);
@@ -152,7 +151,7 @@ namespace ShounenGaming.Business.Helpers
 
             await _mangaRepo.Update(manga);
         }
-        private async Task<bool> SaveImage(IBaseMangaScrapper scrapper, TranslationLanguageEnum scrapperTranslation, string mangaName, string chapterName, string chapterLink, bool replace = false)
+        private async Task<bool> SaveImage(IBaseMangaScrapper scrapper, TranslationLanguageEnum scrapperTranslation, string mangaName, string chapterName, string chapterLink, int? alreadyDownloadedPages = null)
         {
             try
             {
@@ -160,6 +159,10 @@ namespace ShounenGaming.Business.Helpers
                 var folderPath = MangasHelper.BuildTranslationFolderPath(mangaNameSimplified, scrapperTranslation.ToString().ToLower(), chapterName.NormalizeStringToDirectory());
                 
                 var chapterPages = await scrapper.GetChapterImages(chapterLink);
+
+                // Already has those pages
+                if (alreadyDownloadedPages != null && alreadyDownloadedPages >= chapterPages.Count) return true;
+
                 for (int i = 0; i < chapterPages.Count; i++)
                 {
                     using WebClient webClient = new();
@@ -179,7 +182,7 @@ namespace ShounenGaming.Business.Helpers
             }
         }
 
-        public async Task DownloadImagesFromMangaChapter(Core.Entities.Mangas.MangaChapter chapter, bool force = false)
+        public async Task DownloadImagesFromMangaChapter(Core.Entities.Mangas.MangaChapter chapter)
         {
             foreach (var source in chapter.Manga.Sources)
             {
